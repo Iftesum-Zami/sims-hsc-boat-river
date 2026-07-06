@@ -1,0 +1,2683 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HSC Physics — River Crossing Simulator | Chapter 2: Vectors</title>
+    <meta name="description" content="Interactive HSC Physics tool for mastering relative velocity and boat-river crossing problems. Covers minimum time, shortest path, minimum drift, and custom angle cases.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <!-- KaTeX for math rendering -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css" crossorigin="anonymous">
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js" crossorigin="anonymous"></script>
+    <style>
+        /* ===================== DESIGN TOKENS ===================== */
+        :root {
+            --bg-color:        #080d16;
+            --bg-grad-top:     #0f172a;
+            --card-bg:         rgba(15, 23, 42, 0.65);
+            --card-border:     rgba(255, 255, 255, 0.07);
+            --card-border-hover: rgba(255, 255, 255, 0.14);
+            --text-primary:    #f1f5f9;
+            --text-secondary:  #94a3b8;
+            --text-muted:      #64748b;
+
+            /* Physics vector colours */
+            --color-vb:       #00e5ff;   /* Cyan  — boat heading relative to water */
+            --color-vr:       #ff9f1c;   /* Amber — river current */
+            --color-vR:       #b06ef3;   /* Violet — resultant ground velocity */
+            --color-accent:   #10b981;   /* Emerald — min-time / success */
+            --color-warning:  #ef4444;   /* Red — error / impossible */
+            --color-info:     #38bdf8;   /* Sky — min-drift */
+
+            /* glow helpers */
+            --glow-vb:  rgba(0, 229, 255, 0.25);
+            --glow-vr:  rgba(255, 159, 28, 0.25);
+            --glow-vR:  rgba(176, 110, 243, 0.25);
+            --glow-acc: rgba(16, 185, 129, 0.25);
+
+            --font-main: 'Outfit', sans-serif;
+            --font-mono: 'JetBrains Mono', monospace;
+
+            --radius-sm:  0.5rem;
+            --radius-md:  0.75rem;
+            --radius-lg:  1rem;
+            --radius-xl:  1.25rem;
+
+            --transition: all 0.22s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        /* ===================== RESET ===================== */
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+        /* ===================== BASE ===================== */
+        body {
+            background: radial-gradient(ellipse 120% 60% at 50% -10%, var(--bg-grad-top), var(--bg-color) 70%);
+            color: var(--text-primary);
+            font-family: var(--font-main);
+            min-height: 100vh;
+            padding: 1.5rem;
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+
+        /* ===================== SCROLLBAR ===================== */
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: rgba(0,0,0,0.2); }
+        ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.12); border-radius: 3px; }
+        ::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.22); }
+
+        /* ===================== LAYOUT ===================== */
+        .container {
+            max-width: 1440px;
+            margin: 0 auto;
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+
+        /* ===================== CARD ===================== */
+        .card {
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: var(--radius-xl);
+            padding: 1.5rem;
+            backdrop-filter: blur(16px) saturate(1.4);
+            -webkit-backdrop-filter: blur(16px) saturate(1.4);
+            box-shadow: 0 8px 32px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.04);
+            transition: var(--transition);
+        }
+        .card:hover {
+            border-color: var(--card-border-hover);
+            box-shadow: 0 12px 48px rgba(0,0,0,0.5), 0 0 20px rgba(176,110,243,0.06), inset 0 1px 0 rgba(255,255,255,0.06);
+        }
+
+        /* ===================== HEADER ===================== */
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: var(--radius-xl);
+            padding: 1.1rem 2rem;
+            backdrop-filter: blur(16px) saturate(1.4);
+            -webkit-backdrop-filter: blur(16px) saturate(1.4);
+            box-shadow: 0 4px 24px rgba(0,0,0,0.35), inset 0 1px 0 rgba(255,255,255,0.04);
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .header-left { display: flex; align-items: center; gap: 1rem; }
+
+        .header-icon {
+            width: 40px; height: 40px;
+            background: linear-gradient(135deg, rgba(0,229,255,0.2), rgba(176,110,243,0.2));
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: var(--radius-md);
+            display: flex; align-items: center; justify-content: center;
+            font-size: 1.25rem;
+            flex-shrink: 0;
+        }
+
+        .header-title h1 {
+            font-size: 1.35rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, #ffffff 0%, var(--color-vb) 60%, var(--color-vR) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            line-height: 1.2;
+        }
+
+        .header-title p {
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+            margin-top: 0.1rem;
+        }
+
+        .header-right { display: flex; align-items: center; gap: 0.75rem; flex-shrink: 0; }
+
+        .hsc-badge {
+            background: rgba(16, 185, 129, 0.1);
+            color: var(--color-accent);
+            border: 1px solid rgba(16, 185, 129, 0.25);
+            padding: 0.2rem 0.7rem;
+            border-radius: 9999px;
+            font-size: 0.7rem;
+            font-weight: 600;
+            letter-spacing: 0.06em;
+            text-transform: uppercase;
+            white-space: nowrap;
+        }
+
+        /* ===================== UNIT TOGGLE ===================== */
+        .unit-toggle {
+            display: flex;
+            background: rgba(0,0,0,0.35);
+            padding: 0.2rem;
+            border-radius: var(--radius-sm);
+            border: 1px solid var(--card-border);
+            gap: 0.15rem;
+        }
+
+        .unit-btn {
+            background: transparent;
+            border: none;
+            color: var(--text-secondary);
+            padding: 0.35rem 0.9rem;
+            border-radius: calc(var(--radius-sm) - 2px);
+            cursor: pointer;
+            font-family: var(--font-main);
+            font-size: 0.8rem;
+            font-weight: 600;
+            transition: var(--transition);
+            white-space: nowrap;
+        }
+        .unit-btn.active {
+            background: rgba(255,255,255,0.1);
+            color: var(--text-primary);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.25);
+        }
+        .unit-btn:hover:not(.active) { color: var(--text-primary); }
+
+        /* ===================== DASHBOARD GRID ===================== */
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: 400px 1fr;
+            gap: 1.5rem;
+            align-items: start;
+        }
+
+        @media (max-width: 1100px) {
+            .dashboard-grid { grid-template-columns: 1fr; }
+        }
+
+        /* ===================== CARD TITLE ===================== */
+        .card-title {
+            font-size: 0.95rem;
+            font-weight: 600;
+            border-bottom: 1px solid var(--card-border);
+            padding-bottom: 0.85rem;
+            margin-bottom: 0.25rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            color: var(--text-primary);
+            letter-spacing: 0.01em;
+        }
+
+        .card-title-icon {
+            width: 28px; height: 28px;
+            background: rgba(255,255,255,0.05);
+            border: 1px solid var(--card-border);
+            border-radius: var(--radius-sm);
+            display: flex; align-items: center; justify-content: center;
+            font-size: 0.85rem;
+        }
+
+        /* ===================== CASE SELECTOR ===================== */
+        .case-selector {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.4rem;
+        }
+
+        .case-tab {
+            flex: 1 1 calc(50% - 0.2rem);
+            min-width: 110px;
+            background: rgba(0,0,0,0.25);
+            border: 1px solid var(--card-border);
+            border-radius: var(--radius-md);
+            padding: 0.65rem 0.5rem;
+            color: var(--text-secondary);
+            font-family: var(--font-main);
+            font-size: 0.8rem;
+            font-weight: 500;
+            cursor: pointer;
+            text-align: center;
+            transition: var(--transition);
+            line-height: 1.3;
+            position: relative;
+        }
+        .case-tab#case-e {
+            flex: 1 1 100%;
+        }
+        .case-tab small {
+            display: block;
+            font-size: 0.7rem;
+            opacity: 0.7;
+            margin-top: 0.1rem;
+        }
+        .case-tab:hover {
+            border-color: rgba(255,255,255,0.18);
+            color: var(--text-primary);
+            background: rgba(255,255,255,0.04);
+        }
+        .case-tab.active {
+            background: rgba(176, 110, 243, 0.15);
+            border-color: var(--color-vR);
+            color: var(--text-primary);
+            box-shadow: 0 0 14px rgba(176,110,243,0.2), inset 0 1px 0 rgba(255,255,255,0.05);
+        }
+        .case-tab#case-e.active {
+            background: rgba(16, 185, 129, 0.15);
+            border-color: var(--color-accent);
+            box-shadow: 0 0 14px rgba(16, 185, 129, 0.2), inset 0 1px 0 rgba(255,255,255,0.05);
+        }
+
+        /* CSS Tooltips */
+        .case-tab::after {
+            content: attr(data-tooltip);
+            position: absolute;
+            bottom: 125%;
+            left: 50%;
+            transform: translateX(-50%) translateY(10px);
+            background: rgba(15, 23, 42, 0.95);
+            border: 1px solid var(--card-border-hover);
+            color: var(--text-primary);
+            padding: 0.5rem 0.75rem;
+            border-radius: var(--radius-sm);
+            font-size: 0.72rem;
+            line-height: 1.4;
+            width: 240px;
+            text-align: center;
+            pointer-events: none;
+            opacity: 0;
+            transition: transform 0.2s, opacity 0.2s;
+            box-shadow: 0 6px 20px rgba(0,0,0,0.6);
+            z-index: 50;
+            backdrop-filter: blur(8px);
+        }
+        .case-tab:hover::after {
+            opacity: 1;
+            transform: translateX(-50%) translateY(0);
+        }
+
+        /* ===================== ANGLE TOGGLE & INFO BOX ===================== */
+        .angle-convention-toggle {
+            display: flex;
+            background: rgba(0,0,0,0.35);
+            padding: 0.15rem;
+            border-radius: var(--radius-sm);
+            border: 1px solid var(--card-border);
+            gap: 0.1rem;
+        }
+        .toggle-btn {
+            background: transparent;
+            border: none;
+            color: var(--text-secondary);
+            font-family: var(--font-main);
+            font-size: 0.72rem;
+            padding: 0.2rem 0.5rem;
+            border-radius: calc(var(--radius-sm) - 3px);
+            cursor: pointer;
+            transition: var(--transition);
+            font-weight: 500;
+        }
+        .toggle-btn.active {
+            background: rgba(255,255,255,0.1);
+            color: var(--text-primary);
+        }
+        .info-box {
+            background: rgba(176,110,243,0.06);
+            border: 1px solid rgba(176,110,243,0.18);
+            border-radius: var(--radius-md);
+            padding: 0.85rem 1rem;
+            color: #c4b5fd;
+            font-size: 0.8rem;
+            line-height: 1.5;
+            display: flex;
+            flex-direction: column;
+            gap: 0.3rem;
+        }
+
+        /* ===================== IMPOSSIBLE BANNER ===================== */
+        .warning-box {
+            background: linear-gradient(135deg, rgba(239,68,68,0.14), rgba(239,68,68,0.04));
+            border: 1px solid rgba(239,68,68,0.3);
+            border-radius: var(--radius-md);
+            padding: 0.9rem 1.1rem;
+            color: #fca5a5;
+            font-size: 0.825rem;
+            display: none;
+            line-height: 1.55;
+            box-shadow: 0 4px 16px rgba(239,68,68,0.12);
+        }
+        .warning-box.active { display: block; }
+
+        /* ===================== INPUT GROUPS ===================== */
+        .input-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .input-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.875rem;
+            font-weight: 500;
+        }
+
+        .input-label {
+            display: flex;
+            align-items: center;
+            gap: 0.45rem;
+            color: var(--text-secondary);
+        }
+
+        .color-swatch {
+            width: 8px; height: 8px;
+            border-radius: 50%;
+            flex-shrink: 0;
+        }
+        .swatch-vb { background: var(--color-vb); box-shadow: 0 0 6px var(--color-vb); }
+        .swatch-vr { background: var(--color-vr); box-shadow: 0 0 6px var(--color-vr); }
+        .swatch-vR { background: var(--color-vR); box-shadow: 0 0 6px var(--color-vR); }
+
+        .input-value-wrapper {
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+        }
+
+        .number-input {
+            background: rgba(0,0,0,0.45);
+            border: 1px solid var(--card-border);
+            border-radius: var(--radius-sm);
+            color: var(--text-primary);
+            font-family: var(--font-mono);
+            font-size: 0.85rem;
+            padding: 0.25rem 0.5rem;
+            width: 80px;
+            text-align: right;
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+        .number-input:focus {
+            outline: none;
+            border-color: var(--color-vb);
+            box-shadow: 0 0 0 3px rgba(0,229,255,0.12);
+        }
+
+        .unit-label {
+            font-size: 0.78rem;
+            color: var(--text-muted);
+            width: 38px;
+            flex-shrink: 0;
+        }
+
+        /* ===================== SLIDERS ===================== */
+        .range-slider {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 100%;
+            height: 5px;
+            border-radius: 3px;
+            background: rgba(255,255,255,0.08);
+            outline: none;
+            cursor: pointer;
+        }
+        .range-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 16px; height: 16px;
+            border-radius: 50%;
+            background: var(--text-primary);
+            border: 2px solid var(--bg-color);
+            transition: transform 0.15s, box-shadow 0.15s;
+            cursor: grab;
+        }
+        .range-slider::-webkit-slider-thumb:active { cursor: grabbing; }
+        .range-slider::-webkit-slider-thumb:hover { transform: scale(1.25); }
+
+        #slider-vb::-webkit-slider-thumb { background: var(--color-vb); box-shadow: 0 0 8px var(--glow-vb); }
+        #slider-vr::-webkit-slider-thumb { background: var(--color-vr); box-shadow: 0 0 8px var(--glow-vr); }
+        #slider-d::-webkit-slider-thumb  { background: #60a5fa; box-shadow: 0 0 8px rgba(96,165,250,0.4); }
+        #slider-theta::-webkit-slider-thumb { background: #e2e8f0; box-shadow: 0 0 8px rgba(226,232,240,0.4); }
+
+        /* custom angle control hidden by default */
+        #custom-angle-control { display: none; }
+        #custom-angle-control.active { display: flex; }
+
+        /* ===================== VECTOR DIAGRAM ===================== */
+        .vector-container {
+            background: rgba(0,0,0,0.3);
+            border: 1px solid var(--card-border);
+            border-radius: var(--radius-md);
+            padding: 0.5rem;
+            height: 240px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+        }
+        .vector-svg { width: 100%; height: 100%; }
+
+        /* ===================== SIMULATION CARD ===================== */
+        .simulation-card {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .canvas-container {
+            position: relative;
+            background: rgba(0,0,0,0.5);
+            border: 1px solid var(--card-border);
+            border-radius: var(--radius-md);
+            overflow: hidden;
+            aspect-ratio: 16 / 9;
+            width: 100%;
+        }
+
+        #simulation-canvas {
+            display: block;
+            width: 100%;
+            height: 100%;
+        }
+
+        /* canvas overlay badges */
+        .canvas-overlay {
+            position: absolute;
+            top: 0.75rem; left: 0.75rem;
+            display: flex; gap: 0.4rem; flex-wrap: wrap;
+        }
+        .canvas-badge {
+            background: rgba(0,0,0,0.6);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 9999px;
+            padding: 0.2rem 0.65rem;
+            font-size: 0.7rem;
+            font-weight: 600;
+            letter-spacing: 0.05em;
+            color: var(--text-secondary);
+            backdrop-filter: blur(8px);
+        }
+        .canvas-badge.active {
+            background: rgba(176,110,243,0.2);
+            border-color: rgba(176,110,243,0.4);
+            color: var(--color-vR);
+        }
+
+        /* ===================== PLAYBACK CONTROLS ===================== */
+        .playback-controls {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: rgba(0,0,0,0.28);
+            padding: 0.65rem 1rem;
+            border-radius: var(--radius-md);
+            border: 1px solid var(--card-border);
+            gap: 0.5rem;
+            flex-wrap: wrap;
+        }
+
+        .btn-group { display: flex; gap: 0.4rem; }
+
+        .btn {
+            background: rgba(255,255,255,0.07);
+            border: 1px solid var(--card-border);
+            color: var(--text-primary);
+            padding: 0.4rem 0.9rem;
+            border-radius: var(--radius-sm);
+            cursor: pointer;
+            font-family: var(--font-main);
+            font-size: 0.82rem;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 0.3rem;
+            transition: var(--transition);
+            white-space: nowrap;
+        }
+        .btn:hover:not(:disabled) {
+            background: rgba(255,255,255,0.13);
+            border-color: rgba(255,255,255,0.25);
+        }
+        .btn:disabled { opacity: 0.35; cursor: not-allowed; }
+
+        .btn-primary {
+            background: rgba(176,110,243,0.2);
+            border-color: rgba(176,110,243,0.4);
+            color: #d8b4fe;
+        }
+        .btn-primary:hover:not(:disabled) {
+            background: rgba(176,110,243,0.32);
+            border-color: rgba(176,110,243,0.6);
+            box-shadow: 0 0 14px rgba(176,110,243,0.25);
+        }
+
+        .speed-multiplier {
+            display: flex;
+            background: rgba(0,0,0,0.35);
+            border-radius: var(--radius-sm);
+            padding: 0.15rem;
+            border: 1px solid var(--card-border);
+            gap: 0.1rem;
+        }
+        .speed-btn {
+            background: transparent;
+            border: none;
+            color: var(--text-secondary);
+            font-family: var(--font-mono);
+            font-size: 0.75rem;
+            padding: 0.22rem 0.55rem;
+            border-radius: calc(var(--radius-sm) - 3px);
+            cursor: pointer;
+            transition: var(--transition);
+        }
+        .speed-btn.active {
+            background: rgba(255,255,255,0.1);
+            color: var(--text-primary);
+        }
+        .speed-btn:hover:not(.active) { color: var(--text-primary); }
+
+        /* infinite time alert */
+        .infinite-warning {
+            background: rgba(239,68,68,0.18);
+            border: 1px solid rgba(239,68,68,0.35);
+            color: #fca5a5;
+            padding: 0.35rem 0.8rem;
+            border-radius: var(--radius-sm);
+            font-size: 0.78rem;
+            display: none;
+            align-items: center;
+            gap: 0.4rem;
+            animation: pulse 2s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50%       { opacity: 0.55; }
+        }
+
+        /* ===================== READOUTS ===================== */
+        .readouts-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+            gap: 0.65rem;
+        }
+
+        .readout-box {
+            background: rgba(0,0,0,0.22);
+            border: 1px solid var(--card-border);
+            border-radius: var(--radius-md);
+            padding: 0.85rem 1rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.3rem;
+            transition: var(--transition);
+            cursor: default;
+        }
+        .readout-box:hover {
+            transform: translateY(-2px);
+            border-color: var(--card-border-hover);
+            box-shadow: 0 6px 20px rgba(0,0,0,0.3);
+        }
+
+        .readout-label {
+            font-size: 0.68rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            font-weight: 600;
+        }
+
+        .readout-value {
+            font-size: 1.2rem;
+            font-weight: 700;
+            font-family: var(--font-mono);
+            color: var(--text-primary);
+        }
+
+        .readout-box.hl-vR  .readout-value { color: var(--color-vR);   text-shadow: 0 0 10px var(--glow-vR); }
+        .readout-box.hl-acc .readout-value { color: var(--color-accent); text-shadow: 0 0 10px var(--glow-acc); }
+
+        /* ===================== GRAPH ===================== */
+        .graph-wrapper {
+            background: rgba(0,0,0,0.22);
+            border: 1px solid var(--card-border);
+            border-radius: var(--radius-md);
+            padding: 1rem;
+            height: 210px;
+            position: relative;
+        }
+
+        #graph-svg { width: 100%; height: 100%; overflow: visible; cursor: crosshair; }
+
+        /* graph tooltip */
+        .graph-tooltip {
+            position: absolute;
+            background: rgba(15,23,42,0.92);
+            border: 1px solid var(--card-border-hover);
+            border-radius: var(--radius-sm);
+            padding: 0.4rem 0.7rem;
+            font-size: 0.75rem;
+            color: var(--text-primary);
+            pointer-events: none;
+            display: none;
+            white-space: nowrap;
+            backdrop-filter: blur(8px);
+            z-index: 10;
+            font-family: var(--font-mono);
+            box-shadow: 0 4px 16px rgba(0,0,0,0.4);
+        }
+
+        /* ===================== MATH PANEL ===================== */
+        .math-panel {
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: var(--radius-xl);
+            padding: 1.75rem;
+            backdrop-filter: blur(16px) saturate(1.4);
+            -webkit-backdrop-filter: blur(16px) saturate(1.4);
+            box-shadow: 0 8px 32px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.04);
+        }
+
+        .math-panel-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            border-bottom: 1px solid var(--card-border);
+            padding-bottom: 1rem;
+            margin-bottom: 1.25rem;
+            gap: 1rem;
+        }
+
+        .math-panel-header h2 {
+            font-size: 1rem;
+            font-weight: 700;
+            color: var(--text-primary);
+        }
+
+        .math-panel-header p {
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+            margin-top: 0.15rem;
+        }
+
+        .math-tag {
+            background: rgba(176,110,243,0.12);
+            border: 1px solid rgba(176,110,243,0.25);
+            color: var(--color-vR);
+            border-radius: var(--radius-sm);
+            padding: 0.2rem 0.6rem;
+            font-size: 0.7rem;
+            font-weight: 600;
+            white-space: nowrap;
+        }
+
+        .math-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+        }
+        @media (max-width: 800px) {
+            .math-grid { grid-template-columns: 1fr; gap: 1.25rem; }
+        }
+
+        .math-section {
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+
+        .math-section-title {
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            border-left: 3px solid var(--color-vR);
+            padding-left: 0.6rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .math-box {
+            background: rgba(0,0,0,0.22);
+            border: 1px solid var(--card-border);
+            border-radius: var(--radius-md);
+            padding: 1.1rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.9rem;
+            overflow-x: auto;
+        }
+
+        .math-box::-webkit-scrollbar { height: 4px; }
+        .math-box::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.12); border-radius: 2px; }
+
+        .math-step {
+            display: flex;
+            flex-direction: column;
+            gap: 0.3rem;
+        }
+
+        .math-step-label {
+            font-size: 0.78rem;
+            color: var(--text-secondary);
+            font-weight: 500;
+        }
+
+        .math-step-label strong {
+            color: var(--text-primary);
+            font-weight: 600;
+        }
+
+        .math-expr {
+            font-family: var(--font-mono);
+            color: var(--text-primary);
+            font-size: 0.88rem;
+            padding-left: 1rem;
+        }
+
+        /* KaTeX override for dark theme */
+        .katex { color: var(--text-primary) !important; }
+        .katex-display { margin: 0.35rem 0 !important; overflow-x: auto; }
+        .math-katex-inline { padding-left: 1rem; }
+
+        .concept-note {
+            background: rgba(176,110,243,0.06);
+            border: 1px solid rgba(176,110,243,0.18);
+            border-radius: var(--radius-md);
+            padding: 0.85rem 1rem;
+            font-size: 0.83rem;
+            color: #c4b5fd;
+            line-height: 1.6;
+        }
+        .concept-note strong { color: var(--text-primary); }
+
+        /* ===================== ANGLE HINT ===================== */
+        .angle-hint {
+            font-size: 0.72rem;
+            color: var(--text-muted);
+            text-align: right;
+            padding-top: 0.15rem;
+        }
+
+        /* ===================== FOOTER ===================== */
+        footer {
+            text-align: center;
+            font-size: 0.72rem;
+            color: var(--text-muted);
+            padding: 0.5rem 0 1rem;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+
+    <!-- ========== HEADER ========== -->
+    <header>
+        <div class="header-left">
+            <div class="header-icon">🚣</div>
+            <div class="header-title">
+                <h1>River Crossing Simulator
+                    <span class="hsc-badge" style="font-size:0.6rem; vertical-align: middle; margin-left:0.35rem;">HSC Physics</span>
+                </h1>
+                <p>Interactive relative-velocity tool &mdash; নদী-নৌকার গতিশীলতা &mdash; Chapter 2: Vectors</p>
+            </div>
+        </div>
+        <div class="header-right">
+            <div class="unit-toggle">
+                <button id="unit-metric" class="unit-btn active" onclick="setUnit('metric')">Metric <small style="opacity:0.6">(m, m/s)</small></button>
+                <button id="unit-practical" class="unit-btn" onclick="setUnit('practical')">Practical <small style="opacity:0.6">(km, km/h)</small></button>
+            </div>
+        </div>
+    </header>
+
+    <!-- ========== MAIN DASHBOARD ========== -->
+    <div class="dashboard-grid">
+
+        <!-- LEFT: Controls & Vector Diagram -->
+        <div class="card" style="display:flex;flex-direction:column;gap:1.25rem;">
+
+            <div class="card-title">
+                <span>Parameters &amp; Case</span>
+                <div class="card-title-icon">⚙️</div>
+            </div>
+
+            <!-- Case Selector -->
+            <div class="input-group">
+                <span style="font-size:0.8rem;color:var(--text-secondary);font-weight:500;text-transform:uppercase;letter-spacing:0.06em;">Select Problem Case</span>
+                <div class="case-selector">
+                    <button id="case-a" class="case-tab active" onclick="setCase('A')" data-tooltip="Case A: The boat heads straight across for minimum crossing time. (সবচেয়ে কম সময়ে পারাপার)">Case A<small>Minimum Time</small></button>
+                    <button id="case-b" class="case-tab" onclick="setCase('B')" data-tooltip="Case B: The boat fights the current to go perfectly straight. (ন্যূনতম দূরত্বে সোজাসুজি পারাপার)">Case B<span id="case-b-warn" style="color:var(--color-warning); margin-left:2px; display:none;">⚠️</span><small>Shortest Path</small></button>
+                    <button id="case-c" class="case-tab" onclick="setCase('C')" data-tooltip="Case C: The boat minimizes downstream drift when it is too slow to cross straight. (ন্যূনতম সরণ)">Case C<small>Minimum Drift</small></button>
+                    <button id="case-d" class="case-tab" onclick="setCase('D')" data-tooltip="Case D: Set any boat heading angle from the perpendicular or current direction. (যেকোনো কোণ)">Case D<small>Custom Angle</small></button>
+                    <button id="case-e" class="case-tab" id="case-e" onclick="setCase('E')" data-tooltip="Case E: Locks boat speed to 2x current speed and heading to 120° from current. (HSC স্পেশাল ১২০° কেস)">Case E<small>120° Spotlight</small></button>
+                </div>
+            </div>
+
+            <!-- Impossible Case B banner -->
+            <div id="impossible-banner" class="warning-box">
+                ⚠️ <strong>Impossible Case B:</strong> Boat speed v<sub>b</sub> is less than river speed v<sub>r</sub>. Zero drift cannot be achieved.
+                Automatically switched to <strong>Case C (Minimum Drift)</strong>.
+            </div>
+
+            <!-- Case E Spotlight Banner -->
+            <div id="spotlight-banner" class="info-box" style="display: none;">
+                <div>🌟 <strong>120° Spotlight Case:</strong></div>
+                <div style="font-size: 0.75rem; opacity: 0.9;">
+                    In Bangladeshi HSC problems, this 120° case is very commonly asked. 
+                    The angle is measured from the direction the river is flowing (φ = 120°). 
+                    Boat speed is locked to 2 × current speed (v<sub>b</sub> = 2v<sub>r</sub>). 
+                    Zero drift is guaranteed. Formula: φ = cos⁻¹(−u/v).
+                </div>
+            </div>
+
+            <!-- vb slider -->
+            <div class="input-group">
+                <div class="input-header">
+                    <span class="input-label">
+                        <span class="color-swatch swatch-vb"></span>
+                        Boat Speed (v<sub>b</sub>)
+                    </span>
+                    <div class="input-value-wrapper">
+                        <input type="number" id="num-vb" class="number-input" step="0.1" onchange="updateFromNum('vb',this.value)">
+                        <span class="unit-label text-vb-unit">m/s</span>
+                    </div>
+                </div>
+                <input type="range" id="slider-vb" class="range-slider" oninput="updateFromSlider('vb',this.value)">
+            </div>
+
+            <!-- vr slider -->
+            <div class="input-group">
+                <div class="input-header">
+                    <span class="input-label">
+                        <span class="color-swatch swatch-vr"></span>
+                        River Current Speed (v<sub>r</sub>)
+                    </span>
+                    <div class="input-value-wrapper">
+                        <input type="number" id="num-vr" class="number-input" step="0.1" onchange="updateFromNum('vr',this.value)">
+                        <span class="unit-label text-vr-unit">m/s</span>
+                    </div>
+                </div>
+                <input type="range" id="slider-vr" class="range-slider" oninput="updateFromSlider('vr',this.value)">
+            </div>
+
+            <!-- Speed Ratio Indicator Badge -->
+            <div id="ratio-badge-container" style="display: flex; justify-content: space-between; align-items: center; margin-top: -0.25rem; margin-bottom: 0.25rem; padding: 0 0.1rem;">
+                <span class="input-label" style="font-size: 0.75rem;">Speed Ratio:</span>
+                <span id="speed-ratio-badge" class="hsc-badge">v<sub>b</sub> / v<sub>r</sub> = 1.33</span>
+            </div>
+
+            <!-- d slider -->
+            <div class="input-group">
+                <div class="input-header">
+                    <span class="input-label">🌊 River Width (d)</span>
+                    <div class="input-value-wrapper">
+                        <input type="number" id="num-d" class="number-input" step="1" onchange="updateFromNum('d',this.value)">
+                        <span class="unit-label text-d-unit">m</span>
+                    </div>
+                </div>
+                <input type="range" id="slider-d" class="range-slider" oninput="updateFromSlider('d',this.value)">
+            </div>
+
+            <!-- custom angle control (Case D only) -->
+            <div class="input-group" id="custom-angle-control">
+                <div class="input-header" style="justify-content: space-between; align-items: center;">
+                    <span class="input-label">📐 Heading Angle</span>
+                    <div class="angle-convention-toggle">
+                        <button id="toggle-angle-perp" class="toggle-btn active" onclick="setAngleConvention('perpendicular')">θ (Perp)</button>
+                        <button id="toggle-angle-curr" class="toggle-btn" onclick="setAngleConvention('current')">φ (Current)</button>
+                    </div>
+                    <div class="input-value-wrapper">
+                        <input type="number" id="num-theta" class="number-input" step="1" onchange="updateFromNum('theta',this.value)">
+                        <span class="unit-label">&deg;</span>
+                    </div>
+                </div>
+                <input type="range" id="slider-theta" class="range-slider" oninput="updateFromSlider('theta',this.value)">
+                <div class="angle-hint" style="text-align: left; display: flex; justify-content: space-between; font-size: 0.72rem; color: var(--text-muted);">
+                    <span id="angle-hint-perp">θ (perp): 0°</span>
+                    <span id="angle-hint-curr">φ (curr): 90°</span>
+                </div>
+            </div>
+
+            <!-- Vector Diagram -->
+            <div class="input-group">
+                <span style="font-size:0.8rem;color:var(--text-secondary);font-weight:500;text-transform:uppercase;letter-spacing:0.06em;">Relative Velocity Vector Diagram</span>
+                <div class="vector-container">
+                    <svg id="vector-svg" class="vector-svg" viewBox="0 0 260 260"></svg>
+                </div>
+            </div>
+
+        </div><!-- /left card -->
+
+        <!-- RIGHT: Simulation + Readouts + Graph -->
+        <div class="card simulation-card">
+
+            <div class="card-title">
+                <span>Real-Time Crossing Simulation</span>
+                <div style="display:flex;gap:0.5rem;align-items:center;">
+                    <div id="crossing-badge" class="canvas-badge" style="display:none;">CROSSING…</div>
+                    <div class="card-title-icon">🎮</div>
+                </div>
+            </div>
+
+            <!-- Canvas -->
+            <div class="canvas-container">
+                <canvas id="simulation-canvas"></canvas>
+                <div class="canvas-overlay">
+                    <div id="case-badge" class="canvas-badge"></div>
+                </div>
+            </div>
+
+            <!-- Playback Controls -->
+            <div class="playback-controls">
+                <div class="btn-group">
+                    <button id="btn-play" class="btn btn-primary" onclick="togglePlay()">
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+                        <span>Play</span>
+                    </button>
+                    <button id="btn-pause" class="btn" onclick="pauseAnim()" disabled>
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>
+                        <span>Pause</span>
+                    </button>
+                    <button class="btn" onclick="resetAnim()">
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M12 5V1L7 6l5 5V7c3.31 0 6 2.69 6 6s-2.69 6-6 6-6-2.69-6-6H4c0 4.42 3.58 8 8 8s8-3.58 8-8-3.58-8-8-8z"/></svg>
+                        <span>Reset</span>
+                    </button>
+                    <button id="btn-compare" class="btn" onclick="toggleCompareMode()">
+                        ⚔️ <span>Compare A vs B</span>
+                    </button>
+                </div>
+
+                <div id="infinite-alert" class="infinite-warning">
+                    ⚠️ Boat is parallel to bank — crossing time is &infin;
+                </div>
+
+                <div class="speed-multiplier">
+                    <button id="speed-1"  class="speed-btn active" onclick="setSpeed(1)">1×</button>
+                    <button id="speed-5"  class="speed-btn" onclick="setSpeed(5)">5×</button>
+                    <button id="speed-10" class="speed-btn" onclick="setSpeed(10)">10×</button>
+                    <button id="speed-25" class="speed-btn" onclick="setSpeed(25)">25×</button>
+                </div>
+            </div>
+
+            <!-- Readouts -->
+            <div class="readouts-grid">
+                <div class="readout-box hl-acc">
+                    <span class="readout-label">Crossing Time</span>
+                    <span class="readout-value" id="val-time">—</span>
+                </div>
+                <div class="readout-box">
+                    <span class="readout-label">Downstream Drift</span>
+                    <span class="readout-value" id="val-drift">—</span>
+                </div>
+                <div class="readout-box hl-vR">
+                    <span class="readout-label">Resultant Speed (v<sub>R</sub>)</span>
+                    <span class="readout-value" id="val-vR">—</span>
+                </div>
+                <div class="readout-box">
+                    <span class="readout-label">Direction (&alpha; from bank)</span>
+                    <span class="readout-value" id="val-alpha">—</span>
+                </div>
+                <div class="readout-box">
+                    <span class="readout-label">Path Length (L)</span>
+                    <span class="readout-value" id="val-L">—</span>
+                </div>
+            </div>
+
+            <!-- Interactive Graph -->
+            <div class="graph-wrapper">
+                <svg id="graph-svg" viewBox="0 0 420 190"></svg>
+                <div class="graph-tooltip" id="graph-tooltip"></div>
+            </div>
+
+        </div><!-- /right card -->
+
+    </div><!-- /dashboard-grid -->
+
+    <!-- ========== WORKED MATH PANEL ========== -->
+    <div class="math-panel">
+        <div class="math-panel-header">
+            <div>
+                <h2>📐 Textbook Worked Solution</h2>
+                <p>বাংলাদেশি কারিকুলাম অনুসরণী &mdash; HSC Physics 1st Paper, Chapter 2 (Vectors)</p>
+            </div>
+            <div class="math-tag">Live Derivation</div>
+        </div>
+
+        <div class="math-grid">
+            <!-- Given Data -->
+            <div class="math-section">
+                <div class="math-section-title">
+                    1. Given Values &amp; Setup
+                </div>
+                <div class="math-box" id="math-given">
+                    <!-- Rendered dynamically -->
+                </div>
+                <div class="concept-note">
+                    <strong>Key Conceptual Distinction (HSC Exam Tip):</strong><br>
+                    The <strong>Heading Angle (&theta;)</strong> is measured from the straight-across direction (y-axis)
+                    relative to the <em>water</em>. The <strong>Path Angle (&alpha;)</strong> is the boat's actual
+                    trajectory angle measured from the river bank in the <em>ground</em> frame. Students
+                    frequently confuse these two — always check which frame of reference a question uses.
+                </div>
+            </div>
+
+            <!-- Formula & Derivation -->
+            <div class="math-section">
+                <div class="math-section-title">
+                    2. Formula, Substitution &amp; Result
+                </div>
+                <div class="math-box" id="math-solved">
+                    <!-- Rendered dynamically -->
+                </div>
+            </div>
+        </div>
+    </div><!-- /math-panel -->
+
+    <footer>HSC Physics Interactive Simulator &mdash; River Crossing (নদী-নৌকার আপেক্ষিক গতি) &mdash; All physics computed in SI units internally.</footer>
+
+</div><!-- /container -->
+
+<script>
+'use strict';
+
+/* =============================================================
+   STATE
+   ============================================================= */
+const state = {
+    unit: 'metric',
+    vb: 4.0,   // m/s  (always SI internally)
+    vr: 3.0,   // m/s
+    d: 100.0,  // m
+    activeCase: 'A',
+    customTheta: 30, // degrees (theta_perp)
+    angleConvention: 'perpendicular', // 'perpendicular' (θ) or 'current' (φ)
+    showImpossibleBWarning: false,
+
+    // compare mode states
+    compareMode: false,
+    compareAnimProgressA: 0.0,
+    compareAnimProgressB: 0.0,
+    compareAnimTimeSecA: 0.0,
+    compareAnimTimeSecB: 0.0,
+    compareWakePtsA: [],
+    compareWakePtsB: [],
+
+    // animation
+    animating: false,
+    animProgress: 0.0,
+    animTimeSec: 0.0,
+    speedMultiplier: 1,
+    wavePhase: 0.0,
+
+    // canvas internal
+    scale: 1,
+    xMid: 0, yMid: 0,
+    canvasW: 100, canvasH: 100,
+
+    // river particles
+    particles: [],
+
+    // boat wake trail positions (physics coords)
+    wakePts: [],
+};
+
+/* =============================================================
+   UNIT CONFIGURATIONS
+   ============================================================= */
+const UNIT_CFG = {
+    metric: {
+        vb: { min: 0.5, max: 15.0, step: 0.1, default: 4.0,   unit: 'm/s' },
+        vr: { min: 0.0, max: 10.0, step: 0.1, default: 3.0,   unit: 'm/s' },
+        d:  { min: 10,  max: 500,  step: 1,   default: 100.0, unit: 'm'   },
+    },
+    practical: {
+        vb: { min: 1.8,  max: 54.0, step: 0.1,  default: 14.4, unit: 'km/h' },
+        vr: { min: 0.0,  max: 36.0, step: 0.1,  default: 10.8, unit: 'km/h' },
+        d:  { min: 0.01, max: 0.5,  step: 0.005, default: 0.1, unit: 'km'   },
+    },
+};
+
+/* =============================================================
+   DOM REFS
+   ============================================================= */
+const canvas    = document.getElementById('simulation-canvas');
+const ctx       = canvas.getContext('2d');
+const vectorSvg = document.getElementById('vector-svg');
+const graphSvg  = document.getElementById('graph-svg');
+const tooltip   = document.getElementById('graph-tooltip');
+
+/* =============================================================
+   INIT
+   ============================================================= */
+window.addEventListener('DOMContentLoaded', () => {
+    initParticles();
+    syncSlidersConfig();
+    updateUI();
+    resetAnim();
+    runPhysicsSelfTests();
+
+    window.addEventListener('resize', resizeCanvas);
+    resizeCanvas();
+    requestAnimationFrame(animationLoop);
+
+    // graph hover
+    graphSvg.addEventListener('mousemove', onGraphHover);
+    graphSvg.addEventListener('mouseleave', () => { tooltip.style.display = 'none'; });
+});
+
+/* =============================================================
+   PARTICLES
+   ============================================================= */
+function initParticles() {
+    state.particles = [];
+    for (let i = 0; i < 11; i++) {
+        state.particles.push({
+            x:       (Math.random() - 0.2) * 900,
+            y:       Math.random() * 100, // percentage vertically inside river (0 to 100)
+            len:     Math.random() * 12 + 6,
+            opacity: Math.random() * 0.35 + 0.15,
+            speed:   Math.random() * 0.4 + 0.8,  // relative speed multiplier
+        });
+    }
+}
+
+/* =============================================================
+   SLIDER / INPUT SYNC
+   ============================================================= */
+function syncSlidersConfig() {
+    const cfg = UNIT_CFG[state.unit];
+
+    ['vb','vr','d'].forEach(p => {
+        const sl = document.getElementById('slider-' + p);
+        sl.min  = cfg[p].min;
+        sl.max  = cfg[p].max;
+        sl.step = cfg[p].step;
+    });
+
+    document.querySelectorAll('.text-vb-unit').forEach(el => el.textContent = cfg.vb.unit);
+    document.querySelectorAll('.text-vr-unit').forEach(el => el.textContent = cfg.vr.unit);
+    document.querySelectorAll('.text-d-unit').forEach(el  => el.textContent = cfg.d.unit);
+
+    const vbUI = state.unit === 'metric' ? state.vb            : state.vb * 3.6;
+    const vrUI = state.unit === 'metric' ? state.vr            : state.vr * 3.6;
+    const dUI  = state.unit === 'metric' ? state.d             : state.d / 1000;
+
+    document.getElementById('num-vb').value     = vbUI.toFixed(1);
+    document.getElementById('slider-vb').value  = vbUI;
+    document.getElementById('num-vr').value     = vrUI.toFixed(1);
+    document.getElementById('slider-vr').value  = vrUI;
+    document.getElementById('num-d').value      = state.unit === 'metric' ? dUI.toFixed(0) : dUI.toFixed(3);
+    document.getElementById('slider-d').value   = dUI;
+
+    // Angle slider/num sync
+    const isPerp = state.angleConvention === 'perpendicular';
+    const slTheta = document.getElementById('slider-theta');
+    slTheta.min = isPerp ? -89 : 1;
+    slTheta.max = isPerp ? 89 : 179;
+    const valTheta = isPerp ? state.customTheta : (90 + state.customTheta);
+    slTheta.value = valTheta;
+    document.getElementById('num-theta').value = valTheta;
+}
+
+/* =============================================================
+   PUBLIC UI HANDLERS
+   ============================================================= */
+function setUnit(unit) {
+    if (state.unit === unit) return;
+    state.unit = unit;
+    document.getElementById('unit-metric').classList.toggle('active', unit === 'metric');
+    document.getElementById('unit-practical').classList.toggle('active', unit === 'practical');
+    syncSlidersConfig();
+    updateUI();
+}
+
+function setCase(code) {
+    state.showImpossibleBWarning = false;
+    let active = code;
+
+    // Spotlight Case E adjustments
+    if (code === 'E') {
+        state.vb = state.vr * 2;
+        // make sure vb is in bounds (0.5 to 15 m/s)
+        if (state.vb > 15.0) {
+            state.vb = 15.0;
+            state.vr = 7.5;
+        } else if (state.vb < 0.5) {
+            state.vb = 0.5;
+            state.vr = 0.25;
+        }
+        syncSlidersConfig();
+    }
+
+    if (code === 'B' && state.vb < state.vr) {
+        active = 'C';
+        state.showImpossibleBWarning = true;
+    }
+
+    state.activeCase = active;
+    document.querySelectorAll('.case-tab').forEach(el => el.classList.remove('active'));
+    document.getElementById('case-' + active.toLowerCase()).classList.add('active');
+
+    const angleCtrl = document.getElementById('custom-angle-control');
+    angleCtrl.classList.toggle('active', active === 'D');
+
+    resetAnim();
+    updateUI();
+}
+
+function setAngleConvention(mode) {
+    if (state.angleConvention === mode) return;
+    state.angleConvention = mode;
+    document.getElementById('toggle-angle-perp').classList.toggle('active', mode === 'perpendicular');
+    document.getElementById('toggle-angle-curr').classList.toggle('active', mode === 'current');
+
+    const isPerp = mode === 'perpendicular';
+    const sl = document.getElementById('slider-theta');
+    const num = document.getElementById('num-theta');
+    
+    sl.min = isPerp ? -89 : 1;
+    sl.max = isPerp ? 89 : 179;
+    const val = isPerp ? state.customTheta : (90 + state.customTheta);
+    sl.value = val;
+    num.value = val;
+    
+    updateUI();
+}
+
+function updateFromSlider(param, value) {
+    const v = parseFloat(value);
+    document.getElementById('num-' + param).value = v;
+    updateValue(param, v);
+}
+
+function updateFromNum(param, value) {
+    let v = parseFloat(value);
+    if (isNaN(v)) return;
+    const cfg = UNIT_CFG[state.unit];
+    if (param === 'vb')    v = Math.max(cfg.vb.min, Math.min(cfg.vb.max, v));
+    if (param === 'vr')    v = Math.max(cfg.vr.min, Math.min(cfg.vr.max, v));
+    if (param === 'd')     v = Math.max(cfg.d.min,  Math.min(cfg.d.max,  v));
+    if (param === 'theta') {
+        const isPerp = state.angleConvention === 'perpendicular';
+        v = Math.max(isPerp ? -89 : 1, Math.min(isPerp ? 89 : 179, v));
+    }
+    document.getElementById('slider-' + param).value = v;
+    document.getElementById('num-' + param).value    = v;
+    updateValue(param, v);
+}
+
+function updateValue(param, val) {
+    if (param === 'vb') {
+        state.vb = state.unit === 'metric' ? val : val / 3.6;
+        if (state.activeCase === 'E') {
+            state.vr = state.vb / 2;
+            const vrUI = state.unit === 'metric' ? state.vr : state.vr * 3.6;
+            document.getElementById('slider-vr').value = vrUI.toFixed(1);
+            document.getElementById('num-vr').value = vrUI.toFixed(1);
+        }
+    }
+    if (param === 'vr') {
+        state.vr = state.unit === 'metric' ? val : val / 3.6;
+        if (state.activeCase === 'E') {
+            state.vb = state.vr * 2;
+            const vbUI = state.unit === 'metric' ? state.vb : state.vb * 3.6;
+            document.getElementById('slider-vb').value = vbUI.toFixed(1);
+            document.getElementById('num-vb').value = vbUI.toFixed(1);
+        }
+    }
+    if (param === 'd')     state.d  = state.unit === 'metric' ? val : val * 1000;
+    if (param === 'theta') {
+        if (state.angleConvention === 'perpendicular') {
+            state.customTheta = val;
+        } else {
+            state.customTheta = val - 90;
+        }
+    }
+
+    // auto-switch Case B → C when impossible
+    if (state.activeCase === 'B' && state.vb < state.vr) {
+        state.activeCase = 'C';
+        state.showImpossibleBWarning = true;
+        document.querySelectorAll('.case-tab').forEach(el => el.classList.remove('active'));
+        document.getElementById('case-c').classList.add('active');
+    } else if (state.showImpossibleBWarning && state.vb >= state.vr) {
+        state.showImpossibleBWarning = false;
+    } else if (state.activeCase !== 'C') {
+        state.showImpossibleBWarning = false;
+    }
+
+    resetAnim();
+    updateUI();
+}
+
+function toggleCompareMode() {
+    state.compareMode = !state.compareMode;
+    const btn = document.getElementById('btn-compare');
+    if (state.compareMode) {
+        btn.classList.add('btn-primary');
+        btn.style.borderColor = 'var(--color-accent)';
+        btn.style.boxShadow = '0 0 8px rgba(16, 185, 129, 0.2)';
+    } else {
+        btn.classList.remove('btn-primary');
+        btn.style.borderColor = '';
+        btn.style.boxShadow = '';
+    }
+    resetAnim();
+    updateUI();
+}
+
+/* =============================================================
+   PHYSICS ENGINE  (all SI internally)
+   ============================================================= */
+function solvePhysicsForCase(caseCode, vb = state.vb, vr = state.vr, d = state.d) {
+    let thetaDeg = 0;
+    let impossibleCaseB = false;
+
+    if (caseCode === 'A') {
+        thetaDeg = 0;
+    } else if (caseCode === 'B') {
+        if (vb >= vr) {
+            thetaDeg = Math.asin(vr / vb) * (180 / Math.PI);
+        } else {
+            impossibleCaseB = true;
+            thetaDeg = Math.asin(vb / vr) * (180 / Math.PI);
+        }
+    } else if (caseCode === 'C') {
+        thetaDeg = vb < vr
+            ? Math.asin(vb / vr) * (180 / Math.PI)
+            : Math.asin(vr / vb) * (180 / Math.PI);
+    } else if (caseCode === 'E') {
+        thetaDeg = 30; // locks phi = 120 deg
+    } else { // D
+        thetaDeg = state.customTheta;
+    }
+
+    const phiDeg = 90 + thetaDeg; // Convention B
+    const isParallel = Math.abs(thetaDeg) >= 85;
+
+    const thetaRad = thetaDeg * (Math.PI / 180);
+    const vx = vr - vb * Math.sin(thetaRad);   // positive = downstream
+    const vy = vb * Math.cos(thetaRad);        // positive = across
+
+    let crossingTime = Infinity, drift = Infinity, vR = Math.abs(vx), alphaDeg = 0, pathLength = Infinity;
+
+    if (!isParallel && Math.abs(vy) > 1e-6) {
+        crossingTime = d / vy;
+        drift        = vx * crossingTime;
+        vR           = Math.sqrt(vx * vx + vy * vy);
+        alphaDeg     = Math.atan2(vy, vx) * (180 / Math.PI);
+        if (alphaDeg < 0) alphaDeg += 360;
+        pathLength   = Math.sqrt(d * d + drift * drift);
+    } else {
+        crossingTime = Infinity;
+        drift = Infinity;
+        vR = Math.abs(vx);
+        alphaDeg = vx >= 0 ? 0 : 180;
+        pathLength = Infinity;
+    }
+
+    return { vb, vr, d, thetaDeg, thetaRad, phiDeg, vx, vy, crossingTime, drift, vR, alphaDeg, pathLength, impossibleCaseB, isParallel };
+}
+
+function solvePhysics() {
+    return solvePhysicsForCase(state.activeCase);
+}
+
+/* =============================================================
+   UPDATE UI
+   ============================================================= */
+function updateUI() {
+    const res = solvePhysics();
+
+    // banners
+    document.getElementById('impossible-banner').classList.toggle('active', state.showImpossibleBWarning);
+    document.getElementById('spotlight-banner').style.display = state.activeCase === 'E' ? 'block' : 'none';
+    
+    // Hide angle control unless in custom Case D
+    document.getElementById('custom-angle-control').classList.toggle('active', state.activeCase === 'D');
+    
+    // Update Case B warning flag next to tab tab B
+    const bWarn = document.getElementById('case-b-warn');
+    if (bWarn) bWarn.style.display = state.vb < state.vr ? 'inline' : 'none';
+
+    // Update Speed Ratio Badge
+    const ratio = res.vr > 0 ? (res.vb / res.vr) : Infinity;
+    const ratioBadge = document.getElementById('speed-ratio-badge');
+    if (ratioBadge) {
+        ratioBadge.innerHTML = `v<sub>b</sub> / v<sub>r</sub> = ${isFinite(ratio) ? ratio.toFixed(2) : '∞'}`;
+        if (Math.abs(ratio - 2.0) <= 0.05) {
+            ratioBadge.innerHTML += ` → 120° applies!`;
+            ratioBadge.style.background = 'rgba(16, 185, 129, 0.15)';
+            ratioBadge.style.borderColor = 'rgba(16, 185, 129, 0.4)';
+            ratioBadge.style.color = 'var(--color-accent)';
+        } else {
+            ratioBadge.style.background = 'rgba(255, 255, 255, 0.05)';
+            ratioBadge.style.borderColor = 'rgba(255, 255, 255, 0.1)';
+            ratioBadge.style.color = 'var(--text-secondary)';
+        }
+    }
+
+    const infAlert = document.getElementById('infinite-alert');
+    infAlert.style.display = res.crossingTime === Infinity ? 'flex' : 'none';
+
+    // case badge on canvas
+    const caseName = { A: 'Min Time', B: 'Shortest Path', C: 'Min Drift', D: 'Custom Angle', E: '120° Spotlight' };
+    const cb = document.getElementById('case-badge');
+    cb.textContent = state.compareMode ? 'Comparison Mode — A vs B' : `Case ${state.activeCase} — ${caseName[state.activeCase]}`;
+
+    // Update custom angle hints
+    if (state.activeCase === 'D') {
+        const thetaH = state.customTheta;
+        const phiH = 90 + thetaH;
+        document.getElementById('angle-hint-perp').textContent = `θ (perp): ${thetaH.toFixed(0)}°`;
+        document.getElementById('angle-hint-curr').textContent = `φ (curr): ${phiH.toFixed(0)}°`;
+    }
+
+    // readouts
+    if (res.crossingTime === Infinity) {
+        document.getElementById('val-time').textContent  = '∞';
+        document.getElementById('val-drift').textContent = '∞';
+        document.getElementById('val-vR').textContent    = fmtSpeed(res.vR);
+        document.getElementById('val-alpha').textContent = res.alphaDeg.toFixed(1) + '°';
+        document.getElementById('val-L').textContent     = '∞';
+    } else {
+        document.getElementById('val-time').textContent  = fmtTime(res.crossingTime);
+        document.getElementById('val-drift').textContent = fmtDist(res.drift);
+        document.getElementById('val-vR').textContent    = fmtSpeed(res.vR);
+        document.getElementById('val-alpha').textContent = res.alphaDeg.toFixed(1) + '°';
+        document.getElementById('val-L').textContent     = fmtDist(res.pathLength);
+    }
+
+    renderVectorDiagram(res);
+    renderGraph(res);
+    renderWorkedMath(res);
+}
+
+/* --- formatting helpers --- */
+function fmtTime(t) {
+    if (state.unit === 'metric') return t.toFixed(1) + ' s';
+    if (t < 60)   return t.toFixed(1) + ' s';
+    if (t < 3600) return (t / 60).toFixed(1) + ' min';
+    return (t / 3600).toFixed(2) + ' hr';
+}
+function fmtDist(d) {
+    if (state.unit === 'metric') return d.toFixed(1) + ' m';
+    return (d / 1000).toFixed(3) + ' km';
+}
+function fmtSpeed(v) {
+    if (state.unit === 'metric') return v.toFixed(2) + ' m/s';
+    return (v * 3.6).toFixed(2) + ' km/h';
+}
+
+/* =============================================================
+   VECTOR DIAGRAM SVG
+   ============================================================= */
+function renderVectorDiagram(res) {
+    const W = 260, H = 260;
+    const cx = W / 2, cy = H / 2;
+    const maxV  = Math.max(res.vb, res.vr, Math.abs(res.vR), 0.5);
+    const scale = 90 / maxV;
+
+    // vector endpoints
+    const vrEndX = cx + res.vr * scale;
+    const vrEndY = cy;
+
+    const vbCompX = -res.vb * Math.sin(res.thetaRad);
+    const vbCompY =  res.vb * Math.cos(res.thetaRad);
+    const vbEndX = cx + vbCompX * scale;
+    const vbEndY = cy - vbCompY * scale;  // SVG y-down
+
+    const vREndX = cx + res.vx * scale;
+    const vREndY = cy - res.vy * scale;
+
+    // angle arcs
+    let arcs = '';
+
+    // theta arc (heading angle from y-axis)
+    if (Math.abs(res.thetaDeg) > 1.5) {
+        const r = 30;
+        const startX = cx;
+        const startY = cy - r;
+        const endX = cx + r * Math.cos((90 + res.thetaDeg) * Math.PI / 180);
+        const endY = cy - r * Math.sin((90 + res.thetaDeg) * Math.PI / 180);
+        const sweep = res.thetaDeg > 0 ? 0 : 1;
+        arcs += `<path d="M ${startX} ${startY} A ${r} ${r} 0 0 ${sweep} ${endX} ${endY}"
+            fill="none" stroke="#e2e8f0" stroke-width="1.0" stroke-dasharray="2,2" opacity="0.6"/>`;
+        arcs += `<text x="${cx + (res.thetaDeg > 0 ? -28 : 5)}" y="${cy - r + 9}"
+            fill="#e2e8f0" font-size="8.5" font-family="var(--font-main)" opacity="0.8">θ=${Math.abs(res.thetaDeg).toFixed(0)}°</text>`;
+    }
+
+    // alpha arc (resultant from x-axis)
+    if (res.alphaDeg > 2 && res.alphaDeg < 178 && res.vR > 0.05) {
+        const r = 18;
+        const startX = cx + r;
+        const startY = cy;
+        const endX = cx + r * Math.cos(res.alphaDeg * Math.PI / 180);
+        const endY = cy - r * Math.sin(res.alphaDeg * Math.PI / 180);
+        arcs += `<path d="M ${startX} ${startY} A ${r} ${r} 0 0 0 ${endX} ${endY}"
+            fill="none" stroke="var(--color-vR)" stroke-width="1.2"/>`;
+        arcs += `<text x="${cx + r + 2}" y="${cy - 2}"
+            fill="var(--color-vR)" font-size="8.5" font-family="var(--font-main)">α=${res.alphaDeg.toFixed(0)}°</text>`;
+    }
+
+    // phi arc (HSC textbook convention - measured from downstream river current direction)
+    if (res.phiDeg > 1 && res.phiDeg < 179) {
+        const r = 44;
+        const startX = cx + r;
+        const startY = cy;
+        const phiRad = res.phiDeg * Math.PI / 180;
+        const endX = cx + r * Math.cos(phiRad);
+        const endY = cy - r * Math.sin(phiRad);
+        
+        const is120 = Math.abs(res.phiDeg - 120) <= 0.5;
+        const strokeColor = is120 ? 'var(--color-accent)' : '#38bdf8';
+        const strokeW = is120 ? 1.6 : 1.0;
+        const dash = is120 ? '' : '3,2';
+        
+        arcs += `<path d="M ${startX} ${startY} A ${r} ${r} 0 0 0 ${endX} ${endY}"
+            fill="none" stroke="${strokeColor}" stroke-width="${strokeW}" ${dash ? `stroke-dasharray="${dash}"` : ''}/>`;
+        
+        // label placement
+        const midPhiRad = (res.phiDeg / 2) * Math.PI / 180;
+        const textDist = r + 11;
+        const tx = cx + textDist * Math.cos(midPhiRad);
+        const ty = cy - textDist * Math.sin(midPhiRad);
+        
+        const labelText = is120 ? '★ φ=120°' : `φ=${res.phiDeg.toFixed(0)}°`;
+        const textWeight = is120 ? 'bold' : 'normal';
+        arcs += `<text x="${tx}" y="${ty}" fill="${strokeColor}" font-size="9.5" font-family="var(--font-main)" font-weight="${textWeight}" text-anchor="middle">
+            ${labelText}
+        </text>`;
+    }
+
+    vectorSvg.innerHTML = `
+        <defs>
+            ${arrowMarker('arr-vb', 'var(--color-vb)')}
+            ${arrowMarker('arr-vr', 'var(--color-vr)')}
+            ${arrowMarker('arr-vR', 'var(--color-vR)')}
+        </defs>
+
+        <!-- crosshairs -->
+        <line x1="${cx-110}" y1="${cy}" x2="${cx+110}" y2="${cy}" stroke="rgba(255,255,255,0.1)" stroke-dasharray="2,3"/>
+        <line x1="${cx}" y1="${cy-110}" x2="${cx}" y2="${cy+110}" stroke="rgba(255,255,255,0.1)" stroke-dasharray="2,3"/>
+
+        <!-- parallelogram guide lines -->
+        <line x1="${vrEndX}" y1="${vrEndY}" x2="${vREndX}" y2="${vREndY}" stroke="rgba(255,255,255,0.12)" stroke-dasharray="4,3"/>
+        <line x1="${vbEndX}" y1="${vbEndY}" x2="${vREndX}" y2="${vREndY}" stroke="rgba(255,255,255,0.12)" stroke-dasharray="4,3"/>
+
+        ${arcs}
+
+        <!-- vr vector -->
+        <line x1="${cx}" y1="${cy}" x2="${vrEndX}" y2="${vrEndY}"
+            stroke="var(--color-vr)" stroke-width="2.8" marker-end="url(#arr-vr)"/>
+        <text x="${(cx+vrEndX)/2}" y="${cy+15}" fill="var(--color-vr)"
+            font-size="10" font-weight="600" text-anchor="middle" font-family="var(--font-main)">
+            v_r = ${fmtSpeedRaw(res.vr)}
+        </text>
+
+        <!-- vb vector -->
+        <line x1="${cx}" y1="${cy}" x2="${vbEndX}" y2="${vbEndY}"
+            stroke="var(--color-vb)" stroke-width="2.8" marker-end="url(#arr-vb)"/>
+        <text x="${(cx+vbEndX)/2 - 8}" y="${(cy+vbEndY)/2 - 6}" fill="var(--color-vb)"
+            font-size="10" font-weight="600" text-anchor="end" font-family="var(--font-main)">
+            v_b = ${fmtSpeedRaw(res.vb)}
+        </text>
+
+        <!-- vR vector -->
+        <line x1="${cx}" y1="${cy}" x2="${vREndX}" y2="${vREndY}"
+            stroke="var(--color-vR)" stroke-width="2.8" marker-end="url(#arr-vR)"/>
+        <text x="${(cx+vREndX)/2 + 10}" y="${(cy+vREndY)/2 - 5}" fill="var(--color-vR)"
+            font-size="10" font-weight="600" text-anchor="start" font-family="var(--font-main)">
+            v_R = ${fmtSpeedRaw(res.vR)}
+        </text>
+
+        <!-- origin -->
+        <circle cx="${cx}" cy="${cy}" r="4" fill="#ffffff" opacity="0.9"/>
+    `;
+}
+
+function arrowMarker(id, color) {
+    return `<marker id="${id}" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse">
+        <path d="M 0 1.5 L 8 5 L 0 8.5 z" fill="${color}"/>
+    </marker>`;
+}
+
+function fmtSpeedRaw(v) {
+    return state.unit === 'metric' ? v.toFixed(1) : (v * 3.6).toFixed(1);
+}
+
+/* =============================================================
+   INTERACTIVE TIME vs. ANGLE GRAPH SVG
+   ============================================================= */
+const G = { L: 46, R: 12, T: 18, B: 30 };
+
+function graphCoords(W, H) {
+    const gW = W - G.L - G.R;
+    const gH = H - G.T - G.B;
+    return { gW, gH };
+}
+
+function renderGraph(res) {
+    const W = 420, H = 190;
+    const { gW, gH } = graphCoords(W, H);
+
+    const tMin = state.d / state.vb;
+    const yMax = 5.0 * tMin;
+
+    const mapX = deg => G.L + ((deg + 80) / 160) * gW;
+    const mapY = t   => {
+        if (t === Infinity || t > yMax) return G.T;
+        return G.T + gH - (t / yMax) * gH;
+    };
+
+    // curve
+    let pathD = '';
+    for (let deg = -80; deg <= 80; deg += 1) {
+        const t = state.d / (state.vb * Math.cos(deg * Math.PI / 180));
+        const px = mapX(deg), py = mapY(t);
+        pathD += (deg === -80 ? `M ${px} ${py}` : ` L ${px} ${py}`);
+    }
+
+    // x-axis ticks
+    let ticks = '';
+    [-60,-30,0,30,60].forEach(deg => {
+        const x = mapX(deg);
+        ticks += `<line x1="${x}" y1="${G.T+gH}" x2="${x}" y2="${G.T+gH+4}" stroke="rgba(255,255,255,0.25)"/>`;
+        ticks += `<text x="${x}" y="${H-8}" fill="var(--text-muted)" font-size="8.5" text-anchor="middle" font-family="var(--font-main)">${deg}°</text>`;
+        ticks += `<line x1="${x}" y1="${G.T}" x2="${x}" y2="${G.T+gH}" stroke="rgba(255,255,255,0.04)"/>`;
+    });
+
+    // y-axis ticks
+    [tMin, 2*tMin, 3*tMin, 4*tMin].forEach(tv => {
+        const y = mapY(tv);
+        ticks += `<line x1="${G.L-4}" y1="${y}" x2="${G.L}" y2="${y}" stroke="rgba(255,255,255,0.25)"/>`;
+        ticks += `<line x1="${G.L}" y1="${y}" x2="${G.L+gW}" y2="${y}" stroke="rgba(255,255,255,0.04)"/>`;
+        ticks += `<text x="${G.L-6}" y="${y+3}" fill="var(--text-muted)" font-size="8" text-anchor="end" font-family="var(--font-mono)">${tv.toFixed(0)}s</text>`;
+    });
+
+    // Case A dot
+    const pxA = mapX(0), pyA = mapY(tMin);
+    let refDots = `
+        <circle cx="${pxA}" cy="${pyA}" r="5" fill="var(--color-accent)" opacity="0.9"/>
+        <text x="${pxA}" y="${pyA-8}" fill="var(--color-accent)" font-size="7.5" text-anchor="middle" font-weight="600" font-family="var(--font-main)">Case A</text>`;
+
+    // Case B or C dot
+    if (state.vb >= state.vr) {
+        const tB   = Math.asin(state.vr / state.vb);
+        const tBdeg = tB * 180 / Math.PI;
+        const tBt   = state.d / (state.vb * Math.cos(tB));
+        const pxB = mapX(tBdeg), pyB = mapY(tBt);
+        refDots += `
+            <circle cx="${pxB}" cy="${pyB}" r="5" fill="var(--color-vR)" opacity="0.9"/>
+            <text x="${pxB-7}" y="${pyB-8}" fill="var(--color-vR)" font-size="7.5" text-anchor="end" font-weight="600" font-family="var(--font-main)">Case B</text>`;
+    } else {
+        const tC    = Math.asin(state.vb / state.vr);
+        const tCdeg = tC * 180 / Math.PI;
+        const tCt   = state.d / (state.vb * Math.cos(tC));
+        const pxC = mapX(tCdeg), pyC = mapY(tCt);
+        refDots += `
+            <circle cx="${pxC}" cy="${pyC}" r="5" fill="var(--color-info)" opacity="0.9"/>
+            <text x="${pxC-7}" y="${pyC-8}" fill="var(--color-info)" font-size="7.5" text-anchor="end" font-weight="600" font-family="var(--font-main)">Case C</text>`;
+    }
+
+    // active dot
+    let activeDot = '';
+    if (res.crossingTime !== Infinity && res.crossingTime <= yMax) {
+        const ax = mapX(res.thetaDeg), ay = mapY(res.crossingTime);
+        activeDot = `
+            <line x1="${G.L}" y1="${ay}" x2="${ax}" y2="${ay}" stroke="var(--color-vR)" stroke-width="0.7" stroke-dasharray="2,2" opacity="0.5"/>
+            <line x1="${ax}" y1="${ay}" x2="${ax}" y2="${G.T+gH}" stroke="var(--color-vR)" stroke-width="0.7" stroke-dasharray="2,2" opacity="0.5"/>
+            <circle cx="${ax}" cy="${ay}" r="6" fill="white" stroke="var(--color-vR)" stroke-width="2.2"/>`;
+    }
+
+    graphSvg.innerHTML = `
+        <!-- border -->
+        <rect x="${G.L}" y="${G.T}" width="${gW}" height="${gH}" fill="none" stroke="rgba(255,255,255,0.1)"/>
+
+        <!-- y-axis label -->
+        <text x="10" y="${G.T + gH/2}" fill="var(--text-muted)" font-size="7.5" text-anchor="middle"
+            transform="rotate(-90 10 ${G.T + gH/2})" font-family="var(--font-main)">TIME (s)</text>
+
+        <!-- x-axis label -->
+        <text x="${G.L + gW/2}" y="${H-1}" fill="var(--text-muted)" font-size="8.5" text-anchor="middle" font-family="var(--font-main)">HEADING ANGLE θ (°)</text>
+
+        ${ticks}
+        ${refDots}
+
+        <!-- curve -->
+        <path d="${pathD}" fill="none" stroke="rgba(255,255,255,0.35)" stroke-width="1.8"/>
+
+        ${activeDot}
+
+        <!-- hidden mouse-capture rect for tooltip -->
+        <rect id="graph-hover-rect" x="${G.L}" y="${G.T}" width="${gW}" height="${gH}"
+            fill="transparent" stroke="none"/>
+    `;
+}
+
+/* --- graph hover tooltip --- */
+function onGraphHover(evt) {
+    const W = 420, H = 190;
+    const { gW, gH } = graphCoords(W, H);
+
+    const svgRect = graphSvg.getBoundingClientRect();
+    const svgScaleX = svgRect.width  / W;
+    const svgScaleY = svgRect.height / H;
+
+    const mouseX = evt.clientX - svgRect.left;
+    const mouseY = evt.clientY - svgRect.top;
+
+    const svgX = mouseX / svgScaleX;
+    if (svgX < G.L || svgX > G.L + gW) { tooltip.style.display = 'none'; return; }
+
+    const deg = ((svgX - G.L) / gW) * 160 - 80;
+    const rad = deg * Math.PI / 180;
+    const t   = state.d / (state.vb * Math.cos(rad));
+
+    if (!isFinite(t) || t <= 0) { tooltip.style.display = 'none'; return; }
+
+    tooltip.textContent = `θ = ${deg.toFixed(1)}°  →  t = ${t.toFixed(2)} s`;
+    tooltip.style.display = 'block';
+
+    const wrapRect = graphSvg.parentElement.getBoundingClientRect();
+    let left = evt.clientX - wrapRect.left + 12;
+    let top  = evt.clientY - wrapRect.top  - 36;
+    if (left + 200 > wrapRect.width) left -= 220;
+    tooltip.style.left = left + 'px';
+    tooltip.style.top  = top  + 'px';
+}
+
+/* =============================================================
+   WORKED MATH PANEL — KaTeX rendering
+   ============================================================= */
+function renderWorkedMath(res) {
+    const vbUI = state.unit === 'metric' ? res.vb          : res.vb * 3.6;
+    const vrUI = state.unit === 'metric' ? res.vr          : res.vr * 3.6;
+    const dUI  = state.unit === 'metric' ? res.d           : res.d / 1000;
+    const vUnit = state.unit === 'metric' ? '\\text{m/s}'  : '\\text{km/h}';
+    const dUnit = state.unit === 'metric' ? '\\text{m}'    : '\\text{km}';
+
+    // Build given-data HTML
+    let givenSteps = [
+        { label: 'River Width (d)', expr: `d = ${fmtNum(dUI)} \\; ${dUnit}${state.unit === 'practical' ? ` = ${res.d.toFixed(0)} \\; \\text{m}` : ''}` },
+        { label: 'Boat Speed (v_b, rel. to water)', expr: `v_b = ${fmtNum(vbUI)} \\; ${vUnit}${state.unit === 'practical' ? ` = ${res.vb.toFixed(2)} \\; \\text{m/s}` : ''}` },
+        { label: 'River Current Speed (v_r)', expr: `v_r = ${fmtNum(vrUI)} \\; ${vUnit}${state.unit === 'practical' ? ` = ${res.vr.toFixed(2)} \\; \\text{m/s}` : ''}` },
+        { label: 'Heading Angle (θ from perp)', expr: `\\theta = ${res.thetaDeg.toFixed(1)}^\\circ = ${res.thetaRad.toFixed(4)} \\; \\text{rad}` },
+        { label: 'Heading Angle (φ from current, HSC)', expr: `\\phi = 90^\\circ + \\theta = ${res.phiDeg.toFixed(1)}^\\circ` },
+    ];
+
+    document.getElementById('math-given').innerHTML = givenSteps.map(s =>
+        `<div class="math-step">
+            <span class="math-step-label">${s.label}</span>
+            <div class="math-katex-inline">${katexRender(s.expr)}</div>
+         </div>`
+    ).join('');
+
+    // Build solved HTML
+    let solvedHTML = '';
+
+    if (state.activeCase === 'A') {
+        solvedHTML = renderCaseA(res, vUnit, dUnit);
+    } else if (state.activeCase === 'B' && !res.impossibleCaseB) {
+        solvedHTML = renderCaseB(res, vUnit, dUnit);
+    } else if (state.activeCase === 'C' || res.impossibleCaseB) {
+        solvedHTML = renderCaseC(res, vUnit, dUnit);
+    } else if (state.activeCase === 'D') {
+        solvedHTML = renderCaseD(res, vUnit, dUnit);
+    } else if (state.activeCase === 'E') {
+        solvedHTML = renderCaseE(res, vUnit, dUnit);
+    }
+
+    document.getElementById('math-solved').innerHTML = solvedHTML;
+}
+
+function katexRender(expr) {
+    try {
+        return katex.renderToString(expr, { throwOnError: false, displayMode: false });
+    } catch {
+        return `<span class="math-expr">${expr}</span>`;
+    }
+}
+
+function fmtNum(n) { return Number.isInteger(n) ? n.toString() : n.toFixed(3).replace(/\.?0+$/, ''); }
+
+function mathStep(labelHTML, exprLatex) {
+    return `<div class="math-step">
+        <span class="math-step-label">${labelHTML}</span>
+        <div class="math-katex-inline">${katexRender(exprLatex)}</div>
+    </div>`;
+}
+
+function renderCaseA(res) {
+    return [
+        mathStep('<strong>Case A — Minimum Time (সর্বনিম্ন সময়)</strong>',
+            `\\theta = 0^\\circ \\quad \\Rightarrow \\quad \\cos\\theta = 1 \\quad (\\phi = 90^\\circ)`),
+        mathStep('Crossing time formula:',
+            `t_{\\min} = \\dfrac{d}{v_b} = \\dfrac{${res.d.toFixed(1)}}{${res.vb.toFixed(2)}} = \\mathbf{${res.crossingTime.toFixed(2)}} \\; \\text{s}`),
+        mathStep('Key Insight:',
+            `\\text{This is always the fastest way regardless of current speed } (v_r).`),
+        mathStep('Downstream drift (নদীর পার বরাবর সরণ):',
+            `x = v_r \\times t = ${res.vr.toFixed(2)} \\times ${res.crossingTime.toFixed(2)} = \\mathbf{${res.drift.toFixed(2)}} \\; \\text{m}`),
+        mathStep('Resultant ground speed:',
+            `v_R = \\sqrt{v_r^2 + v_b^2} = \\sqrt{${res.vr.toFixed(2)}^2 + ${res.vb.toFixed(2)}^2} = \\mathbf{${res.vR.toFixed(3)}} \\; \\text{m/s}`),
+    ].join('');
+}
+
+function renderCaseB(res) {
+    const ratio = (res.vr / res.vb).toFixed(4);
+    const isSpotlightRatio = Math.abs(res.vb - 2.0 * res.vr) <= 0.05;
+    
+    let boxExpr = `\\phi = \\cos^{-1}\\!\\left(-\\dfrac{v_r}{v_b}\\right) = \\cos^{-1}\\!\\left(-\\dfrac{${res.vr.toFixed(2)}}{${res.vb.toFixed(2)}}\\right) = \\mathbf{${res.phiDeg.toFixed(1)}^\\circ}`;
+    if (isSpotlightRatio) {
+        boxExpr += ` \\; \\Rightarrow \\quad \\mathbf{\\boxed{\\phi = 120^\\circ}} \\quad \\text{(HSC Classic Spotlight!)}`;
+    }
+
+    return [
+        mathStep('<strong>Case B — Shortest Path / Zero Drift (ন্যূনতম দূরত্ব)</strong>',
+            `v_x = 0 \\Rightarrow v_b \\sin\\theta = v_r \\Rightarrow \\sin\\theta = \\dfrac{v_r}{v_b}`),
+        mathStep('Heading angle (from perpendicular, &theta;):',
+            `\\sin\\theta = \\dfrac{${res.vr.toFixed(2)}}{${res.vb.toFixed(2)}} = ${ratio} \\quad \\Rightarrow \\quad \\theta = \\sin^{-1}(${ratio}) = \\mathbf{${res.thetaDeg.toFixed(1)}^\\circ}`),
+        mathStep('Heading angle (from current direction, &phi;):',
+            boxExpr),
+        mathStep('Resultant across-river component:',
+            `v_y = \\sqrt{v_b^2 - v_r^2} = \\sqrt{${(res.vb*res.vb).toFixed(2)} - ${(res.vr*res.vr).toFixed(2)}} = \\mathbf{${res.vy.toFixed(3)}} \\; \\text{m/s}`),
+        mathStep('Crossing time (পারাপারের সময়):',
+            `t = \\dfrac{d}{v_y} = \\dfrac{${res.d.toFixed(1)}}{${res.vy.toFixed(3)}} = \\mathbf{${res.crossingTime.toFixed(2)}} \\; \\text{s}`),
+        mathStep('Drift:',
+            `\\text{drift} = 0 \\; \\text{m (boat lands exactly opposite to start point)}`),
+    ].join('');
+}
+
+function renderCaseC(res) {
+    const ratio = (res.vb / res.vr).toFixed(4);
+    const driftFormula = `\\dfrac{d\\sqrt{v_r^2 - v_b^2}}{v_b}`;
+    return [
+        mathStep('<strong>Case C — Minimum Drift when v_b &lt; v_r (ন্যূনতম সরণ)</strong>',
+            `\\sin\\theta = \\dfrac{v_b}{v_r} \\quad (\\text{optimal heading when boat is slower than current})`),
+        mathStep('Optimal heading angle from perpendicular (&theta;):',
+            `\\theta = \\sin^{-1}\\!\\left(\\dfrac{v_b}{v_r}\\right) = \\sin^{-1}\\!\\left(\\dfrac{${res.vb.toFixed(2)}}{${res.vr.toFixed(2)}}\\right) = \\mathbf{${res.thetaDeg.toFixed(1)}^\\circ}`),
+        mathStep('Optimal heading angle from current direction (&phi;):',
+            `\\phi = \\cos^{-1}\\!\\left(-\\dfrac{v_b}{v_r}\\right) = \\cos^{-1}\\!\\left(-\\dfrac{${res.vb.toFixed(2)}}{${res.vr.toFixed(2)}}\\right) = \\mathbf{${res.phiDeg.toFixed(1)}^\\circ}`),
+        mathStep('Minimum drift distance (সর্বনিম্ন সরণ দূরত্ব):',
+            `x_{\\min} = ${driftFormula} = \\dfrac{${res.d.toFixed(1)} \\times \\sqrt{${res.vr.toFixed(2)}^2 - ${res.vb.toFixed(2)}^2}}{${res.vb.toFixed(2)}} = \\mathbf{${res.drift.toFixed(2)}} \\; \\text{m}`),
+        mathStep('Crossing time at minimum drift:',
+            `t = \\dfrac{d}{v_b \\cos\\theta} = \\dfrac{${res.d.toFixed(1)}}{${res.vb.toFixed(2)} \\times \\cos(${res.thetaDeg.toFixed(1)}^\\circ)} = \\mathbf{${res.crossingTime.toFixed(2)}} \\; \\text{s}`),
+    ].join('');
+}
+
+function renderCaseD(res) {
+    return [
+        mathStep(`<strong>Case D — Custom Angle (θ = ${res.thetaDeg.toFixed(1)}°, φ = ${res.phiDeg.toFixed(1)}°)</strong>`,
+            `v_x = v_r - v_b\\sin\\theta = ${res.vr.toFixed(2)} - ${res.vb.toFixed(2)}\\sin(${res.thetaDeg.toFixed(1)}^\\circ) = \\mathbf{${res.vx.toFixed(3)}} \\; \\text{m/s}`),
+        mathStep('Across-river component:',
+            `v_y = v_b\\cos\\theta = ${res.vb.toFixed(2)} \\times \\cos(${res.thetaDeg.toFixed(1)}^\\circ) = \\mathbf{${res.vy.toFixed(3)}} \\; \\text{m/s}`),
+        mathStep('Crossing time:',
+            res.crossingTime === Infinity
+                ? `t = \\dfrac{d}{v_y} \\to \\infty \\quad (v_y \\approx 0)`
+                : `t = \\dfrac{d}{v_y} = \\dfrac{${res.d.toFixed(1)}}{${res.vy.toFixed(3)}} = \\mathbf{${res.crossingTime.toFixed(2)}} \\; \\text{s}`),
+        mathStep('Downstream drift:',
+            res.drift === Infinity
+                ? `\\text{drift} \\to \\infty`
+                : `x = v_x \\times t = ${res.vx.toFixed(3)} \\times ${res.crossingTime.toFixed(2)} = \\mathbf{${res.drift.toFixed(2)}} \\; \\text{m}`),
+        mathStep('Actual path length:',
+            res.pathLength === Infinity
+                ? `L \\to \\infty`
+                : `L = \\sqrt{d^2 + x^2} = \\sqrt{${res.d.toFixed(1)}^2 + ${res.drift.toFixed(2)}^2} = \\mathbf{${res.pathLength.toFixed(2)}} \\; \\text{m}`),
+    ].join('');
+}
+
+function renderCaseE(res) {
+    return [
+        mathStep('<strong>Case E — The 120° Spotlight Special Case (v_b = 2v_r locked)</strong>',
+            `\\phi = 120^\\circ \\quad \\Rightarrow \\quad \\theta = 30^\\circ \\text{ upstream}`),
+        mathStep('Deriving the 120° angle formula (φ = cos⁻¹(−u/v)):',
+            `\\phi = \\cos^{-1}\\!\\left(-\\dfrac{v_r}{v_b}\\right) = \\cos^{-1}\\!\\left(-\\dfrac{v_r}{2v_r}\\right) = \\cos^{-1}(-0.5) = \\mathbf{120^\\circ}`),
+        mathStep('This heading produces ZERO DRIFT. The boat crosses straight across.',
+            `x = 0 \\; \\text{m}`),
+        mathStep('Crossing time formula (t = d / (v_b cos 30°)):',
+            `t = \\dfrac{d}{\\sqrt{v_b^2 - v_r^2}} = \\dfrac{${res.d.toFixed(1)}}{\\sqrt{${res.vb.toFixed(2)}^2 - ${res.vr.toFixed(2)}^2}} = \\mathbf{${res.crossingTime.toFixed(2)}} \\; \\text{s}`),
+    ].join('');
+}
+
+/* =============================================================
+   CANVAS: RESIZE
+   ============================================================= */
+function resizeCanvas() {
+    const rect = canvas.parentElement.getBoundingClientRect();
+    canvas.width  = rect.width;
+    canvas.height = rect.height;
+    state.canvasW = rect.width;
+    state.canvasH = rect.height;
+    drawFrame();
+}
+
+/* =============================================================
+   PLAYBACK CONTROLS
+   ============================================================= */
+function togglePlay() {
+    const res = solvePhysics();
+    if (res.crossingTime === Infinity) return;
+
+    if (state.animProgress >= 1.0) resetAnim(false);
+
+    state.animating = !state.animating;
+    refreshPlayBtn();
+}
+
+function pauseAnim() {
+    state.animating = false;
+    refreshPlayBtn();
+}
+
+function resetAnim(redraw = true) {
+    state.animating    = false;
+    state.animProgress = 0.0;
+    state.animTimeSec  = 0.0;
+    state.wakePts      = [];
+
+    state.compareAnimProgressA = 0.0;
+    state.compareAnimProgressB = 0.0;
+    state.compareAnimTimeSecA = 0.0;
+    state.compareAnimTimeSecB = 0.0;
+    state.compareWakePtsA = [];
+    state.compareWakePtsB = [];
+
+    refreshPlayBtn();
+    document.getElementById('crossing-badge').style.display = 'none';
+    if (redraw) drawFrame();
+}
+
+function refreshPlayBtn() {
+    const btn = document.getElementById('btn-play');
+    const pause = document.getElementById('btn-pause');
+    const cross = document.getElementById('crossing-badge');
+
+    const progress = state.compareMode ? Math.max(state.compareAnimProgressA, state.compareAnimProgressB) : state.animProgress;
+
+    if (state.animating) {
+        btn.innerHTML = `<svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg><span>Pause</span>`;
+        btn.classList.add('btn-primary');
+        pause.disabled = false;
+        cross.style.display = 'inline-block';
+        cross.classList.add('active');
+    } else {
+        const label = progress >= 1.0 ? 'Replay' : (progress > 0 ? 'Resume' : 'Play');
+        btn.innerHTML = `<svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg><span>${label}</span>`;
+        btn.classList.add('btn-primary');
+        pause.disabled = true;
+        cross.style.display  = 'none';
+        cross.classList.remove('active');
+    }
+}
+
+function setSpeed(m) {
+    state.speedMultiplier = m;
+    document.querySelectorAll('.speed-btn').forEach(b => b.classList.remove('active'));
+    document.getElementById('speed-' + m).classList.add('active');
+}
+
+/* =============================================================
+   ANIMATION LOOP
+   ============================================================= */
+let _lastTS = 0;
+function animationLoop(ts) {
+    if (!_lastTS) _lastTS = ts;
+    const dtMs = ts - _lastTS;
+    _lastTS = ts;
+
+    const dtS = (dtMs / 1000) * state.speedMultiplier;
+    
+    // Smooth wave flow phase increment based on current speed vr
+    state.wavePhase = (state.wavePhase || 0) + state.vr * dtS * 0.45;
+
+    // Advance flow particles
+    state.particles.forEach(p => {
+        p.x += state.vr * p.speed * dtS * 35; // scroll speed proportional to vr
+    });
+
+    if (state.compareMode) {
+        const physA = solvePhysicsForCase('A');
+        const caseBCode = state.vb >= state.vr ? 'B' : 'C';
+        const physB = solvePhysicsForCase(caseBCode);
+
+        if (state.animating) {
+            // Animate Case A (Top split)
+            if (physA.crossingTime !== Infinity) {
+                state.compareAnimTimeSecA += dtS;
+                state.compareAnimProgressA = state.compareAnimTimeSecA / physA.crossingTime;
+                
+                if (state.compareAnimProgressA >= 1.0) {
+                    state.compareAnimProgressA = 1.0;
+                }
+                
+                const tA = state.compareAnimProgressA * physA.crossingTime;
+                state.compareWakePtsA.push({ x: physA.vx * tA, y: physA.vy * tA });
+                if (state.compareWakePtsA.length > 300) state.compareWakePtsA.shift();
+            }
+
+            // Animate Case B/C (Bottom split)
+            if (physB.crossingTime !== Infinity) {
+                state.compareAnimTimeSecB += dtS;
+                state.compareAnimProgressB = state.compareAnimTimeSecB / physB.crossingTime;
+                
+                if (state.compareAnimProgressB >= 1.0) {
+                    state.compareAnimProgressB = 1.0;
+                }
+                
+                const tB = state.compareAnimProgressB * physB.crossingTime;
+                state.compareWakePtsB.push({ x: physB.vx * tB, y: physB.vy * tB });
+                if (state.compareWakePtsB.length > 300) state.compareWakePtsB.shift();
+            }
+
+            // Continuous loop reset in comparison mode once BOTH boats arrive
+            if (state.compareAnimProgressA >= 1.0 && state.compareAnimProgressB >= 1.0) {
+                state.compareAnimProgressA = 0.0;
+                state.compareAnimProgressB = 0.0;
+                state.compareAnimTimeSecA = 0.0;
+                state.compareAnimTimeSecB = 0.0;
+                state.compareWakePtsA = [];
+                state.compareWakePtsB = [];
+            }
+        }
+    } else {
+        const phys = solvePhysics();
+        if (state.animating && phys.crossingTime !== Infinity) {
+            state.animTimeSec  += dtS;
+            state.animProgress  = state.animTimeSec / phys.crossingTime;
+
+            if (state.animProgress >= 1.0) {
+                // Continuous loop reset in single case mode
+                state.animProgress = 0.0;
+                state.animTimeSec  = 0.0;
+                state.wakePts      = [];
+            } else {
+                const t = state.animProgress * phys.crossingTime;
+                state.wakePts.push({ x: phys.vx * t, y: phys.vy * t });
+                if (state.wakePts.length > 300) state.wakePts.shift();
+            }
+        }
+    }
+
+    drawFrame();
+    requestAnimationFrame(animationLoop);
+}
+
+/* =============================================================
+   CANVAS RENDERING
+   ============================================================= */
+function drawSpeedLegend(ctx, x, y) {
+    ctx.save();
+    ctx.fillStyle = 'rgba(15, 23, 42, 0.85)';
+    ctx.strokeStyle = 'rgba(255, 255, 255, 0.1)';
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.roundRect(x, y, 140, 58, 6);
+    ctx.fill();
+    ctx.stroke();
+
+    ctx.fillStyle = '#f1f5f9';
+    ctx.font = 'bold 9px Outfit, sans-serif';
+    ctx.fillText('Current Speed Key', x + 10, y + 14);
+
+    const levels = [
+        { label: '0%', val: '0', speedText: 'Static', color: '#64748b' },
+        { label: '50%', val: '5', speedText: 'Slow', color: 'rgba(255, 159, 28, 0.6)' },
+        { label: '100%', val: '10', speedText: 'Fast', color: '#ff9f1c' }
+    ];
+
+    levels.forEach((lvl, idx) => {
+        const lx = x + 10 + idx * 42;
+        const ly = y + 25;
+        ctx.fillStyle = lvl.color;
+        ctx.fillRect(lx, ly, 15, 3);
+        
+        ctx.font = '8px JetBrains Mono, monospace';
+        ctx.fillStyle = '#64748b';
+        ctx.fillText(lvl.label, lx, ly + 12);
+        ctx.fillText(lvl.speedText, lx, ly + 21);
+    });
+    ctx.restore();
+}
+
+function drawRiverSection(res, yOffset, sectionHeight, caseLabel, boatColor, animProgress, wakePts, isCompare = false) {
+    const d = res.d;
+    const drift = res.crossingTime === Infinity ? 0 : res.drift;
+
+    // Viewport coordinates computed using Case A drift for consistent scaling in comparison mode
+    const physA = solvePhysicsForCase('A');
+    const driftA = physA.drift;
+    let xL = -physA.d * 0.28, xR = physA.d * 0.9;
+    if (driftA >= 0) xR = Math.max(xR, driftA + physA.d * 0.28);
+    else             xL = Math.min(xL, driftA - physA.d * 0.28);
+    const yB = -d * 0.12, yT = d * 1.12;
+
+    const scX = canvas.width  / (xR - xL);
+    const scY = sectionHeight / (yT - yB);
+    const scale = Math.min(scX, scY) * 0.92;
+    const xMid  = (xL + xR) / 2;
+    const yMid  = (yB + yT) / 2;
+
+    const px = (X, Y) => ({
+        x: canvas.width  / 2 + (X - xMid) * scale,
+        y: yOffset + sectionHeight / 2 - (Y - yMid) * scale,
+    });
+
+    const waterTop  = px(0, d).y;
+    const waterBot  = px(0, 0).y;
+    const waterH    = waterBot - waterTop;
+
+    /* --- River water gradient + Case background tints --- */
+    const waterGrad = ctx.createLinearGradient(0, waterTop, 0, waterBot);
+    if (res.impossibleCaseB || res.thetaDeg !== 30 && res.thetaDeg !== 0 && res.vb < res.vr && (res.thetaDeg === Math.asin(res.vb/res.vr)*180/Math.PI)) {
+        // Case C (Min Drift) — Faint amber/orange tint
+        waterGrad.addColorStop(0,   'rgba(30, 20, 10, 0.96)');
+        waterGrad.addColorStop(0.5, 'rgba(40, 25, 8, 0.98)');
+        waterGrad.addColorStop(1,   'rgba(30, 18, 5, 0.95)');
+    } else if (res.thetaDeg === Math.asin(res.vr/res.vb)*180/Math.PI && res.vb >= res.vr) {
+        // Case B (Zero Drift) — Faint green tint
+        waterGrad.addColorStop(0,   'rgba(10, 30, 20, 0.96)');
+        waterGrad.addColorStop(0.5, 'rgba(12, 40, 25, 0.98)');
+        waterGrad.addColorStop(1,   'rgba(8, 25, 15, 0.95)');
+    } else {
+        // Default water color
+        waterGrad.addColorStop(0,   'rgba(10, 38, 78, 0.95)');
+        waterGrad.addColorStop(0.5, 'rgba(8, 30, 62, 0.98)');
+        waterGrad.addColorStop(1,   'rgba(12, 42, 85, 0.92)');
+    }
+    ctx.fillStyle = waterGrad;
+    ctx.fillRect(0, waterTop, canvas.width, waterH);
+
+    /* --- Animated wave layers --- */
+    const waveCount = 3;
+    ctx.save();
+    for (let i = 0; i < waveCount; i++) {
+        ctx.beginPath();
+        const yFrac = 0.25 + 0.25 * i;
+        const wavePhysicsY = d * yFrac;
+        
+        const step = (xR - xL) / 60;
+        for (let wx = xL; wx <= xR; wx += step) {
+            const amp = d * 0.015;
+            const freq = 2 * Math.PI / (d * 0.45);
+            const phaseOffset = i * Math.PI / 2.5;
+            const wy = wavePhysicsY + amp * Math.sin(wx * freq - state.wavePhase - phaseOffset);
+            const pt = px(wx, wy);
+            if (wx === xL) ctx.moveTo(pt.x, pt.y);
+            else ctx.lineTo(pt.x, pt.y);
+        }
+        ctx.lineWidth = 1.0 + (res.vr / 10.0) * 1.5;
+        const alpha = 0.12 + 0.08 * i;
+        ctx.strokeStyle = `rgba(56, 189, 248, ${alpha})`;
+        ctx.stroke();
+    }
+    ctx.restore();
+
+    /* --- Flow particles --- */
+    const vrAlpha = Math.min(1.0, res.vr / 3.0);
+    state.particles.forEach(p => {
+        // wrap particles
+        if (p.x > xR + d * 0.15) p.x = xL - d * 0.15;
+        if (p.x < xL - d * 0.15) p.x = xR + d * 0.15;
+
+        const py2 = (p.y / 100) * d;
+        const pos = px(p.x, py2);
+        const endX = pos.x + p.len * scale * 0.2;
+
+        const grad = ctx.createLinearGradient(pos.x, pos.y, endX, pos.y);
+        grad.addColorStop(0, `rgba(255, 159, 28, 0)`);
+        grad.addColorStop(1, `rgba(255, 159, 28, ${p.opacity * vrAlpha})`);
+        ctx.strokeStyle = grad;
+        ctx.lineWidth   = 1.1;
+        ctx.beginPath();
+        ctx.moveTo(pos.x, pos.y);
+        ctx.lineTo(endX, pos.y);
+        ctx.stroke();
+    });
+
+    /* --- Banks --- */
+    // Near bank
+    const bankGradBot = ctx.createLinearGradient(0, waterBot, 0, yOffset + sectionHeight);
+    bankGradBot.addColorStop(0, '#122012');
+    bankGradBot.addColorStop(1, '#081008');
+    ctx.fillStyle = bankGradBot;
+    ctx.fillRect(0, waterBot, canvas.width, (yOffset + sectionHeight) - waterBot);
+
+    // Far bank
+    const bankGradTop = ctx.createLinearGradient(0, yOffset, 0, waterTop);
+    bankGradTop.addColorStop(0, '#081008');
+    bankGradTop.addColorStop(1, '#122012');
+    ctx.fillStyle = bankGradTop;
+    ctx.fillRect(0, yOffset, canvas.width, waterTop - yOffset);
+
+    // Bank edge lines
+    [[waterTop, '#10b981', 0.8], [waterBot, '#10b981', 0.8]].forEach(([y, col, op]) => {
+        ctx.strokeStyle = col;
+        ctx.globalAlpha = op;
+        ctx.lineWidth   = 1.5;
+        ctx.beginPath();
+        ctx.moveTo(0, y);
+        ctx.lineTo(canvas.width, y);
+        ctx.stroke();
+        ctx.globalAlpha = 1;
+    });
+
+    // Bank labels
+    ctx.fillStyle = 'rgba(255,255,255,0.45)';
+    ctx.font      = `500 ${Math.max(9, Math.min(11, canvas.width / 95))}px Outfit, sans-serif`;
+    ctx.fillText('Start', px(0, -d * 0.05).x - 12, waterBot + 14);
+    ctx.fillText('Opposite bank', px(0, d * 1.05).x - 32, waterTop - 8);
+
+    // River Current Static Indicator
+    const arrowY = waterBot - 12;
+    const startArrowX = px(xL + d * 0.05, 0).x;
+    const endArrowX = px(xR - d * 0.05, 0).x;
+    ctx.save();
+    ctx.strokeStyle = 'rgba(255, 159, 28, 0.4)';
+    ctx.lineWidth = 1.2;
+    ctx.setLineDash([4, 3]);
+    ctx.beginPath();
+    ctx.moveTo(startArrowX, arrowY);
+    ctx.lineTo(endArrowX, arrowY);
+    ctx.stroke();
+    ctx.setLineDash([]);
+    drawArrow(startArrowX, arrowY, endArrowX, arrowY, 'rgba(255, 159, 28, 0.6)', 1.2);
+    ctx.fillStyle = 'rgba(255, 159, 28, 0.7)';
+    ctx.font = 'italic 9px Outfit, sans-serif';
+    ctx.fillText(res.vr > 0 ? `River current (v_r = ${fmtSpeedRaw(res.vr)})` : 'No current', (startArrowX + endArrowX)/2 - 50, arrowY - 4);
+    ctx.restore();
+
+    /* --- Static Dashed Heading Direction Line --- */
+    if (res.crossingTime !== Infinity) {
+        const isZeroDrift = (res.thetaDeg === Math.asin(res.vr / res.vb) * 180 / Math.PI && res.vb >= res.vr) || res.thetaDeg === 30; // Case B or Case E
+        const headingEndX = isZeroDrift ? 0 : -d * Math.tan(res.thetaRad);
+        
+        const headingStart = px(0, 0);
+        const headingEnd   = px(headingEndX, d);
+
+        ctx.save();
+        ctx.setLineDash([5, 4]);
+        ctx.strokeStyle = 'rgba(255, 255, 255, 0.35)';
+        ctx.lineWidth   = 1.5;
+        ctx.beginPath();
+        ctx.moveTo(headingStart.x, headingStart.y);
+        ctx.lineTo(headingEnd.x, headingEnd.y);
+        ctx.stroke();
+        ctx.restore();
+
+        // Draw static annotation for Heading direction
+        if (animProgress > 0.02 && animProgress < 0.98) {
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.55)';
+            ctx.font = '8px Outfit, sans-serif';
+            ctx.fillText('Heading direction (water frame)', headingEnd.x + 8, headingEnd.y + 14);
+        }
+    }
+
+    /* --- Trajectory Actual Path line --- */
+    if (res.crossingTime !== Infinity) {
+        const startP = px(0, 0);
+        const endP   = px(drift, d);
+
+        ctx.save();
+        ctx.setLineDash([6, 5]);
+        ctx.strokeStyle = 'rgba(255, 255, 255, 0.15)';
+        ctx.lineWidth   = 1.5;
+        ctx.beginPath();
+        ctx.moveTo(startP.x, startP.y);
+        ctx.lineTo(endP.x, endP.y);
+        ctx.stroke();
+        ctx.restore();
+    }
+
+    /* --- Wake trail --- */
+    if (wakePts.length > 2) {
+        ctx.save();
+        ctx.beginPath();
+        const p0 = px(wakePts[0].x, wakePts[0].y);
+        ctx.moveTo(p0.x, p0.y);
+        wakePts.forEach((pt, i) => {
+            if (i === 0) return;
+            const p = px(pt.x, pt.y);
+            ctx.lineTo(p.x, p.y);
+        });
+        ctx.strokeStyle = boatColor;
+        ctx.globalAlpha = 0.25;
+        ctx.lineWidth   = 2.2;
+        ctx.lineCap     = 'round';
+        ctx.stroke();
+        ctx.restore();
+    }
+
+    /* --- Destination landing marker & Drift bar --- */
+    if (res.crossingTime !== Infinity) {
+        const land = px(drift, d);
+
+        // Target Ring and vertical indicator
+        ctx.save();
+        ctx.setLineDash([3, 3]);
+        ctx.strokeStyle = 'rgba(255,255,255,0.12)';
+        ctx.lineWidth   = 0.9;
+        ctx.beginPath();
+        ctx.moveTo(land.x, land.y);
+        ctx.lineTo(land.x, waterBot);
+        ctx.stroke();
+        ctx.restore();
+
+        // Drift bar decoration along far bank if drift > 0
+        if (Math.abs(drift) > 0.5) {
+            const startBar = px(0, d);
+            const endBar = px(drift, d);
+            ctx.save();
+            ctx.strokeStyle = boatColor;
+            ctx.lineWidth = 3.0;
+            ctx.beginPath();
+            ctx.moveTo(startBar.x, startBar.y);
+            ctx.lineTo(endBar.x, endBar.y);
+            ctx.stroke();
+            ctx.restore();
+        }
+
+        // Landing target point
+        ctx.save();
+        ctx.strokeStyle = boatColor;
+        ctx.fillStyle   = 'rgba(255,255,255,0.1)';
+        ctx.lineWidth   = 1.8;
+        ctx.beginPath();
+        ctx.arc(land.x, land.y, 6, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.stroke();
+        ctx.restore();
+
+        // Landing and drift annotations
+        ctx.fillStyle = boatColor;
+        ctx.font      = `600 ${Math.max(8, Math.min(10, canvas.width / 95))}px JetBrains Mono, monospace`;
+        const isZeroDrift = Math.abs(drift) < 0.1;
+        const driftText = isZeroDrift ? 'Zero Drift' : `Drift: ${fmtDist(drift)}`;
+        ctx.fillText(driftText, land.x + 10, land.y - 8);
+
+        // 0-drift reference marker
+        if (!isZeroDrift) {
+            const ref0 = px(0, d);
+            ctx.fillStyle   = 'rgba(255,255,255,0.15)';
+            ctx.strokeStyle = 'rgba(255,255,255,0.2)';
+            ctx.lineWidth   = 1;
+            ctx.beginPath();
+            ctx.arc(ref0.x, ref0.y, 3.5, 0, Math.PI * 2);
+            ctx.fill(); ctx.stroke();
+            ctx.fillStyle = 'rgba(255,255,255,0.25)';
+            ctx.font      = '8px sans-serif';
+            ctx.fillText('0-drift ref', ref0.x - 18, ref0.y - 8);
+        }
+    }
+
+    /* --- Status Badge inside Canvas --- */
+    ctx.save();
+    let badgeText = '';
+    let badgeColor = '';
+    if (res.impossibleCaseB || (res.thetaDeg === Math.asin(res.vb/res.vr)*180/Math.PI && res.vb < res.vr)) {
+        badgeText = `⚠️ MINIMUM DRIFT — current wins`;
+        badgeColor = '#ff9f1c';
+    } else if (Math.abs(drift) < 0.1) {
+        badgeText = `✅ ZERO DRIFT — straight path`;
+        badgeColor = '#10b981';
+    } else {
+        badgeText = `ℹ️ CROSSING COMPLETED`;
+        badgeColor = '#38bdf8';
+    }
+    if (isCompare) {
+        badgeText = `${caseLabel}: ${badgeText}`;
+    }
+    ctx.fillStyle = 'rgba(15, 23, 42, 0.7)';
+    ctx.strokeStyle = 'rgba(255,255,255,0.1)';
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.roundRect(10, yOffset + 10, isCompare ? 220 : 180, 20, 4);
+    ctx.fill();
+    ctx.stroke();
+
+    ctx.fillStyle = badgeColor;
+    ctx.font = 'bold 9px Outfit, sans-serif';
+    ctx.fillText(badgeText, 16, yOffset + 23);
+    ctx.restore();
+
+    /* --- Heading = Actual path coinciding badge --- */
+    if (res.crossingTime !== Infinity) {
+        const isZeroDrift = Math.abs(drift) < 0.1;
+        if (isZeroDrift) {
+            ctx.save();
+            ctx.fillStyle = 'rgba(16, 185, 129, 0.8)';
+            ctx.font = '8px Outfit, sans-serif';
+            ctx.fillText('Heading = Actual path (no drift)', px(0, d/2).x + 8, px(0, d/2).y);
+            ctx.restore();
+        }
+    }
+
+    /* --- Origin marker --- */
+    const origin = px(0, 0);
+    ctx.strokeStyle = 'rgba(255,255,255,0.2)';
+    ctx.lineWidth   = 1;
+    ctx.beginPath();
+    ctx.arc(origin.x, origin.y, 4, 0, Math.PI * 2);
+    ctx.stroke();
+
+    /* --- BOAT ANIMATION --- */
+    if (res.crossingTime !== Infinity) {
+        const t      = animProgress * res.crossingTime;
+        const curX   = res.vx * t;
+        const curY   = res.vy * t;
+        const boatP  = px(curX, curY);
+
+        ctx.save();
+        ctx.translate(boatP.x, boatP.y);
+        ctx.rotate(-res.thetaRad); // face heading direction
+
+        /* Hull */
+        ctx.fillStyle   = '#e2e8f0';
+        ctx.strokeStyle = '#1e293b';
+        ctx.lineWidth   = 1.5;
+        ctx.beginPath();
+        ctx.moveTo(0, -13);
+        ctx.bezierCurveTo(6, -7,  6,  5,  4,  11);
+        ctx.lineTo(-4, 11);
+        ctx.bezierCurveTo(-6, 5, -6, -7, 0, -13);
+        ctx.fill();
+        ctx.stroke();
+
+        /* Cabin */
+        ctx.fillStyle   = '#334155';
+        ctx.strokeStyle = '#475569';
+        ctx.lineWidth   = 1;
+        ctx.fillRect(-3, -3, 6, 6);
+        ctx.strokeRect(-3, -3, 6, 6);
+
+        /* Window */
+        ctx.fillStyle = 'rgba(0, 229, 255, 0.45)';
+        ctx.fillRect(-1.5, -2, 3, 2);
+
+        ctx.restore();
+
+        /* Vectors from boat */
+        // vb arrow
+        const vbLen = 28;
+        const vbArrX = boatP.x - vbLen * Math.sin(res.thetaRad);
+        const vbArrY = boatP.y - vbLen * Math.cos(res.thetaRad);
+        drawArrow(boatP.x, boatP.y, vbArrX, vbArrY, '#00e5ff', 1.8);
+
+        // vR arrow
+        if (res.vR > 0.05) {
+            const vRLen = 36;
+            const alphaRad = res.alphaDeg * Math.PI / 180;
+            const vRX = boatP.x + vRLen * Math.cos(alphaRad);
+            const vRY = boatP.y - vRLen * Math.sin(alphaRad);
+            drawArrow(boatP.x, boatP.y, vRX, vRY, boatColor, 1.8);
+        }
+    }
+}
+
+function drawFrame() {
+    if (!canvas.width || !canvas.height) return;
+
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    /* --- General Canvas Background --- */
+    ctx.fillStyle = '#060c18';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    if (state.compareMode) {
+        // Compare A vs B mode
+        const height = canvas.height / 2;
+        
+        // Case A (Min Time) top split
+        const resA = solvePhysicsForCase('A');
+        drawRiverSection(resA, 0, height, 'Case A (Min Time)', 'var(--color-accent)', state.compareAnimProgressA, state.compareWakePtsA, true);
+
+        // Case B/C bottom split
+        const caseBCode = state.vb >= state.vr ? 'B' : 'C';
+        const resB = solvePhysicsForCase(caseBCode);
+        const boatColorB = caseBCode === 'B' ? 'rgba(34, 197, 94, 1)' : 'var(--color-vr)';
+        drawRiverSection(resB, height, height, `Case ${caseBCode}`, boatColorB, state.compareAnimProgressB, state.compareWakePtsB, true);
+
+        // Draw split line divider
+        ctx.strokeStyle = 'rgba(255, 255, 255, 0.15)';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.moveTo(0, height);
+        ctx.lineTo(canvas.width, height);
+        ctx.stroke();
+
+    } else {
+        // Single Case Simulation
+        const res = solvePhysics();
+        let pathColor = 'var(--color-vR)';
+        if (state.activeCase === 'B') pathColor = 'rgba(34, 197, 94, 1)'; // green
+        if (state.activeCase === 'C' || res.impossibleCaseB) pathColor = 'var(--color-vr)'; // orange/amber
+        if (state.activeCase === 'A') pathColor = 'var(--color-accent)'; // emerald
+        
+        drawRiverSection(res, 0, canvas.height, `Case ${state.activeCase}`, pathColor, state.animProgress, state.wakePts, false);
+    }
+
+    // Draw Speed Legend once at the bottom right corner
+    const legX = canvas.width - 150;
+    const legY = canvas.height - 65;
+    drawSpeedLegend(ctx, legX, legY);
+}
+
+/* --- arrow helper --- */
+function drawArrow(x1, y1, x2, y2, color, w) {
+    const hl  = 6;
+    const ang = Math.atan2(y2 - y1, x2 - x1);
+    ctx.strokeStyle = color;
+    ctx.fillStyle   = color;
+    ctx.lineWidth   = w;
+    ctx.lineCap     = 'round';
+    ctx.beginPath();
+    ctx.moveTo(x1, y1);
+    ctx.lineTo(x2, y2);
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.moveTo(x2, y2);
+    ctx.lineTo(x2 - hl * Math.cos(ang - Math.PI/6), y2 - hl * Math.sin(ang - Math.PI/6));
+    ctx.lineTo(x2 - hl * Math.cos(ang + Math.PI/6), y2 - hl * Math.sin(ang + Math.PI/6));
+    ctx.fill();
+    ctx.lineCap = 'butt';
+}
+
+/* =============================================================
+   PHYSICS SELF-TEST SUITE  (runs on load, logs to console)
+   ============================================================= */
+function runPhysicsSelfTests() {
+    const VIOLET = 'color:#b06ef3;font-weight:bold;';
+    const GREEN  = 'color:#10b981;font-weight:600;';
+    const RED    = 'color:#ef4444;font-weight:600;';
+
+    console.log('%c─── PHYSICS SELF-TEST SUITE ───', VIOLET);
+    let pass = 0, fail = 0;
+
+    const assert = (cond, msg) => {
+        if (cond) { console.log(`%c✓ ${msg}`, GREEN); pass++; }
+        else       { console.error(`✗ ${msg}`);          fail++; }
+    };
+
+    const saved = { ...state };
+    try {
+        // ── Case A — Minimum Time ─────────────────────────────────
+        // vb=4, vr=3, d=100 → classic 3-4-5 Pythagorean triple
+        Object.assign(state, { unit:'metric', vb:4, vr:3, d:100, activeCase:'A', customTheta:0 });
+        let r = solvePhysics();
+        assert(Math.abs(r.vy - 4) < 1e-6,            'A: vy = vb = 4 m/s');
+        assert(Math.abs(r.vx - 3) < 1e-6,            'A: vx = vr = 3 m/s');
+        assert(Math.abs(r.crossingTime - 25) < 1e-6, 'A: t = d/vb = 25 s');
+        assert(Math.abs(r.drift - 75) < 1e-6,         'A: drift = 75 m');
+        assert(Math.abs(r.vR - 5) < 1e-6,             'A: vR = 5 m/s (3-4-5 Pythagorean)');
+        assert(Math.abs(r.thetaDeg) < 1e-6,           'A: θ = 0° (straight across)');
+        assert(Math.abs(r.phiDeg - 90) < 1e-6,        'A: φ = 90° (Convention B)');
+
+        // ── Case B — Zero Drift / Shortest Path ──────────────────
+        // vb=5, vr=3 → θ = arcsin(3/5) ≈ 36.87°, φ = 90+36.87 ≈ 126.87°
+        Object.assign(state, { vb:5, vr:3, d:100, activeCase:'B' });
+        r = solvePhysics();
+        const thetaB = Math.asin(3/5) * 180 / Math.PI;  // ≈ 36.87°
+        const phiB = 90 + thetaB;
+        assert(Math.abs(r.thetaDeg - thetaB) < 1e-5,    'B: θ = arcsin(vr/vb) ≈ 36.87°');
+        assert(Math.abs(r.phiDeg - phiB) < 1e-5,        'B: φ = 90° + θ ≈ 126.87°');
+        assert(Math.abs(r.vx) < 1e-5,                   'B: vx = 0 (zero drift)');
+        assert(Math.abs(r.drift) < 1e-5,                 'B: drift = 0 m');
+        assert(!r.impossibleCaseB,                        'B: impossibleCaseB = false when vb > vr');
+
+        // ── Case B→C fallback — boat slower than current ─────────
+        Object.assign(state, { vb:3, vr:5, d:100, activeCase:'B' });
+        r = solvePhysics();
+        assert(r.impossibleCaseB === true,               'B→C: impossibleCaseB flag set');
+        assert(Math.abs(r.thetaDeg - Math.asin(3/5)*180/Math.PI) < 1e-5,
+                                                          'B→C: θ falls back to arcsin(vb/vr)');
+
+        // ── Case C — Minimum Drift (vb < vr) ─────────────────────
+        Object.assign(state, { vb:3, vr:5, d:100, activeCase:'C' });
+        r = solvePhysics();
+        const thetaC = Math.asin(3/5) * 180 / Math.PI;
+        const phiC = 90 + thetaC;
+        const expectedDriftC = (100 * Math.sqrt(25 - 9)) / 3; // d*sqrt(vr²-vb²)/vb
+        assert(Math.abs(r.thetaDeg - thetaC) < 1e-5,    'C: θ = arcsin(vb/vr)');
+        assert(Math.abs(r.phiDeg - phiC) < 1e-5,        'C: φ = 90° + θ (Convention B)');
+        assert(Math.abs(r.drift - expectedDriftC) < 1e-3,'C: drift = d√(vr²-vb²)/vb');
+
+        // ── Case E — 120° Spotlight (vb = 2·vr) ──────────────────
+        // vb=6, vr=3 → θ=30°, φ=120°, zero drift
+        Object.assign(state, { vb:6, vr:3, d:100, activeCase:'E' });
+        r = solvePhysics();
+        assert(Math.abs(r.thetaDeg - 30) < 1e-6,         'E: θ = 30° locked');
+        assert(Math.abs(r.phiDeg - 120) < 1e-6,           'E: φ = 120° (HSC spotlight)');
+        assert(Math.abs(r.vx) < 1e-6,                     'E: vx = 0 (zero drift)');
+        assert(Math.abs(r.drift) < 1e-5,                   'E: drift = 0 m');
+        const expectedT_E = 100 / (6 * Math.cos(30 * Math.PI/180));
+        assert(Math.abs(r.crossingTime - expectedT_E) < 1e-4, 'E: t = d / (vb·cos30°)');
+
+        // ── Case E — phi formula derivation: cos⁻¹(−vr/vb)=cos⁻¹(−0.5)=120° ──
+        const derivedPhi = Math.acos(-0.5) * 180 / Math.PI;
+        assert(Math.abs(derivedPhi - 120) < 1e-6,         'E: cos⁻¹(−0.5) = 120° confirmed');
+
+        // ── Convention B: phi = 90° + theta ──────────────────────
+        Object.assign(state, { vb:4, vr:3, d:100, activeCase:'D', customTheta:45 });
+        r = solvePhysics();
+        assert(Math.abs(r.phiDeg - (90 + 45)) < 1e-6,   'D custom: φ = 90° + 45° = 135°');
+
+        // ── Case D — theta = 89° → Infinity (parallel to bank) ───
+        Object.assign(state, { activeCase:'D', customTheta:89 });
+        r = solvePhysics();
+        assert(r.crossingTime === Infinity, 'D (89°): crossingTime = ∞');
+        assert(r.drift        === Infinity, 'D (89°): drift = ∞');
+
+        // ── Boundary: theta = 0 always gives minimum time ────────
+        Object.assign(state, { vb:4, vr:8, d:100, activeCase:'A' });
+        r = solvePhysics();
+        assert(Math.abs(r.crossingTime - 25) < 1e-6, 'A (vr>vb): t_min still = d/vb = 25s');
+
+        const total = pass + fail;
+        console.log(`%c─── ${pass}/${total} passed ${fail > 0 ? `| ${fail} FAILED` : '✓ all clear'} ───`, fail ? RED : GREEN);
+    } catch (e) {
+        console.error('Self-test error:', e);
+    } finally {
+        Object.assign(state, saved);
+    }
+}
+</script>
+</body>
+</html>
