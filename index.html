@@ -64,9 +64,9 @@
 
         /* ===================== SCROLLBAR ===================== */
         ::-webkit-scrollbar { width: 6px; height: 6px; }
-        ::-webkit-scrollbar-track { background: rgba(0,0,0,0.2); }
-        ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.12); border-radius: 3px; }
-        ::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.22); }
+        ::-webkit-scrollbar-track { background: rgba(128,128,128,0.08); }
+        ::-webkit-scrollbar-thumb { background: rgba(128,128,128,0.25); border-radius: 3px; }
+        ::-webkit-scrollbar-thumb:hover { background: rgba(128,128,128,0.4); border-radius: 3px; }
 
         /* ===================== LAYOUT ===================== */
         .container {
@@ -124,7 +124,7 @@
         .header-title h1 {
             font-size: 1.35rem;
             font-weight: 700;
-            background: linear-gradient(135deg, #ffffff 0%, var(--color-vb) 60%, var(--color-vR) 100%);
+            background: linear-gradient(135deg, var(--text-primary) 0%, var(--color-vb) 60%, var(--color-vR) 100%);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             background-clip: text;
@@ -155,7 +155,7 @@
         /* ===================== UNIT TOGGLE ===================== */
         .unit-toggle {
             display: flex;
-            background: rgba(0,0,0,0.35);
+            background: rgba(128,128,128,0.1);
             padding: 0.2rem;
             border-radius: var(--radius-sm);
             border: 1px solid var(--card-border);
@@ -176,9 +176,9 @@
             white-space: nowrap;
         }
         .unit-btn.active {
-            background: rgba(255,255,255,0.1);
+            background: rgba(128,128,128,0.15);
             color: var(--text-primary);
-            box-shadow: 0 2px 8px rgba(0,0,0,0.25);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
         }
         .unit-btn:hover:not(.active) { color: var(--text-primary); }
 
@@ -210,7 +210,7 @@
 
         .card-title-icon {
             width: 28px; height: 28px;
-            background: rgba(255,255,255,0.05);
+            background: rgba(128,128,128,0.08);
             border: 1px solid var(--card-border);
             border-radius: var(--radius-sm);
             display: flex; align-items: center; justify-content: center;
@@ -227,7 +227,7 @@
         .case-tab {
             flex: 1 1 calc(50% - 0.2rem);
             min-width: 110px;
-            background: rgba(0,0,0,0.25);
+            background: rgba(128,128,128,0.07);
             border: 1px solid var(--card-border);
             border-radius: var(--radius-md);
             padding: 0.65rem 0.5rem;
@@ -274,7 +274,7 @@
             bottom: 125%;
             left: 50%;
             transform: translateX(-50%) translateY(10px);
-            background: rgba(15, 23, 42, 0.95);
+            background: var(--card-bg);
             border: 1px solid var(--card-border-hover);
             color: var(--text-primary);
             padding: 0.5rem 0.75rem;
@@ -286,7 +286,7 @@
             pointer-events: none;
             opacity: 0;
             transition: transform 0.2s, opacity 0.2s;
-            box-shadow: 0 6px 20px rgba(0,0,0,0.6);
+            box-shadow: 0 6px 20px rgba(0,0,0,0.25);
             z-index: 50;
             backdrop-filter: blur(8px);
         }
@@ -298,7 +298,7 @@
         /* ===================== ANGLE TOGGLE & INFO BOX ===================== */
         .angle-convention-toggle {
             display: flex;
-            background: rgba(0,0,0,0.35);
+            background: rgba(128,128,128,0.08);
             padding: 0.15rem;
             border-radius: var(--radius-sm);
             border: 1px solid var(--card-border);
@@ -317,7 +317,7 @@
             font-weight: 500;
         }
         .toggle-btn.active {
-            background: rgba(255,255,255,0.1);
+            background: rgba(128,128,128,0.15);
             color: var(--text-primary);
         }
         .info-box {
@@ -416,7 +416,7 @@
             width: 100%;
             height: 5px;
             border-radius: 3px;
-            background: rgba(255,255,255,0.08);
+            background: rgba(128,128,128,0.18);
             outline: none;
             cursor: pointer;
         }
@@ -426,7 +426,7 @@
             width: 16px; height: 16px;
             border-radius: 50%;
             background: var(--text-primary);
-            border: 2px solid var(--bg-color);
+            border: 2px solid var(--card-bg);
             transition: transform 0.15s, box-shadow 0.15s;
             cursor: grab;
         }
@@ -436,7 +436,7 @@
         #slider-vb::-webkit-slider-thumb { background: var(--color-vb); box-shadow: 0 0 8px var(--glow-vb); }
         #slider-vr::-webkit-slider-thumb { background: var(--color-vr); box-shadow: 0 0 8px var(--glow-vr); }
         #slider-d::-webkit-slider-thumb  { background: #60a5fa; box-shadow: 0 0 8px rgba(96,165,250,0.4); }
-        #slider-theta::-webkit-slider-thumb { background: #e2e8f0; box-shadow: 0 0 8px rgba(226,232,240,0.4); }
+        #slider-theta::-webkit-slider-thumb { background: #94a3b8; box-shadow: 0 0 8px rgba(148,163,184,0.4); }
 
         /* custom angle control hidden by default */
         #custom-angle-control { display: none; }
@@ -444,7 +444,7 @@
 
         /* ===================== VECTOR DIAGRAM ===================== */
         .vector-container {
-            background: rgba(0,0,0,0.3);
+            background: rgba(128,128,128,0.07);
             border: 1px solid var(--card-border);
             border-radius: var(--radius-md);
             padding: 0.5rem;
@@ -465,7 +465,7 @@
 
         .canvas-container {
             position: relative;
-            background: rgba(0,0,0,0.5);
+            background: rgba(128,128,128,0.1);
             border: 1px solid var(--card-border);
             border-radius: var(--radius-md);
             overflow: hidden;
@@ -486,8 +486,8 @@
             display: flex; gap: 0.4rem; flex-wrap: wrap;
         }
         .canvas-badge {
-            background: rgba(0,0,0,0.6);
-            border: 1px solid rgba(255,255,255,0.1);
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
             border-radius: 9999px;
             padding: 0.2rem 0.65rem;
             font-size: 0.7rem;
@@ -497,8 +497,8 @@
             backdrop-filter: blur(8px);
         }
         .canvas-badge.active {
-            background: rgba(176,110,243,0.2);
-            border-color: rgba(176,110,243,0.4);
+            background: rgba(176,110,243,0.15);
+            border-color: rgba(176,110,243,0.35);
             color: var(--color-vR);
         }
 
@@ -507,7 +507,7 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            background: rgba(0,0,0,0.28);
+            background: rgba(128,128,128,0.06);
             padding: 0.65rem 1rem;
             border-radius: var(--radius-md);
             border: 1px solid var(--card-border);
@@ -518,7 +518,7 @@
         .btn-group { display: flex; gap: 0.4rem; }
 
         .btn {
-            background: rgba(255,255,255,0.07);
+            background: rgba(128,128,128,0.1);
             border: 1px solid var(--card-border);
             color: var(--text-primary);
             padding: 0.4rem 0.9rem;
@@ -534,8 +534,8 @@
             white-space: nowrap;
         }
         .btn:hover:not(:disabled) {
-            background: rgba(255,255,255,0.13);
-            border-color: rgba(255,255,255,0.25);
+            background: rgba(128,128,128,0.18);
+            border-color: var(--card-border-hover);
         }
         .btn:disabled { opacity: 0.35; cursor: not-allowed; }
 
@@ -552,7 +552,7 @@
 
         .speed-multiplier {
             display: flex;
-            background: rgba(0,0,0,0.35);
+            background: rgba(128,128,128,0.08);
             border-radius: var(--radius-sm);
             padding: 0.15rem;
             border: 1px solid var(--card-border);
@@ -570,7 +570,7 @@
             transition: var(--transition);
         }
         .speed-btn.active {
-            background: rgba(255,255,255,0.1);
+            background: rgba(128,128,128,0.15);
             color: var(--text-primary);
         }
         .speed-btn:hover:not(.active) { color: var(--text-primary); }
@@ -602,7 +602,7 @@
         }
 
         .readout-box {
-            background: rgba(0,0,0,0.22);
+            background: rgba(128,128,128,0.06);
             border: 1px solid var(--card-border);
             border-radius: var(--radius-md);
             padding: 0.85rem 1rem;
@@ -638,7 +638,7 @@
 
         /* ===================== GRAPH ===================== */
         .graph-wrapper {
-            background: rgba(0,0,0,0.22);
+            background: rgba(128,128,128,0.06);
             border: 1px solid var(--card-border);
             border-radius: var(--radius-md);
             padding: 1rem;
@@ -651,7 +651,7 @@
         /* graph tooltip */
         .graph-tooltip {
             position: absolute;
-            background: rgba(15,23,42,0.92);
+            background: var(--card-bg);
             border: 1px solid var(--card-border-hover);
             border-radius: var(--radius-sm);
             padding: 0.4rem 0.7rem;
@@ -663,7 +663,7 @@
             backdrop-filter: blur(8px);
             z-index: 10;
             font-family: var(--font-mono);
-            box-shadow: 0 4px 16px rgba(0,0,0,0.4);
+            box-shadow: 0 4px 16px rgba(0,0,0,0.15);
         }
 
         /* ===================== MATH PANEL ===================== */
@@ -737,7 +737,7 @@
         }
 
         .math-box {
-            background: rgba(0,0,0,0.22);
+            background: rgba(128,128,128,0.06);
             border: 1px solid var(--card-border);
             border-radius: var(--radius-md);
             padding: 1.1rem;
@@ -748,7 +748,7 @@
         }
 
         .math-box::-webkit-scrollbar { height: 4px; }
-        .math-box::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.12); border-radius: 2px; }
+        .math-box::-webkit-scrollbar-thumb { background: rgba(128,128,128,0.25); border-radius: 2px; }
 
         .math-step {
             display: flex;
@@ -805,6 +805,192 @@
             color: var(--text-muted);
             padding: 0.5rem 0 1rem;
         }
+
+        /* ===================== LIGHT THEME OVERRIDES ===================== */
+        body.light-theme {
+            --bg-color:        #f0f4f8;
+            --bg-grad-top:     #e2e8f0;
+            --card-bg:         rgba(255, 255, 255, 0.88);
+            --card-border:     rgba(15, 23, 42, 0.1);
+            --card-border-hover: rgba(15, 23, 42, 0.18);
+            --text-primary:    #0f172a;
+            --text-secondary:  #475569;
+            --text-muted:      #64748b;
+
+            --color-vb:       #0284c7;   /* Slate blue heading */
+            --color-vr:       #d97706;   /* Amber current */
+            --color-vR:       #7c3aed;   /* Violet resultant */
+            --color-accent:   #059669;   /* Emerald success */
+            --color-warning:  #dc2626;   /* Red impossible */
+            --color-info:     #0284c7;   /* Sky min-drift */
+
+            --glow-vb:  rgba(2, 132, 199, 0.15);
+            --glow-vr:  rgba(217, 119, 6, 0.15);
+            --glow-vR:  rgba(124, 58, 237, 0.15);
+            --glow-acc: rgba(5, 150, 105, 0.15);
+        }
+
+        body.light-theme .card {
+            box-shadow: 0 4px 20px rgba(15, 23, 42, 0.07), inset 0 1px 0 rgba(255, 255, 255, 0.9);
+        }
+        body.light-theme .card:hover {
+            box-shadow: 0 8px 32px rgba(15, 23, 42, 0.1), 0 0 20px rgba(124, 58, 237, 0.05), inset 0 1px 0 rgba(255, 255, 255, 1);
+        }
+        body.light-theme header {
+            box-shadow: 0 4px 20px rgba(15, 23, 42, 0.06), inset 0 1px 0 rgba(255, 255, 255, 0.9);
+        }
+
+        body.light-theme .unit-toggle,
+        body.light-theme .speed-multiplier,
+        body.light-theme .angle-convention-toggle {
+            background: rgba(15, 23, 42, 0.04);
+            border-color: rgba(15, 23, 42, 0.1);
+        }
+        body.light-theme .unit-btn.active,
+        body.light-theme .speed-btn.active,
+        body.light-theme .toggle-btn.active {
+            background: rgba(15, 23, 42, 0.1);
+            color: var(--text-primary);
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+        }
+        body.light-theme .unit-btn:hover:not(.active),
+        body.light-theme .speed-btn:hover:not(.active),
+        body.light-theme .toggle-btn:hover:not(.active) {
+            color: var(--text-primary);
+        }
+
+        body.light-theme .case-tab {
+            background: rgba(15, 23, 42, 0.03);
+            border-color: rgba(15, 23, 42, 0.08);
+        }
+        body.light-theme .case-tab:hover {
+            background: rgba(15, 23, 42, 0.06);
+            border-color: rgba(15, 23, 42, 0.15);
+            color: var(--text-primary);
+        }
+        body.light-theme .case-tab.active {
+            background: rgba(124, 58, 237, 0.08);
+            border-color: var(--color-vR);
+            color: var(--text-primary);
+            box-shadow: 0 4px 12px rgba(124, 58, 237, 0.1), inset 0 1px 0 rgba(255,255,255,0.5);
+        }
+        body.light-theme .case-tab#case-e.active {
+            background: rgba(5, 150, 105, 0.08);
+            border-color: var(--color-accent);
+            box-shadow: 0 4px 12px rgba(5, 150, 105, 0.1), inset 0 1px 0 rgba(255,255,255,0.5);
+        }
+
+        body.light-theme .number-input {
+            background: rgba(255, 255, 255, 0.95);
+            border-color: rgba(15, 23, 42, 0.15);
+            color: var(--text-primary);
+        }
+        body.light-theme .number-input:focus {
+            border-color: var(--color-vb);
+            box-shadow: 0 0 0 3px rgba(2, 132, 199, 0.15);
+        }
+
+        body.light-theme .btn {
+            background: rgba(15, 23, 42, 0.05);
+            border-color: rgba(15, 23, 42, 0.1);
+            color: var(--text-primary);
+        }
+        body.light-theme .btn:hover:not(:disabled) {
+            background: rgba(15, 23, 42, 0.1);
+            border-color: rgba(15, 23, 42, 0.18);
+        }
+        body.light-theme .btn-primary {
+            background: rgba(124, 58, 237, 0.12);
+            border-color: rgba(124, 58, 237, 0.28);
+            color: var(--color-vR);
+        }
+        body.light-theme .btn-primary:hover:not(:disabled) {
+            background: rgba(124, 58, 237, 0.2);
+            border-color: rgba(124, 58, 237, 0.45);
+            box-shadow: 0 4px 12px rgba(124, 58, 237, 0.15);
+        }
+
+        body.light-theme .math-box,
+        body.light-theme .readout-box,
+        body.light-theme .vector-container,
+        body.light-theme .graph-wrapper,
+        body.light-theme .playback-controls {
+            background: rgba(15, 23, 42, 0.03);
+            border-color: rgba(15, 23, 42, 0.08);
+        }
+
+        body.light-theme .canvas-container {
+            background: rgba(15, 23, 42, 0.04);
+            border-color: rgba(15, 23, 42, 0.12);
+        }
+
+        body.light-theme .canvas-badge {
+            background: rgba(255, 255, 255, 0.85);
+            border-color: rgba(15, 23, 42, 0.12);
+            color: var(--text-secondary);
+        }
+        body.light-theme .canvas-badge.active {
+            background: rgba(124, 58, 237, 0.1);
+            border-color: rgba(124, 58, 237, 0.3);
+            color: var(--color-vR);
+        }
+
+        body.light-theme .hsc-badge {
+            background: rgba(5, 150, 105, 0.08);
+            border-color: rgba(5, 150, 105, 0.2);
+        }
+
+        body.light-theme .info-box,
+        body.light-theme .concept-note {
+            background: rgba(124, 58, 237, 0.04);
+            border-color: rgba(124, 58, 237, 0.15);
+            color: #5b21b6;
+        }
+        body.light-theme .info-box strong,
+        body.light-theme .concept-note strong {
+            color: #4c1d95;
+        }
+
+        body.light-theme #theme-toggle {
+            background: rgba(15, 23, 42, 0.04);
+            border-color: rgba(15, 23, 42, 0.08);
+            color: var(--text-primary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 36px;
+            height: 36px;
+            border-radius: var(--radius-md);
+            padding: 0;
+            cursor: pointer;
+            transition: var(--transition);
+            font-size: 1.1rem;
+        }
+        body.light-theme #theme-toggle:hover {
+            background: rgba(15, 23, 42, 0.08);
+            border-color: rgba(15, 23, 42, 0.16);
+        }
+
+        /* Default theme-toggle styles for Dark theme */
+        #theme-toggle {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 36px;
+            height: 36px;
+            border-radius: var(--radius-md);
+            padding: 0;
+            cursor: pointer;
+            transition: var(--transition);
+            background: rgba(0, 0, 0, 0.25);
+            border: 1px solid var(--card-border);
+            color: var(--text-primary);
+            font-size: 1.1rem;
+        }
+        #theme-toggle:hover {
+            background: rgba(255, 255, 255, 0.08);
+            border-color: var(--card-border-hover);
+        }
     </style>
 </head>
 <body>
@@ -822,6 +1008,9 @@
             </div>
         </div>
         <div class="header-right">
+            <button id="theme-toggle" onclick="toggleTheme()" aria-label="Toggle theme">
+                <span id="theme-icon">☀️</span>
+            </button>
             <div class="unit-toggle">
                 <button id="unit-metric" class="unit-btn active" onclick="setUnit('metric')">Metric <small style="opacity:0.6">(m, m/s)</small></button>
                 <button id="unit-practical" class="unit-btn" onclick="setUnit('practical')">Practical <small style="opacity:0.6">(km, km/h)</small></button>
@@ -1079,6 +1268,14 @@
 <script>
 'use strict';
 
+// Immediately check local storage to prevent theme flashing
+(function() {
+    const savedTheme = localStorage.getItem('theme');
+    if (savedTheme === 'light') {
+        document.body.classList.add('light-theme');
+    }
+})();
+
 /* =============================================================
    STATE
    ============================================================= */
@@ -1149,6 +1346,11 @@ const tooltip   = document.getElementById('graph-tooltip');
    INIT
    ============================================================= */
 window.addEventListener('DOMContentLoaded', () => {
+    // Sync theme toggle icon
+    const isLight = document.body.classList.contains('light-theme');
+    const icon = document.getElementById('theme-icon');
+    if (icon) icon.textContent = isLight ? '🌙' : '☀️';
+
     initParticles();
     syncSlidersConfig();
     updateUI();
@@ -1221,6 +1423,17 @@ function syncSlidersConfig() {
 /* =============================================================
    PUBLIC UI HANDLERS
    ============================================================= */
+function toggleTheme() {
+    const isLight = document.body.classList.toggle('light-theme');
+    localStorage.setItem('theme', isLight ? 'light' : 'dark');
+    const icon = document.getElementById('theme-icon');
+    if (icon) {
+        icon.textContent = isLight ? '🌙' : '☀️';
+    }
+    updateUI();
+    drawFrame();
+}
+
 function setUnit(unit) {
     if (state.unit === unit) return;
     state.unit = unit;
@@ -1517,6 +1730,12 @@ function renderVectorDiagram(res) {
     const maxV  = Math.max(res.vb, res.vr, Math.abs(res.vR), 0.5);
     const scale = 90 / maxV;
 
+    const isLight = document.body.classList.contains('light-theme');
+    const arcColor = isLight ? '#475569' : '#e2e8f0';
+    const gridColor = isLight ? 'rgba(15, 23, 42, 0.12)' : 'rgba(255, 255, 255, 0.1)';
+    const guideColor = isLight ? 'rgba(15, 23, 42, 0.16)' : 'rgba(255, 255, 255, 0.12)';
+    const originColor = isLight ? '#0f172a' : '#ffffff';
+
     // vector endpoints
     const vrEndX = cx + res.vr * scale;
     const vrEndY = cy;
@@ -1541,9 +1760,9 @@ function renderVectorDiagram(res) {
         const endY = cy - r * Math.sin((90 + res.thetaDeg) * Math.PI / 180);
         const sweep = res.thetaDeg > 0 ? 0 : 1;
         arcs += `<path d="M ${startX} ${startY} A ${r} ${r} 0 0 ${sweep} ${endX} ${endY}"
-            fill="none" stroke="#e2e8f0" stroke-width="1.0" stroke-dasharray="2,2" opacity="0.6"/>`;
+            fill="none" stroke="${arcColor}" stroke-width="1.0" stroke-dasharray="2,2" opacity="0.6"/>`;
         arcs += `<text x="${cx + (res.thetaDeg > 0 ? -28 : 5)}" y="${cy - r + 9}"
-            fill="#e2e8f0" font-size="8.5" font-family="var(--font-main)" opacity="0.8">θ=${Math.abs(res.thetaDeg).toFixed(0)}°</text>`;
+            fill="${arcColor}" font-size="8.5" font-family="var(--font-main)" opacity="0.8">θ=${Math.abs(res.thetaDeg).toFixed(0)}°</text>`;
     }
 
     // alpha arc (resultant from x-axis)
@@ -1597,12 +1816,12 @@ function renderVectorDiagram(res) {
         </defs>
 
         <!-- crosshairs -->
-        <line x1="${cx-110}" y1="${cy}" x2="${cx+110}" y2="${cy}" stroke="rgba(255,255,255,0.1)" stroke-dasharray="2,3"/>
-        <line x1="${cx}" y1="${cy-110}" x2="${cx}" y2="${cy+110}" stroke="rgba(255,255,255,0.1)" stroke-dasharray="2,3"/>
+        <line x1="${cx-110}" y1="${cy}" x2="${cx+110}" y2="${cy}" stroke="${gridColor}" stroke-dasharray="2,3"/>
+        <line x1="${cx}" y1="${cy-110}" x2="${cx}" y2="${cy+110}" stroke="${gridColor}" stroke-dasharray="2,3"/>
 
         <!-- parallelogram guide lines -->
-        <line x1="${vrEndX}" y1="${vrEndY}" x2="${vREndX}" y2="${vREndY}" stroke="rgba(255,255,255,0.12)" stroke-dasharray="4,3"/>
-        <line x1="${vbEndX}" y1="${vbEndY}" x2="${vREndX}" y2="${vREndY}" stroke="rgba(255,255,255,0.12)" stroke-dasharray="4,3"/>
+        <line x1="${vrEndX}" y1="${vrEndY}" x2="${vREndX}" y2="${vREndY}" stroke="${guideColor}" stroke-dasharray="4,3"/>
+        <line x1="${vbEndX}" y1="${vbEndY}" x2="${vREndX}" y2="${vREndY}" stroke="${guideColor}" stroke-dasharray="4,3"/>
 
         ${arcs}
 
@@ -1631,7 +1850,7 @@ function renderVectorDiagram(res) {
         </text>
 
         <!-- origin -->
-        <circle cx="${cx}" cy="${cy}" r="4" fill="#ffffff" opacity="0.9"/>
+        <circle cx="${cx}" cy="${cy}" r="4" fill="${originColor}" stroke="${gridColor}" stroke-width="1"/>
     `;
 }
 
@@ -1663,6 +1882,13 @@ function renderGraph(res) {
     const tMin = state.d / state.vb;
     const yMax = 5.0 * tMin;
 
+    const isLight = document.body.classList.contains('light-theme');
+    const borderCol = isLight ? 'rgba(15, 23, 42, 0.15)' : 'rgba(255, 255, 255, 0.1)';
+    const tickColMain = isLight ? 'rgba(15, 23, 42, 0.25)' : 'rgba(255, 255, 255, 0.25)';
+    const tickColGrid = isLight ? 'rgba(15, 23, 42, 0.05)' : 'rgba(255, 255, 255, 0.04)';
+    const curveCol = isLight ? 'rgba(15, 23, 42, 0.35)' : 'rgba(255, 255, 255, 0.35)';
+    const dotFill = isLight ? '#f8fafc' : 'white';
+
     const mapX = deg => G.L + ((deg + 80) / 160) * gW;
     const mapY = t   => {
         if (t === Infinity || t > yMax) return G.T;
@@ -1681,16 +1907,16 @@ function renderGraph(res) {
     let ticks = '';
     [-60,-30,0,30,60].forEach(deg => {
         const x = mapX(deg);
-        ticks += `<line x1="${x}" y1="${G.T+gH}" x2="${x}" y2="${G.T+gH+4}" stroke="rgba(255,255,255,0.25)"/>`;
+        ticks += `<line x1="${x}" y1="${G.T+gH}" x2="${x}" y2="${G.T+gH+4}" stroke="${tickColMain}"/>`;
         ticks += `<text x="${x}" y="${H-8}" fill="var(--text-muted)" font-size="8.5" text-anchor="middle" font-family="var(--font-main)">${deg}°</text>`;
-        ticks += `<line x1="${x}" y1="${G.T}" x2="${x}" y2="${G.T+gH}" stroke="rgba(255,255,255,0.04)"/>`;
+        ticks += `<line x1="${x}" y1="${G.T}" x2="${x}" y2="${G.T+gH}" stroke="${tickColGrid}"/>`;
     });
 
     // y-axis ticks
     [tMin, 2*tMin, 3*tMin, 4*tMin].forEach(tv => {
         const y = mapY(tv);
-        ticks += `<line x1="${G.L-4}" y1="${y}" x2="${G.L}" y2="${y}" stroke="rgba(255,255,255,0.25)"/>`;
-        ticks += `<line x1="${G.L}" y1="${y}" x2="${G.L+gW}" y2="${y}" stroke="rgba(255,255,255,0.04)"/>`;
+        ticks += `<line x1="${G.L-4}" y1="${y}" x2="${G.L}" y2="${y}" stroke="${tickColMain}"/>`;
+        ticks += `<line x1="${G.L}" y1="${y}" x2="${G.L+gW}" y2="${y}" stroke="${tickColGrid}"/>`;
         ticks += `<text x="${G.L-6}" y="${y+3}" fill="var(--text-muted)" font-size="8" text-anchor="end" font-family="var(--font-mono)">${tv.toFixed(0)}s</text>`;
     });
 
@@ -1726,12 +1952,12 @@ function renderGraph(res) {
         activeDot = `
             <line x1="${G.L}" y1="${ay}" x2="${ax}" y2="${ay}" stroke="var(--color-vR)" stroke-width="0.7" stroke-dasharray="2,2" opacity="0.5"/>
             <line x1="${ax}" y1="${ay}" x2="${ax}" y2="${G.T+gH}" stroke="var(--color-vR)" stroke-width="0.7" stroke-dasharray="2,2" opacity="0.5"/>
-            <circle cx="${ax}" cy="${ay}" r="6" fill="white" stroke="var(--color-vR)" stroke-width="2.2"/>`;
+            <circle cx="${ax}" cy="${ay}" r="6" fill="${dotFill}" stroke="var(--color-vR)" stroke-width="2.2"/>`;
     }
 
     graphSvg.innerHTML = `
         <!-- border -->
-        <rect x="${G.L}" y="${G.T}" width="${gW}" height="${gH}" fill="none" stroke="rgba(255,255,255,0.1)"/>
+        <rect x="${G.L}" y="${G.T}" width="${gW}" height="${gH}" fill="none" stroke="${borderCol}"/>
 
         <!-- y-axis label -->
         <text x="10" y="${G.T + gH/2}" fill="var(--text-muted)" font-size="7.5" text-anchor="middle"
@@ -1744,7 +1970,7 @@ function renderGraph(res) {
         ${refDots}
 
         <!-- curve -->
-        <path d="${pathD}" fill="none" stroke="rgba(255,255,255,0.35)" stroke-width="1.8"/>
+        <path d="${pathD}" fill="none" stroke="${curveCol}" stroke-width="1.8"/>
 
         ${activeDot}
 
@@ -2105,16 +2331,18 @@ function animationLoop(ts) {
    CANVAS RENDERING
    ============================================================= */
 function drawSpeedLegend(ctx, x, y) {
+    const isLight = document.body.classList.contains('light-theme');
+
     ctx.save();
-    ctx.fillStyle = 'rgba(15, 23, 42, 0.85)';
-    ctx.strokeStyle = 'rgba(255, 255, 255, 0.1)';
+    ctx.fillStyle = isLight ? 'rgba(255, 255, 255, 0.9)' : 'rgba(15, 23, 42, 0.85)';
+    ctx.strokeStyle = isLight ? 'rgba(15, 23, 42, 0.12)' : 'rgba(255, 255, 255, 0.1)';
     ctx.lineWidth = 1;
     ctx.beginPath();
     ctx.roundRect(x, y, 140, 58, 6);
     ctx.fill();
     ctx.stroke();
 
-    ctx.fillStyle = '#f1f5f9';
+    ctx.fillStyle = isLight ? '#0f172a' : '#f1f5f9';
     ctx.font = 'bold 9px Outfit, sans-serif';
     ctx.fillText('Current Speed Key', x + 10, y + 14);
 
@@ -2141,6 +2369,8 @@ function drawSpeedLegend(ctx, x, y) {
 function drawRiverSection(res, yOffset, sectionHeight, caseLabel, boatColor, animProgress, wakePts, isCompare = false) {
     const d = res.d;
     const drift = res.crossingTime === Infinity ? 0 : res.drift;
+
+    const isLight = document.body.classList.contains('light-theme');
 
     // Viewport coordinates computed using Case A drift for consistent scaling in comparison mode
     const physA = solvePhysicsForCase('A');
@@ -2169,19 +2399,37 @@ function drawRiverSection(res, yOffset, sectionHeight, caseLabel, boatColor, ani
     const waterGrad = ctx.createLinearGradient(0, waterTop, 0, waterBot);
     if (res.impossibleCaseB || res.thetaDeg !== 30 && res.thetaDeg !== 0 && res.vb < res.vr && (res.thetaDeg === Math.asin(res.vb/res.vr)*180/Math.PI)) {
         // Case C (Min Drift) — Faint amber/orange tint
-        waterGrad.addColorStop(0,   'rgba(30, 20, 10, 0.96)');
-        waterGrad.addColorStop(0.5, 'rgba(40, 25, 8, 0.98)');
-        waterGrad.addColorStop(1,   'rgba(30, 18, 5, 0.95)');
+        if (isLight) {
+            waterGrad.addColorStop(0,   'rgba(254, 215, 170, 0.96)');
+            waterGrad.addColorStop(0.5, 'rgba(255, 247, 237, 0.98)');
+            waterGrad.addColorStop(1,   'rgba(254, 215, 170, 0.95)');
+        } else {
+            waterGrad.addColorStop(0,   'rgba(30, 20, 10, 0.96)');
+            waterGrad.addColorStop(0.5, 'rgba(40, 25, 8, 0.98)');
+            waterGrad.addColorStop(1,   'rgba(30, 18, 5, 0.95)');
+        }
     } else if (res.thetaDeg === Math.asin(res.vr/res.vb)*180/Math.PI && res.vb >= res.vr) {
         // Case B (Zero Drift) — Faint green tint
-        waterGrad.addColorStop(0,   'rgba(10, 30, 20, 0.96)');
-        waterGrad.addColorStop(0.5, 'rgba(12, 40, 25, 0.98)');
-        waterGrad.addColorStop(1,   'rgba(8, 25, 15, 0.95)');
+        if (isLight) {
+            waterGrad.addColorStop(0,   'rgba(167, 243, 208, 0.96)');
+            waterGrad.addColorStop(0.5, 'rgba(236, 253, 245, 0.98)');
+            waterGrad.addColorStop(1,   'rgba(167, 243, 208, 0.95)');
+        } else {
+            waterGrad.addColorStop(0,   'rgba(10, 30, 20, 0.96)');
+            waterGrad.addColorStop(0.5, 'rgba(12, 40, 25, 0.98)');
+            waterGrad.addColorStop(1,   'rgba(8, 25, 15, 0.95)');
+        }
     } else {
         // Default water color
-        waterGrad.addColorStop(0,   'rgba(10, 38, 78, 0.95)');
-        waterGrad.addColorStop(0.5, 'rgba(8, 30, 62, 0.98)');
-        waterGrad.addColorStop(1,   'rgba(12, 42, 85, 0.92)');
+        if (isLight) {
+            waterGrad.addColorStop(0,   'rgba(186, 230, 253, 0.95)');
+            waterGrad.addColorStop(0.5, 'rgba(240, 249, 255, 0.98)');
+            waterGrad.addColorStop(1,   'rgba(186, 230, 253, 0.92)');
+        } else {
+            waterGrad.addColorStop(0,   'rgba(10, 38, 78, 0.95)');
+            waterGrad.addColorStop(0.5, 'rgba(8, 30, 62, 0.98)');
+            waterGrad.addColorStop(1,   'rgba(12, 42, 85, 0.92)');
+        }
     }
     ctx.fillStyle = waterGrad;
     ctx.fillRect(0, waterTop, canvas.width, waterH);
@@ -2206,7 +2454,8 @@ function drawRiverSection(res, yOffset, sectionHeight, caseLabel, boatColor, ani
         }
         ctx.lineWidth = 1.0 + (res.vr / 10.0) * 1.5;
         const alpha = 0.12 + 0.08 * i;
-        ctx.strokeStyle = `rgba(56, 189, 248, ${alpha})`;
+        const waveCol = isLight ? `rgba(2, 132, 199, ${alpha * 1.5})` : `rgba(56, 189, 248, ${alpha})`;
+        ctx.strokeStyle = waveCol;
         ctx.stroke();
     }
     ctx.restore();
@@ -2224,7 +2473,8 @@ function drawRiverSection(res, yOffset, sectionHeight, caseLabel, boatColor, ani
 
         const grad = ctx.createLinearGradient(pos.x, pos.y, endX, pos.y);
         grad.addColorStop(0, `rgba(255, 159, 28, 0)`);
-        grad.addColorStop(1, `rgba(255, 159, 28, ${p.opacity * vrAlpha})`);
+        const pCol = isLight ? `rgba(180, 83, 9, ${p.opacity * vrAlpha * 1.4})` : `rgba(255, 159, 28, ${p.opacity * vrAlpha})`;
+        grad.addColorStop(1, pCol);
         ctx.strokeStyle = grad;
         ctx.lineWidth   = 1.1;
         ctx.beginPath();
@@ -2236,15 +2486,25 @@ function drawRiverSection(res, yOffset, sectionHeight, caseLabel, boatColor, ani
     /* --- Banks --- */
     // Near bank
     const bankGradBot = ctx.createLinearGradient(0, waterBot, 0, yOffset + sectionHeight);
-    bankGradBot.addColorStop(0, '#122012');
-    bankGradBot.addColorStop(1, '#081008');
+    if (isLight) {
+        bankGradBot.addColorStop(0, '#a7f3d0');
+        bankGradBot.addColorStop(1, '#6ee7b7');
+    } else {
+        bankGradBot.addColorStop(0, '#122012');
+        bankGradBot.addColorStop(1, '#081008');
+    }
     ctx.fillStyle = bankGradBot;
     ctx.fillRect(0, waterBot, canvas.width, (yOffset + sectionHeight) - waterBot);
 
     // Far bank
     const bankGradTop = ctx.createLinearGradient(0, yOffset, 0, waterTop);
-    bankGradTop.addColorStop(0, '#081008');
-    bankGradTop.addColorStop(1, '#122012');
+    if (isLight) {
+        bankGradTop.addColorStop(0, '#6ee7b7');
+        bankGradTop.addColorStop(1, '#a7f3d0');
+    } else {
+        bankGradTop.addColorStop(0, '#081008');
+        bankGradTop.addColorStop(1, '#122012');
+    }
     ctx.fillStyle = bankGradTop;
     ctx.fillRect(0, yOffset, canvas.width, waterTop - yOffset);
 
@@ -2261,7 +2521,7 @@ function drawRiverSection(res, yOffset, sectionHeight, caseLabel, boatColor, ani
     });
 
     // Bank labels
-    ctx.fillStyle = 'rgba(255,255,255,0.45)';
+    ctx.fillStyle = isLight ? 'rgba(15, 23, 42, 0.65)' : 'rgba(255,255,255,0.45)';
     ctx.font      = `500 ${Math.max(9, Math.min(11, canvas.width / 95))}px Outfit, sans-serif`;
     ctx.fillText('Start', px(0, -d * 0.05).x - 12, waterBot + 14);
     ctx.fillText('Opposite bank', px(0, d * 1.05).x - 32, waterTop - 8);
@@ -2271,7 +2531,7 @@ function drawRiverSection(res, yOffset, sectionHeight, caseLabel, boatColor, ani
     const startArrowX = px(xL + d * 0.05, 0).x;
     const endArrowX = px(xR - d * 0.05, 0).x;
     ctx.save();
-    ctx.strokeStyle = 'rgba(255, 159, 28, 0.4)';
+    ctx.strokeStyle = isLight ? 'rgba(180, 83, 9, 0.5)' : 'rgba(255, 159, 28, 0.4)';
     ctx.lineWidth = 1.2;
     ctx.setLineDash([4, 3]);
     ctx.beginPath();
@@ -2279,8 +2539,8 @@ function drawRiverSection(res, yOffset, sectionHeight, caseLabel, boatColor, ani
     ctx.lineTo(endArrowX, arrowY);
     ctx.stroke();
     ctx.setLineDash([]);
-    drawArrow(startArrowX, arrowY, endArrowX, arrowY, 'rgba(255, 159, 28, 0.6)', 1.2);
-    ctx.fillStyle = 'rgba(255, 159, 28, 0.7)';
+    drawArrow(startArrowX, arrowY, endArrowX, arrowY, isLight ? 'rgba(180, 83, 9, 0.7)' : 'rgba(255, 159, 28, 0.6)', 1.2);
+    ctx.fillStyle = isLight ? 'rgba(180, 83, 9, 0.85)' : 'rgba(255, 159, 28, 0.7)';
     ctx.font = 'italic 9px Outfit, sans-serif';
     ctx.fillText(res.vr > 0 ? `River current (v_r = ${fmtSpeedRaw(res.vr)})` : 'No current', (startArrowX + endArrowX)/2 - 50, arrowY - 4);
     ctx.restore();
@@ -2295,7 +2555,7 @@ function drawRiverSection(res, yOffset, sectionHeight, caseLabel, boatColor, ani
 
         ctx.save();
         ctx.setLineDash([5, 4]);
-        ctx.strokeStyle = 'rgba(255, 255, 255, 0.35)';
+        ctx.strokeStyle = isLight ? 'rgba(15, 23, 42, 0.4)' : 'rgba(255, 255, 255, 0.35)';
         ctx.lineWidth   = 1.5;
         ctx.beginPath();
         ctx.moveTo(headingStart.x, headingStart.y);
@@ -2305,7 +2565,7 @@ function drawRiverSection(res, yOffset, sectionHeight, caseLabel, boatColor, ani
 
         // Draw static annotation for Heading direction
         if (animProgress > 0.02 && animProgress < 0.98) {
-            ctx.fillStyle = 'rgba(255, 255, 255, 0.55)';
+            ctx.fillStyle = isLight ? 'rgba(15, 23, 42, 0.65)' : 'rgba(255, 255, 255, 0.55)';
             ctx.font = '8px Outfit, sans-serif';
             ctx.fillText('Heading direction (water frame)', headingEnd.x + 8, headingEnd.y + 14);
         }
@@ -2318,7 +2578,7 @@ function drawRiverSection(res, yOffset, sectionHeight, caseLabel, boatColor, ani
 
         ctx.save();
         ctx.setLineDash([6, 5]);
-        ctx.strokeStyle = 'rgba(255, 255, 255, 0.15)';
+        ctx.strokeStyle = isLight ? 'rgba(15, 23, 42, 0.25)' : 'rgba(255, 255, 255, 0.15)';
         ctx.lineWidth   = 1.5;
         ctx.beginPath();
         ctx.moveTo(startP.x, startP.y);
@@ -2353,7 +2613,7 @@ function drawRiverSection(res, yOffset, sectionHeight, caseLabel, boatColor, ani
         // Target Ring and vertical indicator
         ctx.save();
         ctx.setLineDash([3, 3]);
-        ctx.strokeStyle = 'rgba(255,255,255,0.12)';
+        ctx.strokeStyle = isLight ? 'rgba(15, 23, 42, 0.2)' : 'rgba(255,255,255,0.12)';
         ctx.lineWidth   = 0.9;
         ctx.beginPath();
         ctx.moveTo(land.x, land.y);
@@ -2378,7 +2638,7 @@ function drawRiverSection(res, yOffset, sectionHeight, caseLabel, boatColor, ani
         // Landing target point
         ctx.save();
         ctx.strokeStyle = boatColor;
-        ctx.fillStyle   = 'rgba(255,255,255,0.1)';
+        ctx.fillStyle   = isLight ? 'rgba(15, 23, 42, 0.05)' : 'rgba(255,255,255,0.1)';
         ctx.lineWidth   = 1.8;
         ctx.beginPath();
         ctx.arc(land.x, land.y, 6, 0, Math.PI * 2);
@@ -2396,13 +2656,13 @@ function drawRiverSection(res, yOffset, sectionHeight, caseLabel, boatColor, ani
         // 0-drift reference marker
         if (!isZeroDrift) {
             const ref0 = px(0, d);
-            ctx.fillStyle   = 'rgba(255,255,255,0.15)';
-            ctx.strokeStyle = 'rgba(255,255,255,0.2)';
+            ctx.fillStyle   = isLight ? 'rgba(15, 23, 42, 0.1)' : 'rgba(255,255,255,0.15)';
+            ctx.strokeStyle = isLight ? 'rgba(15, 23, 42, 0.15)' : 'rgba(255,255,255,0.2)';
             ctx.lineWidth   = 1;
             ctx.beginPath();
             ctx.arc(ref0.x, ref0.y, 3.5, 0, Math.PI * 2);
             ctx.fill(); ctx.stroke();
-            ctx.fillStyle = 'rgba(255,255,255,0.25)';
+            ctx.fillStyle = isLight ? 'rgba(15, 23, 42, 0.45)' : 'rgba(255,255,255,0.25)';
             ctx.font      = '8px sans-serif';
             ctx.fillText('0-drift ref', ref0.x - 18, ref0.y - 8);
         }
@@ -2414,19 +2674,19 @@ function drawRiverSection(res, yOffset, sectionHeight, caseLabel, boatColor, ani
     let badgeColor = '';
     if (res.impossibleCaseB || (res.thetaDeg === Math.asin(res.vb/res.vr)*180/Math.PI && res.vb < res.vr)) {
         badgeText = `⚠️ MINIMUM DRIFT — current wins`;
-        badgeColor = '#ff9f1c';
+        badgeColor = isLight ? '#c2410c' : '#ff9f1c';
     } else if (Math.abs(drift) < 0.1) {
         badgeText = `✅ ZERO DRIFT — straight path`;
-        badgeColor = '#10b981';
+        badgeColor = isLight ? '#047857' : '#10b981';
     } else {
         badgeText = `ℹ️ CROSSING COMPLETED`;
-        badgeColor = '#38bdf8';
+        badgeColor = isLight ? '#0369a1' : '#38bdf8';
     }
     if (isCompare) {
         badgeText = `${caseLabel}: ${badgeText}`;
     }
-    ctx.fillStyle = 'rgba(15, 23, 42, 0.7)';
-    ctx.strokeStyle = 'rgba(255,255,255,0.1)';
+    ctx.fillStyle = isLight ? 'rgba(255, 255, 255, 0.85)' : 'rgba(15, 23, 42, 0.7)';
+    ctx.strokeStyle = isLight ? 'rgba(15, 23, 42, 0.15)' : 'rgba(255,255,255,0.1)';
     ctx.lineWidth = 1;
     ctx.beginPath();
     ctx.roundRect(10, yOffset + 10, isCompare ? 220 : 180, 20, 4);
@@ -2443,7 +2703,7 @@ function drawRiverSection(res, yOffset, sectionHeight, caseLabel, boatColor, ani
         const isZeroDrift = Math.abs(drift) < 0.1;
         if (isZeroDrift) {
             ctx.save();
-            ctx.fillStyle = 'rgba(16, 185, 129, 0.8)';
+            ctx.fillStyle = isLight ? 'rgba(4, 120, 87, 0.9)' : 'rgba(16, 185, 129, 0.8)';
             ctx.font = '8px Outfit, sans-serif';
             ctx.fillText('Heading = Actual path (no drift)', px(0, d/2).x + 8, px(0, d/2).y);
             ctx.restore();
@@ -2452,7 +2712,7 @@ function drawRiverSection(res, yOffset, sectionHeight, caseLabel, boatColor, ani
 
     /* --- Origin marker --- */
     const origin = px(0, 0);
-    ctx.strokeStyle = 'rgba(255,255,255,0.2)';
+    ctx.strokeStyle = isLight ? 'rgba(15, 23, 42, 0.25)' : 'rgba(255,255,255,0.2)';
     ctx.lineWidth   = 1;
     ctx.beginPath();
     ctx.arc(origin.x, origin.y, 4, 0, Math.PI * 2);
@@ -2465,49 +2725,166 @@ function drawRiverSection(res, yOffset, sectionHeight, caseLabel, boatColor, ani
         const curY   = res.vy * t;
         const boatP  = px(curX, curY);
 
+        const boatScale = 2.0;
+
         ctx.save();
         ctx.translate(boatP.x, boatP.y);
         ctx.rotate(-res.thetaRad); // face heading direction
+        ctx.scale(boatScale, boatScale);
 
-        /* Hull */
-        ctx.fillStyle   = '#e2e8f0';
-        ctx.strokeStyle = '#1e293b';
-        ctx.lineWidth   = 1.5;
+        // Set line join and cap to round for nice cartoon style
+        ctx.lineJoin = 'round';
+        ctx.lineCap = 'round';
+
+        // 1. BASE HULL (Warm orange-brown base layer)
+        ctx.fillStyle = '#8c4f2b'; // Darker base wood
+        ctx.strokeStyle = '#000000';
+        ctx.lineWidth = 2.2;
         ctx.beginPath();
-        ctx.moveTo(0, -13);
-        ctx.bezierCurveTo(6, -7,  6,  5,  4,  11);
-        ctx.lineTo(-4, 11);
-        ctx.bezierCurveTo(-6, 5, -6, -7, 0, -13);
+        ctx.moveTo(0, -20);
+        ctx.bezierCurveTo(-12, -10, -12, 10, 0, 20);
+        ctx.bezierCurveTo(12, 10, 12, -10, 0, -20);
+        ctx.closePath();
         ctx.fill();
         ctx.stroke();
 
-        /* Cabin */
-        ctx.fillStyle   = '#334155';
-        ctx.strokeStyle = '#475569';
-        ctx.lineWidth   = 1;
-        ctx.fillRect(-3, -3, 6, 6);
-        ctx.strokeRect(-3, -3, 6, 6);
+        // 2. INNER DECK (Light wood floor)
+        ctx.fillStyle = '#dfa57a'; // Light golden-wood floor
+        ctx.beginPath();
+        ctx.moveTo(0, -17);
+        ctx.bezierCurveTo(-7, -8, -7, 8, 0, 17);
+        ctx.bezierCurveTo(7, 8, 7, -8, 0, -17);
+        ctx.closePath();
+        ctx.fill();
 
-        /* Window */
-        ctx.fillStyle = 'rgba(0, 229, 255, 0.45)';
-        ctx.fillRect(-1.5, -2, 3, 2);
+        // 3. VERTICAL DECK PLANKS (Floor lines)
+        ctx.strokeStyle = '#8c4f2b';
+        ctx.lineWidth = 0.8;
+        ctx.beginPath();
+        // Center line
+        ctx.moveTo(0, -17); ctx.lineTo(0, 17);
+        // Left floor lines
+        ctx.moveTo(-2, -15); ctx.bezierCurveTo(-2, -5, -2, 5, -2, 15);
+        ctx.moveTo(-4, -11); ctx.bezierCurveTo(-4, -4, -4, 4, -4, 11);
+        // Right floor lines
+        ctx.moveTo(2, -15); ctx.bezierCurveTo(2, -5, 2, 5, 2, 15);
+        ctx.moveTo(4, -11); ctx.bezierCurveTo(4, -4, 4, 4, 4, 11);
+        ctx.stroke();
+
+        // 4. INNER SIDE SHADOWS & SIDE PLANKS (Layered lines on the left and right walls)
+        ctx.strokeStyle = '#5a2e16';
+        ctx.lineWidth = 1.0;
+        ctx.beginPath();
+        // Left side plank curve
+        ctx.moveTo(0, -18.5);
+        ctx.bezierCurveTo(-9.5, -9, -9.5, 9, 0, 18.5);
+        // Right side plank curve
+        ctx.moveTo(0, -18.5);
+        ctx.bezierCurveTo(9.5, -9, 9.5, 9, 0, 18.5);
+        ctx.stroke();
+
+        // 5. SIDE RIBS (Small horizontal supports along inner sides)
+        ctx.strokeStyle = '#5a2e16';
+        ctx.lineWidth = 1.2;
+        ctx.beginPath();
+        for (let yVal = -12; yVal <= 12; yVal += 4) {
+            const radL = Math.PI * (yVal + 20) / 40;
+            const wOuterL = -10.5 * Math.sin(radL);
+            const wFloorL = -5.5 * Math.sin(radL);
+            ctx.moveTo(wOuterL, yVal);
+            ctx.lineTo(wFloorL, yVal);
+
+            const wOuterR = 10.5 * Math.sin(radL);
+            const wFloorR = 5.5 * Math.sin(radL);
+            ctx.moveTo(wOuterR, yVal);
+            ctx.lineTo(wFloorR, yVal);
+        }
+        ctx.stroke();
+
+        // 6. SEATS / BENCHES
+        ctx.fillStyle = '#b5683c'; // Warm reddish-brown for benches
+        ctx.strokeStyle = '#000000';
+        ctx.lineWidth = 1.5;
+
+        // Middle bench
+        ctx.beginPath();
+        ctx.roundRect(-7.5, -2, 15, 4, 0.5);
+        ctx.fill();
+        ctx.stroke();
+
+        // Front bench
+        ctx.beginPath();
+        ctx.roundRect(-5.5, -11, 11, 3, 0.5);
+        ctx.fill();
+        ctx.stroke();
+
+        // Back bench
+        ctx.beginPath();
+        ctx.roundRect(-5.5, 8, 11, 3, 0.5);
+        ctx.fill();
+        ctx.stroke();
+
+        // 7. BOW AND STERN BREASTHOOKS (Pointy wooden blocks at ends)
+        ctx.fillStyle = '#8c4f2b';
+        ctx.beginPath();
+        ctx.moveTo(0, -20);
+        ctx.lineTo(3.5, -15);
+        ctx.lineTo(-3.5, -15);
+        ctx.closePath();
+        ctx.fill();
+        ctx.stroke();
+
+        ctx.beginPath();
+        ctx.moveTo(0, 20);
+        ctx.lineTo(3.5, 15);
+        ctx.lineTo(-3.5, 15);
+        ctx.closePath();
+        ctx.fill();
+        ctx.stroke();
+
+        // 8. OUTER RIM / GUNWALE (Thick top-edge wood color and stroke)
+        ctx.strokeStyle = '#e2a87c'; // Highlighted edge wood color
+        ctx.lineWidth = 1.2;
+        ctx.beginPath();
+        ctx.moveTo(0, -19);
+        ctx.bezierCurveTo(-11, -9.5, -11, 9.5, 0, 19);
+        ctx.bezierCurveTo(11, 9.5, 11, -9.5, 0, -19);
+        ctx.closePath();
+        ctx.stroke();
+
+        // Outer black border stroke (re-applied for cartoon contrast)
+        ctx.strokeStyle = '#000000';
+        ctx.lineWidth = 2.2;
+        ctx.beginPath();
+        ctx.moveTo(0, -20);
+        ctx.bezierCurveTo(-12, -10, -12, 10, 0, 20);
+        ctx.bezierCurveTo(12, 10, 12, -10, 0, -20);
+        ctx.closePath();
+        ctx.stroke();
+
+        // 9. OARLOCK PEGS
+        ctx.fillStyle = '#000000';
+        ctx.beginPath();
+        ctx.arc(-9.5, -1, 1.2, 0, Math.PI * 2);
+        ctx.arc(9.5, -1, 1.2, 0, Math.PI * 2);
+        ctx.fill();
 
         ctx.restore();
 
         /* Vectors from boat */
         // vb arrow
-        const vbLen = 28;
+        const vbLen = 28 * boatScale;
         const vbArrX = boatP.x - vbLen * Math.sin(res.thetaRad);
         const vbArrY = boatP.y - vbLen * Math.cos(res.thetaRad);
-        drawArrow(boatP.x, boatP.y, vbArrX, vbArrY, '#00e5ff', 1.8);
+        drawArrow(boatP.x, boatP.y, vbArrX, vbArrY, '#00e5ff', 1.8 * boatScale);
 
         // vR arrow
         if (res.vR > 0.05) {
-            const vRLen = 36;
+            const vRLen = 36 * boatScale;
             const alphaRad = res.alphaDeg * Math.PI / 180;
             const vRX = boatP.x + vRLen * Math.cos(alphaRad);
             const vRY = boatP.y - vRLen * Math.sin(alphaRad);
-            drawArrow(boatP.x, boatP.y, vRX, vRY, boatColor, 1.8);
+            drawArrow(boatP.x, boatP.y, vRX, vRY, boatColor, 1.8 * boatScale);
         }
     }
 }
