@@ -7,187 +7,453 @@
     <meta name="description" content="Interactive HSC Physics tool for mastering relative velocity and boat-river crossing problems. Covers minimum time, shortest path, minimum drift, and custom angle cases.">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Hind+Siliguri:wght@300;400;500;600;700&family=Noto+Sans+Bengali:wght@400;700&display=swap" rel="stylesheet">
     <!-- KaTeX for math rendering -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css" crossorigin="anonymous">
     <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js" crossorigin="anonymous"></script>
+    <!-- Restore the saved theme before first paint (light is the 10MS default) -->
+    <script>
+        (function () {
+            try {
+                if (localStorage.getItem('theme') === 'dark') {
+                    document.documentElement.classList.add('dark-theme');
+                }
+            } catch (e) { /* storage blocked inside sandboxed iframes — stay on light */ }
+        })();
+    </script>
     <style>
-        /* ===================== DESIGN TOKENS ===================== */
+        /* =============================================================
+           10 MINUTE SCHOOL — DESIGN TOKENS
+           Source of truth: design.md §3. Do not hard-code hex below this
+           block; if a token is missing, add it here and to design.md §3.
+           ============================================================= */
         :root {
-            --bg-color:        #080d16;
-            --bg-grad-top:     #0f172a;
-            --card-bg:         rgba(15, 23, 42, 0.65);
-            --card-border:     rgba(255, 255, 255, 0.07);
-            --card-border-hover: rgba(255, 255, 255, 0.14);
-            --text-primary:    #f1f5f9;
-            --text-secondary:  #94a3b8;
-            --text-muted:      #64748b;
+            /* ---------- Brand ---------- */
+            --ten-red:        #E8001D;
+            --ten-red-dark:   #931212;
+            --ten-red-deep:   #721111;
+            --ten-red-accent: #A51E35;
+            --ten-red-soft:   #F14545;
+            --ten-black:      #000000;
+            --ten-white:      #FFFFFF;
+            --ten-ink:        #111827;
 
-            /* Physics vector colours */
-            --color-vb:       #00e5ff;   /* Cyan  — boat heading relative to water */
-            --color-vr:       #ff9f1c;   /* Amber — river current */
-            --color-vR:       #b06ef3;   /* Violet — resultant ground velocity */
-            --color-accent:   #10b981;   /* Emerald — min-time / success */
-            --color-warning:  #ef4444;   /* Red — error / impossible */
-            --color-info:     #38bdf8;   /* Sky — min-drift */
+            /* ---------- Semantic ---------- */
+            --success:        #1CAB55;
+            --success-dark:   #0E7B4F;
+            --success-deep:   #149353;
+            --success-text:   #1B9E66;
+            --warn:           #EA580C;
+            --warn-deep:      #A23F00;
+            --info:           #274FE3;
+            --info-soft:      #AFC3E6;
+            --premium-gold-1: #FFEAB4;
+            --premium-gold-2: #E7B946;
 
-            /* glow helpers */
-            --glow-vb:  rgba(0, 229, 255, 0.25);
-            --glow-vr:  rgba(255, 159, 28, 0.25);
-            --glow-vR:  rgba(176, 110, 243, 0.25);
-            --glow-acc: rgba(16, 185, 129, 0.25);
+            /* ---------- Neutrals ---------- */
+            --gray-50:  #F9FAFB;
+            --gray-100: #F3F4F6;
+            --gray-200: #E5E7EB;
+            --gray-300: #D1D5DB;
+            --gray-400: #9CA3AF;
+            --gray-500: #6B7280;
+            --gray-600: #4B5563;
+            --gray-700: #374151;
+            --gray-800: #1F2937;
+            --gray-900: #111827;
 
-            --font-main: 'Outfit', sans-serif;
-            --font-mono: 'JetBrains Mono', monospace;
+            /* ---------- Surfaces ----------
+               Every token that the dark surface re-declares is written as a
+               literal rather than `var(--other-token)`. Chrome does not always
+               invalidate a custom property that is defined through another
+               custom property, which leaves controls painted in the previous
+               theme after a live toggle. */
+            --bg:             #FFFFFF;   /* --ten-white */
+            --bg-muted:       #F3F4F6;   /* --gray-100  */
+            --bg-inverse:     #0B1117;
+            --surface-card:   #FFFFFF;   /* --ten-white */
+            --surface-subtle: #EEF2F4;
+            --surface-info:   #D8F3FF;
+            --border:         #E5E7EB;   /* --gray-200  */
+            --border-strong:  #D1D5DB;   /* --gray-300  */
 
-            --radius-sm:  0.5rem;
-            --radius-md:  0.75rem;
-            --radius-lg:  1rem;
-            --radius-xl:  1.25rem;
+            /* ---------- Foreground roles ---------- */
+            --fg-1: #111827;   /* --gray-900 */
+            --fg-2: #4B5563;   /* --gray-600 */
+            --fg-3: #6B7280;   /* --gray-500 */
+            --fg-muted: #9CA3AF;   /* --gray-400 */
+            --fg-on-brand: #FFFFFF;
+            --fg-link: #274FE3;    /* --info */
 
-            --transition: all 0.22s cubic-bezier(0.4, 0, 0.2, 1);
+            /* ---------- Typography ---------- */
+            --font-sans:    'Inter', 'Hind Siliguri', 'Noto Sans Bengali', system-ui, -apple-system, sans-serif;
+            --font-bangla:  'Hind Siliguri', 'Noto Sans Bengali', 'Inter', sans-serif;
+            --font-display: 'Inter', 'Hind Siliguri', sans-serif;
+            --font-mono:    ui-monospace, SFMono-Regular, Menlo, monospace;
+
+            --fs-display:  28px;
+            --fs-h1:       22px;
+            --fs-h2:       20px;
+            --fs-h3:       18px;
+            --fs-body:     16px;
+            --fs-body-sm:  14px;
+            --fs-caption:  12px;
+            --fs-micro:    11px;
+
+            --lh-tight:   1.0;
+            --lh-snug:    1.25;
+            --lh-normal:  1.5;
+            --lh-relaxed: 1.625;
+
+            --tracking-tight:  -0.2px;
+            --tracking-snug:   -0.1px;
+            --tracking-normal:  0em;
+            --tracking-wide:    0.01em;
+
+            /* ---------- Radii ---------- */
+            --r-xs:   4px;
+            --r-sm:   8px;
+            --r-md:   12px;
+            --r-lg:   16px;
+            --r-xl:   24px;
+            --r-pill: 1000px;
+
+            /* ---------- Spacing (4pt) ---------- */
+            --s-1:  4px;
+            --s-2:  8px;
+            --s-3:  12px;
+            --s-4:  16px;
+            --s-5:  20px;
+            --s-6:  24px;
+            --s-7:  32px;
+            --s-8:  40px;
+            --s-10: 64px;
+
+            /* ---------- Shadows (rare — elevation is conveyed by border) ---------- */
+            --sh-card:      0 1px 2px rgba(17, 24, 39, 0.04),
+                            0 1px 3px rgba(17, 24, 39, 0.06);
+            --sh-raised:    0 4px 12px rgba(17, 24, 39, 0.08);
+            --sh-nav:       0 -4px 20px rgba(0, 0, 0, 0.05);
+            --sh-inset-btn: inset 0 1px 1px rgba(255, 255, 255, 0.25);
+
+            /* ---------- Motion ---------- */
+            --ease-out: cubic-bezier(0.2, 0.8, 0.2, 1);
+            --ease-in:  cubic-bezier(0.4, 0, 1, 1);
+            --dur-fast: 120ms;
+            --dur-base: 180ms;
+            --dur-slow: 260ms;
+
+            /* =========================================================
+               SIMULATION EXTENSION TOKENS
+               Physics semantics mapped onto the 10MS palette so the
+               three velocity vectors stay distinguishable without
+               introducing off-brand neon / violet hues.
+               ========================================================= */
+            --color-vb:      #274FE3;   /* --info    — boat heading, relative to water */
+            --color-vr:      #EA580C;   /* --warn    — river current                   */
+            --color-vR:      #1CAB55;   /* --success — resultant ground velocity       */
+            --color-accent:  #1CAB55;   /* --success — success / zero-drift states     */
+            --color-warning: #E8001D;   /* --ten-red — impossible / error states       */
+            --color-info:    #274FE3;   /* --info                                      */
+
+            --tint-vb: rgba(39, 79, 227, 0.10);
+            --tint-vr: rgba(234, 88, 12, 0.10);
+            --tint-vR: rgba(28, 171, 85, 0.10);
+            --tint-red: rgba(232, 0, 29, 0.10);
+
+
         }
 
-        /* ===================== RESET ===================== */
+        /* =============================================================
+           DARK MODE
+           design.md §1: light is the default; dark is reserved for
+           "main stage" moments. Here it is an explicit opt-in for
+           students studying at night, not the default surface.
+           ============================================================= */
+        html.dark-theme {
+            --bg:             #0B1117;   /* --bg-inverse */
+            --bg-muted:       #131C26;
+            --surface-card:   #111A24;
+            --surface-subtle: #0E1620;
+            --border:         rgba(255, 255, 255, 0.10);
+            --border-strong:  rgba(255, 255, 255, 0.18);
+
+            --fg-1: #F3F4F6;
+            --fg-2: #B7C0CC;
+            --fg-3: #8B96A5;
+            --fg-muted: #6B7280;
+
+            --ten-ink: #F3F4F6;
+
+            /* The identity red fails contrast on a near-black surface, so the
+               dark surface uses a lightened tint of it for text and borders. */
+            --ten-red:      #FF6B7A;
+            --ten-red-dark: #C7364A;
+
+            --color-vb:      #7CA0FF;
+            --color-vr:      #FB923C;
+            --color-vR:      #4ADE80;
+            --color-accent:  #4ADE80;
+            --color-warning: #FF6B7A;
+            --color-info:    #7CA0FF;
+
+            --tint-vb: rgba(124, 160, 255, 0.14);
+            --tint-vr: rgba(251, 146, 60, 0.14);
+            --tint-vR: rgba(74, 222, 128, 0.14);
+            --tint-red: rgba(255, 107, 122, 0.14);
+
+
+            --sh-card:   0 1px 2px rgba(0, 0, 0, 0.30);
+            --sh-raised: 0 4px 12px rgba(0, 0, 0, 0.40);
+        }
+
+        /* =============================================================
+           RESET
+           ============================================================= */
         *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-        /* ===================== BASE ===================== */
+        /* =============================================================
+           BASE
+           ============================================================= */
         body {
-            background: radial-gradient(ellipse 120% 60% at 50% -10%, var(--bg-grad-top), var(--bg-color) 70%);
-            color: var(--text-primary);
-            font-family: var(--font-main);
+            background: var(--bg);
+            color: var(--ten-ink);
+            font-family: var(--font-sans);
+            font-size: var(--fs-body-sm);
+            line-height: var(--lh-normal);
             min-height: 100vh;
-            padding: 1.5rem;
-            line-height: 1.6;
+            padding: var(--s-5) var(--s-4);
             overflow-x: hidden;
+            -webkit-text-size-adjust: 100%;
         }
 
-        /* ===================== SCROLLBAR ===================== */
-        ::-webkit-scrollbar { width: 6px; height: 6px; }
-        ::-webkit-scrollbar-track { background: rgba(128,128,128,0.08); }
-        ::-webkit-scrollbar-thumb { background: rgba(128,128,128,0.25); border-radius: 3px; }
-        ::-webkit-scrollbar-thumb:hover { background: rgba(128,128,128,0.4); border-radius: 3px; }
+        /* Bangla needs taller lines and a touch of tracking (design.md §4) */
+        html[lang="bn"] body,
+        .bn {
+            font-family: var(--font-bangla);
+            letter-spacing: var(--tracking-wide);
+            line-height: var(--lh-normal);
+        }
 
-        /* ===================== LAYOUT ===================== */
+        h1, h2, h3 { letter-spacing: var(--tracking-tight); line-height: var(--lh-snug); }
+        html[lang="bn"] h1,
+        html[lang="bn"] h2,
+        html[lang="bn"] h3 { letter-spacing: var(--tracking-wide); line-height: var(--lh-normal); }
+
+        strong { font-weight: 700; }
+        sub, sup { font-size: 0.72em; }
+
+        /* Focus is always visible — design.md §12 */
+        :focus-visible {
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(232, 0, 29, 0.35);
+            border-radius: var(--r-xs);
+        }
+
+        /* =============================================================
+           SCROLLBAR
+           ============================================================= */
+        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: var(--border-strong); border-radius: var(--r-pill); }
+        ::-webkit-scrollbar-thumb:hover { background: var(--fg-muted); }
+
+        /* =============================================================
+           ICONS  (Lucide, 1.75px stroke — design.md §5)
+           ============================================================= */
+        .icon {
+            width: 20px; height: 20px;
+            flex-shrink: 0;
+            stroke: currentColor;
+            fill: none;
+            stroke-width: 1.75;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+        }
+        .icon-sm { width: 16px; height: 16px; }
+        .icon-lg { width: 24px; height: 24px; }
+        .icon-fill { fill: currentColor; stroke: none; }
+
+        /* =============================================================
+           LAYOUT — 1216px content cap on a 1440px canvas (design.md §6)
+           ============================================================= */
         .container {
-            max-width: 1440px;
+            max-width: 1216px;
             margin: 0 auto;
             display: flex;
             flex-direction: column;
-            gap: 1.5rem;
+            gap: var(--s-4);
         }
 
-        /* ===================== CARD ===================== */
+        /* =============================================================
+           CARD — borders, not shadows (design.md §7, §8.1)
+           ============================================================= */
         .card {
-            background: var(--card-bg);
-            border: 1px solid var(--card-border);
-            border-radius: var(--radius-xl);
-            padding: 1.5rem;
-            backdrop-filter: blur(16px) saturate(1.4);
-            -webkit-backdrop-filter: blur(16px) saturate(1.4);
-            box-shadow: 0 8px 32px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.04);
-            transition: var(--transition);
+            background: var(--surface-card);
+            border: 1px solid var(--border);
+            border-radius: var(--r-lg);
+            padding: var(--s-4);
+            transition: border-color var(--dur-base) var(--ease-out),
+                        transform   var(--dur-base) var(--ease-out),
+                        box-shadow  var(--dur-base) var(--ease-out);
         }
         .card:hover {
-            border-color: var(--card-border-hover);
-            box-shadow: 0 12px 48px rgba(0,0,0,0.5), 0 0 20px rgba(176,110,243,0.06), inset 0 1px 0 rgba(255,255,255,0.06);
+            border-color: var(--ten-red);
+            box-shadow: 0 4px 14px rgba(232, 0, 29, 0.08);
+            transform: translateY(-1px);
         }
 
-        /* ===================== HEADER ===================== */
+        /* =============================================================
+           HEADER
+           ============================================================= */
         header {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            background: var(--card-bg);
-            border: 1px solid var(--card-border);
-            border-radius: var(--radius-xl);
-            padding: 1.1rem 2rem;
-            backdrop-filter: blur(16px) saturate(1.4);
-            -webkit-backdrop-filter: blur(16px) saturate(1.4);
-            box-shadow: 0 4px 24px rgba(0,0,0,0.35), inset 0 1px 0 rgba(255,255,255,0.04);
-            gap: 1rem;
+            gap: var(--s-3);
+            flex-wrap: wrap;
+            background: var(--surface-card);
+            border: 1px solid var(--border);
+            border-radius: var(--r-xl);
+            padding: var(--s-3) var(--s-4);
+        }
+
+        .header-left { display: flex; align-items: center; gap: var(--s-3); min-width: 0; }
+
+        /* "Powered by" attribution mark, set off from the product title by a
+           thin divider. The source SVG is monochrome black, so dark theme
+           inverts it to white rather than needing a second asset. */
+        .brand-logo {
+            height: 20px;
+            width: auto;
+            flex-shrink: 0;
+            margin-left: var(--s-1);
+            padding-left: var(--s-3);
+            border-left: 1px solid var(--border);
+            opacity: 0.75;
+        }
+        html.dark-theme .brand-logo { filter: invert(1); opacity: 0.8; }
+
+        .header-icon {
+            width: 36px; height: 36px;
+            flex-shrink: 0;
+            background: var(--tint-red);
+            border: 1px solid rgba(232, 0, 29, 0.25);
+            border-radius: var(--r-md);
+            display: flex; align-items: center; justify-content: center;
+            color: var(--ten-red);
+        }
+        .header-icon .icon-lg { width: 20px; height: 20px; }
+
+        .header-title h1 {
+            font-size: var(--fs-h2);
+            font-weight: 700;
+            color: var(--fg-1);
+            display: flex;
+            align-items: center;
+            gap: var(--s-2);
             flex-wrap: wrap;
         }
 
-        .header-left { display: flex; align-items: center; gap: 1rem; }
-
-        .header-icon {
-            width: 40px; height: 40px;
-            background: linear-gradient(135deg, rgba(0,229,255,0.2), rgba(176,110,243,0.2));
-            border: 1px solid rgba(255,255,255,0.1);
-            border-radius: var(--radius-md);
-            display: flex; align-items: center; justify-content: center;
-            font-size: 1.25rem;
-            flex-shrink: 0;
-        }
-
-        .header-title h1 {
-            font-size: 1.35rem;
-            font-weight: 700;
-            background: linear-gradient(135deg, var(--text-primary) 0%, var(--color-vb) 60%, var(--color-vR) 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-            line-height: 1.2;
-        }
-
         .header-title p {
-            font-size: 0.8rem;
-            color: var(--text-secondary);
-            margin-top: 0.1rem;
+            font-size: var(--fs-caption);
+            color: var(--fg-3);
+            margin-top: 2px;
         }
 
-        .header-right { display: flex; align-items: center; flex-wrap: wrap; gap: 0.75rem; }
+        .header-right { display: flex; align-items: center; flex-wrap: wrap; gap: var(--s-2); }
 
+        /* Eyebrow pill — red on translucent red (design.md §8.5) */
         .hsc-badge {
-            background: rgba(16, 185, 129, 0.1);
-            color: var(--color-accent);
-            border: 1px solid rgba(16, 185, 129, 0.25);
-            padding: 0.2rem 0.7rem;
-            border-radius: 9999px;
-            font-size: 0.7rem;
-            font-weight: 600;
+            background: var(--tint-red);
+            color: var(--ten-red);
+            border: 1px solid rgba(232, 0, 29, 0.40);
+            padding: 2px 10px;
+            border-radius: var(--r-pill);
+            font-size: var(--fs-micro);
+            font-weight: 700;
             letter-spacing: 0.06em;
             text-transform: uppercase;
             white-space: nowrap;
+            font-variant-numeric: tabular-nums;
+        }
+        /* Formula badges keep their real casing — v_b must not become V_B */
+        #speed-ratio-badge { text-transform: none; letter-spacing: 0; }
+
+        /* Success variant — used when v_b / v_r hits the 120° spotlight ratio */
+        .hsc-badge.badge-success {
+            background: var(--tint-vR);
+            border-color: rgba(28, 171, 85, 0.40);
+            color: var(--success-text);
         }
 
-        /* ===================== UNIT TOGGLE ===================== */
-        .unit-toggle {
+        /* Theme toggle shows the icon for the mode you would switch *to* */
+        .icon-theme-dark { display: none; }
+        html.dark-theme .icon-theme-light { display: none; }
+        html.dark-theme .icon-theme-dark { display: block; }
+
+        /* =============================================================
+           SEGMENTED CONTROLS (unit / language / angle / speed)
+           Capsule tabs — design.md §8.6
+           ============================================================= */
+        .unit-toggle,
+        .angle-convention-toggle,
+        .speed-multiplier {
             display: flex;
-            background: rgba(128,128,128,0.1);
-            padding: 0.2rem;
-            border-radius: var(--radius-sm);
-            border: 1px solid var(--card-border);
-            gap: 0.15rem;
+            background: var(--bg-muted);
+            padding: 3px;
+            border-radius: var(--r-pill);
+            border: 1px solid var(--border);
+            gap: 2px;
         }
 
-        .unit-btn {
+        .unit-btn,
+        .toggle-btn,
+        .speed-btn {
             background: transparent;
             border: none;
-            color: var(--text-secondary);
-            padding: 0.35rem 0.9rem;
-            border-radius: calc(var(--radius-sm) - 2px);
-            cursor: pointer;
-            font-family: var(--font-main);
-            font-size: 0.8rem;
+            color: var(--fg-2);
+            font-family: inherit;
             font-weight: 600;
-            transition: var(--transition);
+            cursor: pointer;
+            border-radius: var(--r-pill);
             white-space: nowrap;
+            transition: background var(--dur-base) var(--ease-out),
+                        color      var(--dur-base) var(--ease-out);
         }
-        .unit-btn.active {
-            background: rgba(128,128,128,0.15);
-            color: var(--text-primary);
-            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-        }
-        .unit-btn:hover:not(.active) { color: var(--text-primary); }
+        .unit-btn  { font-size: var(--fs-body-sm); padding: 8px 14px; min-height: 36px; }
+        .toggle-btn { font-size: var(--fs-caption); padding: 6px 12px; min-height: 32px; }
+        .speed-btn { font-size: var(--fs-body-sm); padding: 8px 14px; min-height: 36px;
+                     font-variant-numeric: tabular-nums; }
 
-        /* ===================== DASHBOARD GRID ===================== */
+        .unit-btn.active,
+        .toggle-btn.active,
+        .speed-btn.active {
+            background: var(--ten-ink);
+            color: var(--bg);
+        }
+        html.dark-theme .unit-btn.active,
+        html.dark-theme .toggle-btn.active,
+        html.dark-theme .speed-btn.active {
+            background: var(--fg-1);
+            color: var(--bg-inverse);
+        }
+        .unit-btn:hover:not(.active),
+        .toggle-btn:hover:not(.active),
+        .speed-btn:hover:not(.active) { color: var(--fg-1); }
+
+        /* =============================================================
+           DASHBOARD GRID
+           ============================================================= */
         .dashboard-grid {
             display: grid;
-            grid-template-columns: 400px 1fr;
-            gap: 1.5rem;
-            align-items: start;
+            grid-template-columns: 384px 1fr;
+            gap: var(--s-4);
+            /* Stretch (not start) so both columns share one row height — the
+               left column usually has more controls and is naturally taller;
+               the shorter right card is pulled down to match instead of
+               leaving a gap under it. */
+            align-items: stretch;
         }
         .dashboard-grid > * { min-width: 0; }
 
@@ -195,164 +461,157 @@
             .dashboard-grid { grid-template-columns: 1fr; }
         }
 
-        /* ===================== CARD TITLE ===================== */
+        /* =============================================================
+           CARD TITLE
+           ============================================================= */
         .card-title {
-            font-size: 0.95rem;
-            font-weight: 600;
-            border-bottom: 1px solid var(--card-border);
-            padding-bottom: 0.85rem;
-            margin-bottom: 0.25rem;
+            font-size: var(--fs-body);
+            font-weight: 700;
+            color: var(--fg-1);
+            border-bottom: 1px dashed var(--border-strong);
+            padding-bottom: var(--s-2);
             display: flex;
             justify-content: space-between;
             align-items: center;
-            color: var(--text-primary);
-            letter-spacing: 0.01em;
+            gap: var(--s-3);
+            letter-spacing: var(--tracking-tight);
         }
 
         .card-title-icon {
-            width: 28px; height: 28px;
-            background: rgba(128,128,128,0.08);
-            border: 1px solid var(--card-border);
-            border-radius: var(--radius-sm);
+            width: 26px; height: 26px;
+            flex-shrink: 0;
+            background: var(--bg-muted);
+            border: 1px solid var(--border);
+            border-radius: var(--r-sm);
             display: flex; align-items: center; justify-content: center;
-            font-size: 0.85rem;
+            color: var(--fg-2);
         }
+        .card-title-icon .icon { width: 15px; height: 15px; }
 
-        /* ===================== CASE SELECTOR ===================== */
+        /* Section eyebrow above a control block */
+        .field-legend {
+            font-size: var(--fs-caption);
+            font-weight: 600;
+            color: var(--fg-3);
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+        }
+        html[lang="bn"] .field-legend { text-transform: none; letter-spacing: var(--tracking-wide); }
+
+        /* =============================================================
+           CASE SELECTOR — group tabs (design.md §8.4)
+           ============================================================= */
         .case-selector {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 0.4rem;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: var(--s-2);
         }
 
         .case-tab {
-            flex: 1 1 calc(50% - 0.2rem);
-            min-width: 110px;
-            background: rgba(128,128,128,0.07);
-            border: 1px solid var(--card-border);
-            border-radius: var(--radius-md);
-            padding: 0.65rem 0.5rem;
-            color: var(--text-secondary);
-            font-family: var(--font-main);
-            font-size: 0.8rem;
-            font-weight: 500;
+            min-width: 0;
+            min-height: 44px;
+            padding: 8px var(--s-2);
+            border: 1px solid var(--border);
+            background: var(--surface-card);
+            border-radius: 10px;
+            font-family: inherit;
+            font-weight: 600;
+            font-size: var(--fs-body-sm);
+            color: var(--fg-2);
             cursor: pointer;
             text-align: center;
-            transition: var(--transition);
-            line-height: 1.3;
-            position: relative;
+            line-height: var(--lh-snug);
+            /* Selecting a case re-renders the whole simulation, so the tab
+               state flips instantly rather than cross-fading behind it. */
         }
-        .case-tab#case-e {
-            flex: 1 1 100%;
-        }
+
         .case-tab small {
             display: block;
-            font-size: 0.7rem;
-            opacity: 0.7;
-            margin-top: 0.1rem;
-        }
-        .case-tab:hover {
-            border-color: rgba(255,255,255,0.18);
-            color: var(--text-primary);
-            background: rgba(255,255,255,0.04);
-        }
-        .case-tab.active {
-            background: rgba(176, 110, 243, 0.15);
-            border-color: var(--color-vR);
-            color: var(--text-primary);
-            box-shadow: 0 0 14px rgba(176,110,243,0.2), inset 0 1px 0 rgba(255,255,255,0.05);
-        }
-        .case-tab#case-e.active {
-            background: rgba(16, 185, 129, 0.15);
-            border-color: var(--color-accent);
-            box-shadow: 0 0 14px rgba(16, 185, 129, 0.2), inset 0 1px 0 rgba(255,255,255,0.05);
-        }
-
-        /* CSS Tooltips */
-        .case-tab::after {
-            content: attr(data-tooltip);
-            position: absolute;
-            bottom: 125%;
-            left: 50%;
-            transform: translateX(-50%) translateY(10px);
-            background: var(--card-bg);
-            border: 1px solid var(--card-border-hover);
-            color: var(--text-primary);
-            padding: 0.5rem 0.75rem;
-            border-radius: var(--radius-sm);
-            font-size: 0.72rem;
-            line-height: 1.4;
-            width: min(240px, 80vw);
-            text-align: center;
-            pointer-events: none;
-            opacity: 0;
-            transition: transform 0.2s, opacity 0.2s;
-            box-shadow: 0 6px 20px rgba(0,0,0,0.25);
-            z-index: 50;
-            backdrop-filter: blur(8px);
-        }
-        .case-tab:hover::after {
-            opacity: 1;
-            transform: translateX(-50%) translateY(0);
-        }
-
-        /* ===================== ANGLE TOGGLE & INFO BOX ===================== */
-        .angle-convention-toggle {
-            display: flex;
-            background: rgba(128,128,128,0.08);
-            padding: 0.15rem;
-            border-radius: var(--radius-sm);
-            border: 1px solid var(--card-border);
-            gap: 0.1rem;
-        }
-        .toggle-btn {
-            background: transparent;
-            border: none;
-            color: var(--text-secondary);
-            font-family: var(--font-main);
-            font-size: 0.72rem;
-            padding: 0.2rem 0.5rem;
-            border-radius: calc(var(--radius-sm) - 3px);
-            cursor: pointer;
-            transition: var(--transition);
+            font-size: var(--fs-caption);
             font-weight: 500;
+            color: var(--fg-3);
+            margin-top: 2px;
         }
-        .toggle-btn.active {
-            background: rgba(128,128,128,0.15);
-            color: var(--text-primary);
+        .case-tab:hover { border-color: var(--gray-400); }
+        .case-tab.active {
+            border-color: var(--ten-red);
+            background: var(--tint-red);
+            color: var(--ten-red);
+            box-shadow: 0 0 0 3px rgba(232, 0, 29, 0.08);
         }
+        .case-tab.active small { color: var(--ten-red); opacity: 0.85; }
+        .case-tab:active { transform: scale(0.98); }
+
+        .case-warn-flag { display: none; color: var(--ten-red); }
+        .case-warn-flag .icon { width: 14px; height: 14px; vertical-align: -2px; }
+
+        /* Persistent description of the selected case.
+           Replaces the old hover-only tooltip: touch devices cannot hover
+           (implementation-guide.md §4.2.1). */
+        .case-desc {
+            background: var(--bg-muted);
+            border: 1px solid var(--border);
+            border-radius: var(--r-md);
+            padding: 8px var(--s-3);
+            font-size: var(--fs-body-sm);
+            color: var(--fg-2);
+            line-height: var(--lh-normal);
+        }
+
+        /* =============================================================
+           INFO / WARNING BOXES
+           ============================================================= */
         .info-box {
-            background: rgba(176,110,243,0.06);
-            border: 1px solid rgba(176,110,243,0.18);
-            border-radius: var(--radius-md);
-            padding: 0.85rem 1rem;
-            color: #c4b5fd;
-            font-size: 0.8rem;
-            line-height: 1.5;
+            background: var(--surface-info);
+            border: 1px solid var(--info-soft);
+            border-radius: var(--r-md);
+            padding: 10px var(--s-3);
+            color: var(--gray-800);
+            font-size: var(--fs-body-sm);
+            line-height: var(--lh-normal);
             display: flex;
             flex-direction: column;
-            gap: 0.3rem;
+            gap: var(--s-1);
         }
+        .info-box strong { color: var(--gray-900); }
+        html.dark-theme .info-box {
+            background: rgba(39, 79, 227, 0.14);
+            border-color: rgba(124, 160, 255, 0.35);
+            color: var(--fg-1);
+        }
+        html.dark-theme .info-box strong { color: var(--fg-1); }
 
-        /* ===================== IMPOSSIBLE BANNER ===================== */
+        .info-box-title { display: flex; align-items: center; gap: var(--s-2); font-weight: 700; }
+
+        /* Errors use icon + text, never colour alone (design.md §12) */
         .warning-box {
-            background: linear-gradient(135deg, rgba(239,68,68,0.14), rgba(239,68,68,0.04));
-            border: 1px solid rgba(239,68,68,0.3);
-            border-radius: var(--radius-md);
-            padding: 0.9rem 1.1rem;
-            color: #fca5a5;
-            font-size: 0.825rem;
             display: none;
-            line-height: 1.55;
-            box-shadow: 0 4px 16px rgba(239,68,68,0.12);
+            gap: var(--s-2);
+            background: #FFF5F6;
+            border: 1px solid rgba(232, 0, 29, 0.35);
+            border-radius: var(--r-md);
+            padding: 10px var(--s-3);
+            color: var(--ten-red-dark);
+            font-size: var(--fs-body-sm);
+            line-height: var(--lh-normal);
         }
-        .warning-box.active { display: block; }
+        .warning-box.active { display: flex; }
+        .warning-box strong { color: var(--ten-red); }
+        .warning-box .icon { color: var(--ten-red); margin-top: 2px; }
+        html.dark-theme .warning-box {
+            background: var(--tint-red);
+            color: #FFC9CF;
+        }
+        html.dark-theme .warning-box strong,
+        html.dark-theme .warning-box .icon { color: var(--color-warning); }
 
-        /* ===================== INPUT GROUPS ===================== */
+        /* =============================================================
+           INPUT GROUPS (design.md §8.3)
+           ============================================================= */
         .input-group {
             display: flex;
             flex-direction: column;
-            gap: 0.5rem;
+            gap: var(--s-2);
         }
 
         .input-header {
@@ -360,99 +619,146 @@
             flex-wrap: wrap;
             justify-content: space-between;
             align-items: center;
-            row-gap: 0.4rem;
-            font-size: 0.875rem;
-            font-weight: 500;
+            gap: var(--s-2);
+            row-gap: var(--s-2);
         }
 
         .input-label {
             display: flex;
             align-items: center;
-            gap: 0.45rem;
-            color: var(--text-secondary);
+            gap: var(--s-2);
+            color: var(--fg-2);
+            font-size: var(--fs-body-sm);
+            font-weight: 600;
             min-width: 0;
         }
+        .input-label .icon { width: 18px; height: 18px; color: var(--fg-3); }
 
         .color-swatch {
-            width: 8px; height: 8px;
+            width: 10px; height: 10px;
             border-radius: 50%;
             flex-shrink: 0;
         }
-        .swatch-vb { background: var(--color-vb); box-shadow: 0 0 6px var(--color-vb); }
-        .swatch-vr { background: var(--color-vr); box-shadow: 0 0 6px var(--color-vr); }
-        .swatch-vR { background: var(--color-vR); box-shadow: 0 0 6px var(--color-vR); }
+        .swatch-vb { background: var(--color-vb); }
+        .swatch-vr { background: var(--color-vr); }
+        .swatch-vR { background: var(--color-vR); }
 
         .input-value-wrapper {
             display: flex;
             align-items: center;
-            gap: 0.4rem;
+            gap: var(--s-2);
         }
 
         .number-input {
-            background: rgba(0,0,0,0.45);
-            border: 1px solid var(--card-border);
-            border-radius: var(--radius-sm);
-            color: var(--text-primary);
-            font-family: var(--font-mono);
-            font-size: 0.85rem;
-            padding: 0.25rem 0.5rem;
             width: 80px;
+            padding: 7px var(--s-3);
+            border: 1px solid var(--border);
+            border-radius: var(--r-sm);
+            background: var(--surface-card);
+            color: var(--fg-1);
+            font-family: inherit;
+            font-size: 14px;
+            font-weight: 600;
+            font-variant-numeric: tabular-nums;
             text-align: right;
-            transition: border-color 0.2s, box-shadow 0.2s;
+            min-height: 34px;
+            transition: border-color var(--dur-base), box-shadow var(--dur-base);
         }
+        /* Focus ring is always red, regardless of CTA colour (design.md §8.3) */
         .number-input:focus {
             outline: none;
-            border-color: var(--color-vb);
-            box-shadow: 0 0 0 3px rgba(0,229,255,0.12);
+            border-color: var(--ten-red);
+            box-shadow: 0 0 0 3px rgba(232, 0, 29, 0.12);
         }
 
         .unit-label {
-            font-size: 0.78rem;
-            color: var(--text-muted);
-            width: 38px;
+            font-size: var(--fs-caption);
+            font-weight: 500;
+            color: var(--fg-3);
+            width: 42px;
             flex-shrink: 0;
         }
 
-        /* ===================== SLIDERS ===================== */
+        /* =============================================================
+           SLIDERS — 44px touch band (implementation-guide.md §4.2.1)
+           ============================================================= */
         .range-slider {
             -webkit-appearance: none;
             appearance: none;
             width: 100%;
-            height: 5px;
-            border-radius: 3px;
-            background: rgba(128,128,128,0.18);
+            height: 32px;
+            background: transparent;
             outline: none;
             cursor: pointer;
+        }
+        .range-slider::-webkit-slider-runnable-track {
+            height: 6px;
+            border-radius: var(--r-pill);
+            background: var(--gray-200);
+        }
+        html.dark-theme .range-slider::-webkit-slider-runnable-track {
+            background: rgba(255, 255, 255, 0.14);
+        }
+        .range-slider::-moz-range-track {
+            height: 6px;
+            border-radius: var(--r-pill);
+            background: var(--gray-200);
         }
         .range-slider::-webkit-slider-thumb {
             -webkit-appearance: none;
             appearance: none;
-            width: 16px; height: 16px;
+            width: 24px; height: 24px;
+            margin-top: -9px;
             border-radius: 50%;
-            background: var(--text-primary);
-            border: 2px solid var(--card-bg);
-            transition: transform 0.15s, box-shadow 0.15s;
+            background: var(--ten-ink);
+            border: 3px solid var(--surface-card);
+            box-shadow: var(--sh-card);
+            transition: transform var(--dur-fast) var(--ease-out);
             cursor: grab;
         }
-        .range-slider::-webkit-slider-thumb:active { cursor: grabbing; }
-        .range-slider::-webkit-slider-thumb:hover { transform: scale(1.25); }
+        .range-slider::-moz-range-thumb {
+            width: 24px; height: 24px;
+            border-radius: 50%;
+            background: var(--ten-ink);
+            border: 3px solid var(--surface-card);
+            cursor: grab;
+        }
+        .range-slider:active::-webkit-slider-thumb { transform: scale(1.08); cursor: grabbing; }
 
-        #slider-vb::-webkit-slider-thumb { background: var(--color-vb); box-shadow: 0 0 8px var(--glow-vb); }
-        #slider-vr::-webkit-slider-thumb { background: var(--color-vr); box-shadow: 0 0 8px var(--glow-vr); }
-        #slider-d::-webkit-slider-thumb  { background: #60a5fa; box-shadow: 0 0 8px rgba(96,165,250,0.4); }
-        #slider-theta::-webkit-slider-thumb { background: #94a3b8; box-shadow: 0 0 8px rgba(148,163,184,0.4); }
+        #slider-vb::-webkit-slider-thumb    { background: var(--color-vb); }
+        #slider-vr::-webkit-slider-thumb    { background: var(--color-vr); }
+        #slider-d::-webkit-slider-thumb     { background: var(--info); }
+        #slider-theta::-webkit-slider-thumb { background: var(--fg-2); }
+        #slider-vb::-moz-range-thumb        { background: var(--color-vb); }
+        #slider-vr::-moz-range-thumb        { background: var(--color-vr); }
+        #slider-d::-moz-range-thumb         { background: var(--info); }
+        #slider-theta::-moz-range-thumb     { background: var(--fg-2); }
 
-        /* custom angle control hidden by default */
+        /* custom angle control hidden unless Case D is active */
         #custom-angle-control { display: none; }
         #custom-angle-control.active { display: flex; }
 
-        /* ===================== VECTOR DIAGRAM ===================== */
+        /* =============================================================
+           SPEED RATIO ROW
+           ============================================================= */
+        .ratio-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: var(--s-3);
+            padding-top: var(--s-1);
+            border-top: 1px dashed var(--border-strong);
+        }
+
+        /* =============================================================
+           VECTOR DIAGRAM
+           ============================================================= */
         .vector-container {
-            background: rgba(128,128,128,0.07);
-            border: 1px solid var(--card-border);
-            border-radius: var(--radius-md);
-            padding: 0.5rem;
-            height: 240px;
+            background: var(--bg-muted);
+            border: 1px solid var(--border);
+            border-radius: var(--r-md);
+            padding: var(--s-2);
+            height: 210px;
             display: flex;
             justify-content: center;
             align-items: center;
@@ -460,18 +766,20 @@
         }
         .vector-svg { width: 100%; height: 100%; }
 
-        /* ===================== SIMULATION CARD ===================== */
+        /* =============================================================
+           SIMULATION CARD
+           ============================================================= */
         .simulation-card {
             display: flex;
             flex-direction: column;
-            gap: 1rem;
+            gap: var(--s-3);
         }
 
         .canvas-container {
             position: relative;
-            background: rgba(128,128,128,0.1);
-            border: 1px solid var(--card-border);
-            border-radius: var(--radius-md);
+            background: var(--bg-muted);
+            border: 1px solid var(--border);
+            border-radius: var(--r-md);
             overflow: hidden;
             aspect-ratio: 16 / 9;
             width: 100%;
@@ -483,538 +791,327 @@
             height: 100%;
         }
 
-        /* canvas overlay badges */
         .canvas-overlay {
             position: absolute;
-            top: 0.75rem; left: 0.75rem;
-            display: flex; gap: 0.4rem; flex-wrap: wrap;
+            top: var(--s-3); left: var(--s-3);
+            display: flex; gap: var(--s-2); flex-wrap: wrap;
+            max-width: calc(100% - var(--s-6));
         }
         .canvas-badge {
-            background: var(--card-bg);
-            border: 1px solid var(--card-border);
-            border-radius: 9999px;
-            padding: 0.2rem 0.65rem;
-            font-size: 0.7rem;
-            font-weight: 600;
-            letter-spacing: 0.05em;
-            color: var(--text-secondary);
-            backdrop-filter: blur(8px);
+            background: rgba(255, 255, 255, 0.92);
+            border: 1px solid var(--border-strong);
+            border-radius: var(--r-pill);
+            padding: 4px 10px;
+            font-size: var(--fs-micro);
+            font-weight: 700;
+            letter-spacing: 0.04em;
+            color: var(--gray-700);
+        }
+        html.dark-theme .canvas-badge {
+            background: rgba(11, 17, 23, 0.85);
+            border-color: rgba(255, 255, 255, 0.18);
+            color: var(--fg-2);
         }
         .canvas-badge.active {
-            background: rgba(176,110,243,0.15);
-            border-color: rgba(176,110,243,0.35);
-            color: var(--color-vR);
+            background: var(--success);
+            border-color: var(--success-dark);
+            color: var(--ten-white);
         }
 
-        /* ===================== PLAYBACK CONTROLS ===================== */
+        /* =============================================================
+           BUTTONS (design.md §8.2) — green is the default action
+           ============================================================= */
         .playback-controls {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            background: rgba(128,128,128,0.06);
-            padding: 0.65rem 1rem;
-            border-radius: var(--radius-md);
-            border: 1px solid var(--card-border);
-            gap: 0.5rem;
+            gap: var(--s-2);
             flex-wrap: wrap;
+            background: var(--bg-muted);
+            border: 1px solid var(--border);
+            border-radius: var(--r-md);
+            padding: var(--s-2);
         }
 
-        .btn-group { display: flex; gap: 0.4rem; flex-wrap: wrap; }
+        .btn-group { display: flex; gap: var(--s-2); flex-wrap: wrap; }
 
         .btn {
-            background: rgba(128,128,128,0.1);
-            border: 1px solid var(--card-border);
-            color: var(--text-primary);
-            padding: 0.4rem 0.9rem;
-            border-radius: var(--radius-sm);
-            cursor: pointer;
-            font-family: var(--font-main);
-            font-size: 0.82rem;
-            font-weight: 500;
-            display: flex;
+            display: inline-flex;
             align-items: center;
-            gap: 0.3rem;
-            transition: var(--transition);
+            justify-content: center;
+            gap: var(--s-2);
+            min-height: 36px;
+            padding: 7px var(--s-3);
+            border: 1px solid var(--border-strong);
+            border-radius: var(--r-sm);
+            background: var(--surface-card);
+            color: var(--fg-1);
+            font-family: inherit;
+            font-size: var(--fs-body-sm);
+            font-weight: 600;
+            cursor: pointer;
             white-space: nowrap;
+            transition: background var(--dur-base) var(--ease-out),
+                        border-color var(--dur-base) var(--ease-out),
+                        transform var(--dur-fast) var(--ease-out);
         }
-        .btn:hover:not(:disabled) {
-            background: rgba(128,128,128,0.18);
-            border-color: var(--card-border-hover);
-        }
-        .btn:disabled { opacity: 0.35; cursor: not-allowed; }
+        .btn .icon { width: 18px; height: 18px; }
+        .btn:hover:not(:disabled) { background: var(--gray-50); border-color: var(--gray-400); }
+        html.dark-theme .btn:hover:not(:disabled) { background: rgba(255, 255, 255, 0.06); }
+        .btn:active:not(:disabled) { transform: scale(0.98); }
+        .btn:disabled { opacity: 0.45; cursor: not-allowed; }
 
         .btn-primary {
-            background: rgba(176,110,243,0.2);
-            border-color: rgba(176,110,243,0.4);
-            color: #d8b4fe;
+            background: var(--success);
+            border-color: var(--success-dark);
+            box-shadow: var(--sh-inset-btn);
+            color: var(--ten-white);
+            font-weight: 700;
         }
-        .btn-primary:hover:not(:disabled) {
-            background: rgba(176,110,243,0.32);
-            border-color: rgba(176,110,243,0.6);
-            box-shadow: 0 0 14px rgba(176,110,243,0.25);
+        .btn-primary:hover:not(:disabled) { background: #17994B; border-color: var(--success-dark); }
+
+        /* Toggle-on state for the A-vs-B comparison button */
+        .btn-toggled {
+            background: var(--tint-red);
+            border-color: var(--ten-red);
+            color: var(--ten-red);
+        }
+        .btn-toggled:hover:not(:disabled) { background: rgba(232, 0, 29, 0.16); border-color: var(--ten-red); }
+
+        .btn-icon {
+            width: 36px;
+            min-height: 36px;
+            padding: 0;
+            justify-content: center;
         }
 
-        .speed-multiplier {
-            display: flex;
-            background: rgba(128,128,128,0.08);
-            border-radius: var(--radius-sm);
-            padding: 0.15rem;
-            border: 1px solid var(--card-border);
-            gap: 0.1rem;
-        }
-        .speed-btn {
-            background: transparent;
-            border: none;
-            color: var(--text-secondary);
-            font-family: var(--font-mono);
-            font-size: 0.75rem;
-            padding: 0.22rem 0.55rem;
-            border-radius: calc(var(--radius-sm) - 3px);
-            cursor: pointer;
-            transition: var(--transition);
-        }
-        .speed-btn.active {
-            background: rgba(128,128,128,0.15);
-            color: var(--text-primary);
-        }
-        .speed-btn:hover:not(.active) { color: var(--text-primary); }
-
-        /* infinite time alert */
+        /* Infinite-time alert — icon + text */
         .infinite-warning {
-            background: rgba(239,68,68,0.18);
-            border: 1px solid rgba(239,68,68,0.35);
-            color: #fca5a5;
-            padding: 0.35rem 0.8rem;
-            border-radius: var(--radius-sm);
-            font-size: 0.78rem;
             display: none;
             align-items: center;
-            gap: 0.4rem;
-            animation: pulse 2s ease-in-out infinite;
+            gap: var(--s-2);
+            background: #FFF5F6;
+            border: 1px solid rgba(232, 0, 29, 0.35);
+            border-radius: var(--r-sm);
+            padding: 8px var(--s-3);
+            color: var(--ten-red-dark);
+            font-size: var(--fs-caption);
+            font-weight: 600;
+        }
+        .infinite-warning .icon { width: 16px; height: 16px; color: var(--ten-red); }
+        html.dark-theme .infinite-warning {
+            background: var(--tint-red);
+            color: #FFC9CF;
         }
 
-        @keyframes pulse {
-            0%, 100% { opacity: 1; }
-            50%       { opacity: 0.55; }
-        }
-
-        /* ===================== READOUTS ===================== */
+        /* =============================================================
+           READOUTS
+           ============================================================= */
         .readouts-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
-            gap: 0.65rem;
+            grid-template-columns: repeat(auto-fit, minmax(168px, 1fr));
+            gap: var(--s-2);
+            /* .simulation-card is stretched to match the taller left column
+               (see .dashboard-grid); this is the one section allowed to grow,
+               so any leftover height becomes breathing room right above the
+               results instead of dead space below the card. */
+            margin-top: auto;
         }
 
         .readout-box {
-            background: rgba(128,128,128,0.06);
-            border: 1px solid var(--card-border);
-            border-radius: var(--radius-md);
-            padding: 0.85rem 1rem;
+            background: var(--surface-card);
+            border: 1px solid var(--border);
+            border-radius: var(--r-md);
+            padding: 10px var(--s-3);
             display: flex;
             flex-direction: column;
-            gap: 0.3rem;
-            transition: var(--transition);
-            cursor: default;
+            gap: var(--s-1);
+            transition: border-color var(--dur-base) var(--ease-out);
         }
-        .readout-box:hover {
-            transform: translateY(-2px);
-            border-color: var(--card-border-hover);
-            box-shadow: 0 6px 20px rgba(0,0,0,0.3);
-        }
+        .readout-box:hover { border-color: var(--border-strong); }
 
         .readout-label {
-            font-size: 0.68rem;
-            color: var(--text-muted);
-            text-transform: uppercase;
-            letter-spacing: 0.08em;
+            font-size: var(--fs-micro);
             font-weight: 600;
+            color: var(--fg-3);
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
         }
+        html[lang="bn"] .readout-label { text-transform: none; letter-spacing: var(--tracking-wide); }
 
         .readout-value {
-            font-size: 1.2rem;
+            font-size: var(--fs-h3);
             font-weight: 700;
-            font-family: var(--font-mono);
-            color: var(--text-primary);
+            color: var(--fg-1);
+            font-variant-numeric: tabular-nums;
+            letter-spacing: var(--tracking-tight);
         }
 
-        .readout-box.hl-vR  .readout-value { color: var(--color-vR);   text-shadow: 0 0 10px var(--glow-vR); }
-        .readout-box.hl-acc .readout-value { color: var(--color-accent); text-shadow: 0 0 10px var(--glow-acc); }
+        .readout-box.hl-vR  .readout-value { color: var(--color-vR); }
+        .readout-box.hl-acc .readout-value { color: var(--fg-1); }
+        .readout-box.hl-acc { border-color: var(--success); background: linear-gradient(180deg, #F0FBF4 0%, var(--surface-card) 60%); }
+        html.dark-theme .readout-box.hl-acc { background: rgba(28, 171, 85, 0.10); }
 
-        /* ===================== MATH PANEL ===================== */
+        /* =============================================================
+           MATH PANEL
+           ============================================================= */
         .math-panel {
-            background: var(--card-bg);
-            border: 1px solid var(--card-border);
-            border-radius: var(--radius-xl);
-            padding: 1.75rem;
-            backdrop-filter: blur(16px) saturate(1.4);
-            -webkit-backdrop-filter: blur(16px) saturate(1.4);
-            box-shadow: 0 8px 32px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.04);
+            background: var(--surface-card);
+            border: 1px solid var(--border);
+            border-radius: var(--r-lg);
+            padding: var(--s-4);
         }
 
         .math-panel-header {
             display: flex;
             justify-content: space-between;
             align-items: flex-start;
-            border-bottom: 1px solid var(--card-border);
-            padding-bottom: 1rem;
-            margin-bottom: 1.25rem;
-            gap: 1rem;
+            gap: var(--s-3);
+            border-bottom: 1px dashed var(--border-strong);
+            padding-bottom: var(--s-3);
+            margin-bottom: var(--s-3);
         }
 
         .math-panel-header h2 {
-            font-size: 1rem;
+            display: flex;
+            align-items: center;
+            gap: var(--s-2);
+            font-size: var(--fs-body);
             font-weight: 700;
-            color: var(--text-primary);
+            color: var(--fg-1);
         }
 
         .math-panel-header p {
-            font-size: 0.75rem;
-            color: var(--text-secondary);
-            margin-top: 0.15rem;
+            font-size: var(--fs-caption);
+            color: var(--fg-3);
+            margin-top: var(--s-1);
         }
 
         .math-tag {
-            background: rgba(176,110,243,0.12);
-            border: 1px solid rgba(176,110,243,0.25);
-            color: var(--color-vR);
-            border-radius: var(--radius-sm);
-            padding: 0.2rem 0.6rem;
-            font-size: 0.7rem;
-            font-weight: 600;
+            background: var(--tint-vR);
+            border: 1px solid rgba(28, 171, 85, 0.35);
+            color: var(--success-text);
+            border-radius: var(--r-pill);
+            padding: 4px 12px;
+            font-size: var(--fs-micro);
+            font-weight: 700;
             white-space: nowrap;
         }
 
         .math-grid {
             display: grid;
             grid-template-columns: 1fr 1fr;
-            gap: 2rem;
+            gap: var(--s-5);
         }
         @media (max-width: 800px) {
-            .math-grid { grid-template-columns: 1fr; gap: 1.25rem; }
+            .math-grid { grid-template-columns: 1fr; gap: var(--s-4); }
         }
 
         .math-section {
             display: flex;
             flex-direction: column;
-            gap: 0.75rem;
+            gap: var(--s-2);
+            min-width: 0;
         }
 
         .math-section-title {
-            font-size: 0.9rem;
-            font-weight: 600;
-            color: var(--text-primary);
-            border-left: 3px solid var(--color-vR);
-            padding-left: 0.6rem;
+            font-size: var(--fs-body);
+            font-weight: 700;
+            color: var(--fg-1);
             display: flex;
             align-items: center;
-            gap: 0.5rem;
+            gap: var(--s-2);
+        }
+        .math-section-title::before {
+            content: "";
+            width: 3px;
+            align-self: stretch;
+            border-radius: var(--r-pill);
+            background: var(--ten-red);
         }
 
         .math-box {
-            background: rgba(128,128,128,0.06);
-            border: 1px solid var(--card-border);
-            border-radius: var(--radius-md);
-            padding: 1.1rem;
+            background: var(--bg-muted);
+            border: 1px solid var(--border);
+            border-radius: var(--r-md);
+            padding: var(--s-3);
             display: flex;
             flex-direction: column;
-            gap: 0.9rem;
+            gap: var(--s-2);
             overflow-x: auto;
         }
-
-        .math-box::-webkit-scrollbar { height: 4px; }
-        .math-box::-webkit-scrollbar-thumb { background: rgba(128,128,128,0.25); border-radius: 2px; }
 
         .math-step {
             display: flex;
             flex-direction: column;
-            gap: 0.3rem;
+            gap: var(--s-1);
         }
 
         .math-step-label {
-            font-size: 0.78rem;
-            color: var(--text-secondary);
+            font-size: var(--fs-body-sm);
+            color: var(--fg-2);
             font-weight: 500;
         }
-
-        .math-step-label strong {
-            color: var(--text-primary);
-            font-weight: 600;
-        }
+        .math-step-label strong { color: var(--fg-1); font-weight: 700; }
 
         .math-expr {
             font-family: var(--font-mono);
-            color: var(--text-primary);
-            font-size: 0.88rem;
-            padding-left: 1rem;
+            color: var(--fg-1);
+            font-size: var(--fs-body-sm);
+            padding-left: var(--s-4);
         }
 
-        /* KaTeX override for dark theme */
-        .katex { color: var(--text-primary) !important; }
-        .katex-display { margin: 0.35rem 0 !important; overflow-x: auto; }
-        .math-katex-inline { padding-left: 1rem; }
+        .katex { color: var(--fg-1) !important; }
+        .katex-display { margin: var(--s-2) 0 !important; overflow-x: auto; overflow-y: hidden; }
+        .math-katex-inline { padding-left: var(--s-4); overflow-x: auto; }
 
         .concept-note {
-            background: rgba(176,110,243,0.06);
-            border: 1px solid rgba(176,110,243,0.18);
-            border-radius: var(--radius-md);
-            padding: 0.85rem 1rem;
-            font-size: 0.83rem;
-            color: #c4b5fd;
-            line-height: 1.6;
+            background: var(--surface-info);
+            border: 1px solid var(--info-soft);
+            border-radius: var(--r-md);
+            padding: 10px var(--s-3);
+            font-size: var(--fs-body-sm);
+            color: var(--gray-800);
+            line-height: var(--lh-relaxed);
         }
-        .concept-note strong { color: var(--text-primary); }
+        .concept-note strong { color: var(--gray-900); }
+        html.dark-theme .concept-note {
+            background: rgba(39, 79, 227, 0.14);
+            border-color: rgba(124, 160, 255, 0.35);
+            color: var(--fg-1);
+        }
+        html.dark-theme .concept-note strong { color: var(--fg-1); }
 
-        /* ===================== ANGLE HINT ===================== */
+        /* =============================================================
+           ANGLE HINT
+           ============================================================= */
         .angle-hint {
-            font-size: 0.72rem;
-            color: var(--text-muted);
-            text-align: right;
-            padding-top: 0.15rem;
+            display: flex;
+            justify-content: space-between;
+            gap: var(--s-3);
+            font-size: var(--fs-caption);
+            color: var(--fg-3);
+            font-variant-numeric: tabular-nums;
         }
 
-        /* ===================== FOOTER ===================== */
+        /* =============================================================
+           FOOTER
+           ============================================================= */
         footer {
             text-align: center;
-            font-size: 0.72rem;
-            color: var(--text-muted);
-            padding: 0.5rem 0 1rem;
+            font-size: var(--fs-caption);
+            color: var(--fg-3);
+            padding: var(--s-2) 0 var(--s-6);
         }
 
-        /* ===================== LIGHT THEME OVERRIDES ===================== */
-        body.light-theme {
-            --bg-color:        #f0f4f8;
-            --bg-grad-top:     #e2e8f0;
-            --card-bg:         rgba(255, 255, 255, 0.88);
-            --card-border:     rgba(15, 23, 42, 0.1);
-            --card-border-hover: rgba(15, 23, 42, 0.18);
-            --text-primary:    #0f172a;
-            --text-secondary:  #475569;
-            --text-muted:      #64748b;
-
-            --color-vb:       #0284c7;   /* Slate blue heading */
-            --color-vr:       #d97706;   /* Amber current */
-            --color-vR:       #7c3aed;   /* Violet resultant */
-            --color-accent:   #059669;   /* Emerald success */
-            --color-warning:  #dc2626;   /* Red impossible */
-            --color-info:     #0284c7;   /* Sky min-drift */
-
-            --glow-vb:  rgba(2, 132, 199, 0.15);
-            --glow-vr:  rgba(217, 119, 6, 0.15);
-            --glow-vR:  rgba(124, 58, 237, 0.15);
-            --glow-acc: rgba(5, 150, 105, 0.15);
-        }
-
-        body.light-theme .card {
-            box-shadow: 0 4px 20px rgba(15, 23, 42, 0.07), inset 0 1px 0 rgba(255, 255, 255, 0.9);
-        }
-        body.light-theme .card:hover {
-            box-shadow: 0 8px 32px rgba(15, 23, 42, 0.1), 0 0 20px rgba(124, 58, 237, 0.05), inset 0 1px 0 rgba(255, 255, 255, 1);
-        }
-        body.light-theme header {
-            box-shadow: 0 4px 20px rgba(15, 23, 42, 0.06), inset 0 1px 0 rgba(255, 255, 255, 0.9);
-        }
-
-        body.light-theme .unit-toggle,
-        body.light-theme .speed-multiplier,
-        body.light-theme .angle-convention-toggle {
-            background: rgba(15, 23, 42, 0.04);
-            border-color: rgba(15, 23, 42, 0.1);
-        }
-        body.light-theme .unit-btn.active,
-        body.light-theme .speed-btn.active,
-        body.light-theme .toggle-btn.active {
-            background: rgba(15, 23, 42, 0.1);
-            color: var(--text-primary);
-            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
-        }
-        body.light-theme .unit-btn:hover:not(.active),
-        body.light-theme .speed-btn:hover:not(.active),
-        body.light-theme .toggle-btn:hover:not(.active) {
-            color: var(--text-primary);
-        }
-
-        body.light-theme .case-tab {
-            background: rgba(15, 23, 42, 0.03);
-            border-color: rgba(15, 23, 42, 0.08);
-        }
-        body.light-theme .case-tab:hover {
-            background: rgba(15, 23, 42, 0.06);
-            border-color: rgba(15, 23, 42, 0.15);
-            color: var(--text-primary);
-        }
-        body.light-theme .case-tab.active {
-            background: rgba(124, 58, 237, 0.08);
-            border-color: var(--color-vR);
-            color: var(--text-primary);
-            box-shadow: 0 4px 12px rgba(124, 58, 237, 0.1), inset 0 1px 0 rgba(255,255,255,0.5);
-        }
-        body.light-theme .case-tab#case-e.active {
-            background: rgba(5, 150, 105, 0.08);
-            border-color: var(--color-accent);
-            box-shadow: 0 4px 12px rgba(5, 150, 105, 0.1), inset 0 1px 0 rgba(255,255,255,0.5);
-        }
-
-        body.light-theme .number-input {
-            background: rgba(255, 255, 255, 0.95);
-            border-color: rgba(15, 23, 42, 0.15);
-            color: var(--text-primary);
-        }
-        body.light-theme .number-input:focus {
-            border-color: var(--color-vb);
-            box-shadow: 0 0 0 3px rgba(2, 132, 199, 0.15);
-        }
-
-        body.light-theme .btn {
-            background: rgba(15, 23, 42, 0.05);
-            border-color: rgba(15, 23, 42, 0.1);
-            color: var(--text-primary);
-        }
-        body.light-theme .btn:hover:not(:disabled) {
-            background: rgba(15, 23, 42, 0.1);
-            border-color: rgba(15, 23, 42, 0.18);
-        }
-        body.light-theme .btn-primary {
-            background: rgba(124, 58, 237, 0.12);
-            border-color: rgba(124, 58, 237, 0.28);
-            color: var(--color-vR);
-        }
-        body.light-theme .btn-primary:hover:not(:disabled) {
-            background: rgba(124, 58, 237, 0.2);
-            border-color: rgba(124, 58, 237, 0.45);
-            box-shadow: 0 4px 12px rgba(124, 58, 237, 0.15);
-        }
-
-        body.light-theme .math-box,
-        body.light-theme .readout-box,
-        body.light-theme .vector-container,
-        body.light-theme .playback-controls {
-            background: rgba(15, 23, 42, 0.03);
-            border-color: rgba(15, 23, 42, 0.08);
-        }
-
-        body.light-theme .canvas-container {
-            background: rgba(15, 23, 42, 0.04);
-            border-color: rgba(15, 23, 42, 0.12);
-        }
-
-        body.light-theme .canvas-badge {
-            background: rgba(255, 255, 255, 0.85);
-            border-color: rgba(15, 23, 42, 0.12);
-            color: var(--text-secondary);
-        }
-        body.light-theme .canvas-badge.active {
-            background: rgba(124, 58, 237, 0.1);
-            border-color: rgba(124, 58, 237, 0.3);
-            color: var(--color-vR);
-        }
-
-        body.light-theme .hsc-badge {
-            background: rgba(5, 150, 105, 0.08);
-            border-color: rgba(5, 150, 105, 0.2);
-        }
-
-        body.light-theme .info-box,
-        body.light-theme .concept-note {
-            background: rgba(124, 58, 237, 0.04);
-            border-color: rgba(124, 58, 237, 0.15);
-            color: #5b21b6;
-        }
-        body.light-theme .info-box strong,
-        body.light-theme .concept-note strong {
-            color: #4c1d95;
-        }
-
-        body.light-theme #theme-toggle {
-            background: rgba(15, 23, 42, 0.04);
-            border-color: rgba(15, 23, 42, 0.08);
-            color: var(--text-primary);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            width: 36px;
-            height: 36px;
-            border-radius: var(--radius-md);
-            padding: 0;
-            cursor: pointer;
-            transition: var(--transition);
-            font-size: 1.1rem;
-        }
-        body.light-theme #theme-toggle:hover {
-            background: rgba(15, 23, 42, 0.08);
-            border-color: rgba(15, 23, 42, 0.16);
-        }
-
-        /* Default theme-toggle styles for Dark theme */
-        #theme-toggle {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            width: 36px;
-            height: 36px;
-            border-radius: var(--radius-md);
-            padding: 0;
-            cursor: pointer;
-            transition: var(--transition);
-            background: rgba(0, 0, 0, 0.25);
-            border: 1px solid var(--card-border);
-            color: var(--text-primary);
-            font-size: 1.1rem;
-        }
-        #theme-toggle:hover {
-            background: rgba(255, 255, 255, 0.08);
-            border-color: var(--card-border-hover);
-        }
-
-        /* ===================== MOBILE / PHONE SCREENS ===================== */
-        @media (max-width: 640px) {
-            body { padding: 0.75rem; }
-            .container { gap: 1rem; }
-
-            header {
-                padding: 0.85rem 1rem;
-                border-radius: var(--radius-lg);
-            }
-            .header-title h1 { font-size: 1.1rem; }
-            .header-title p { font-size: 0.72rem; }
-            .header-icon { width: 34px; height: 34px; font-size: 1.05rem; }
-            .header-title h1 .hsc-badge { display: none; }
-            .header-right { flex-direction: column; align-items: stretch; width: 100%; gap: 0.5rem; }
-            .header-right .unit-toggle { width: 100%; }
-            .header-right .unit-toggle .unit-btn { flex: 1 1 0; }
-            #theme-toggle { align-self: flex-end; }
-
-            .card, .math-panel {
-                padding: 1rem;
-                border-radius: var(--radius-lg);
-            }
-
-            .dashboard-grid { gap: 1rem; }
-
-            .case-tab { min-width: 0; font-size: 0.75rem; padding: 0.55rem 0.4rem; }
-            .case-tab::after { display: none; } /* hover tooltips don't work on touch and can overflow */
-
-            .input-header { flex-direction: column; align-items: stretch; }
-            .input-value-wrapper { width: 100%; }
-            .input-value-wrapper .number-input { flex: 1 1 auto; width: auto; min-width: 0; }
-
-            .number-input { width: 68px; }
-
-            .vector-container { height: 190px; }
-
-            .playback-controls { padding: 0.6rem 0.75rem; }
-            .btn { padding: 0.4rem 0.7rem; font-size: 0.78rem; white-space: normal; }
-            .btn-compare-label { display: none; }
-
-            .readouts-grid { grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); }
-            .readout-value { font-size: 1.05rem; }
-        }
-
-        /* ===================== GUIDED TUTORIAL ===================== */
+        /* =============================================================
+           GUIDED TUTORIAL
+           ============================================================= */
         .tutorial-backdrop {
             display: none;
             position: fixed;
             inset: 0;
-            background: rgba(4, 8, 14, 0.72);
+            background: rgba(17, 24, 39, 0.55);
             z-index: 9998;
         }
         .tutorial-backdrop.active { display: block; }
@@ -1022,129 +1119,248 @@
         .tutorial-spotlight {
             position: relative !important;
             z-index: 10000 !important;
-            border-radius: 14px;
-            box-shadow: 0 0 0 4px var(--color-accent), 0 0 0 9999px rgba(4, 8, 14, 0.72);
-            transition: box-shadow 0.2s ease;
+            border-radius: var(--r-md);
+            box-shadow: 0 0 0 3px var(--ten-red), 0 0 0 9999px rgba(17, 24, 39, 0.55);
         }
 
         .tutorial-tooltip {
             display: none;
             position: fixed;
             z-index: 10001;
-            width: min(340px, 92vw);
-            background: var(--card-bg);
-            border: 1px solid var(--card-border-hover);
-            border-radius: var(--radius-lg);
-            padding: 1.1rem 1.2rem;
-            backdrop-filter: blur(16px) saturate(1.4);
-            -webkit-backdrop-filter: blur(16px) saturate(1.4);
-            box-shadow: 0 12px 40px rgba(0,0,0,0.5);
+            width: min(340px, calc(100vw - 32px));
+            background: var(--surface-card);
+            border: 1px solid var(--border-strong);
+            border-radius: var(--r-lg);
+            padding: var(--s-4);
+            box-shadow: var(--sh-raised);
         }
         .tutorial-tooltip.active { display: block; }
 
         .tutorial-tooltip-header {
             display: flex;
             align-items: center;
-            gap: 0.6rem;
-            margin-bottom: 0.6rem;
+            gap: var(--s-2);
+            margin-bottom: var(--s-2);
         }
         .tutorial-badge {
-            background: rgba(16, 185, 129, 0.15);
-            color: var(--color-accent);
-            border: 1px solid rgba(16, 185, 129, 0.3);
-            border-radius: 9999px;
-            padding: 0.15rem 0.6rem;
-            font-size: 0.7rem;
+            background: var(--tint-red);
+            color: var(--ten-red);
+            border: 1px solid rgba(232, 0, 29, 0.40);
+            border-radius: var(--r-pill);
+            padding: 2px 10px;
+            font-size: var(--fs-micro);
             font-weight: 700;
-            font-family: var(--font-mono);
+            font-variant-numeric: tabular-nums;
             white-space: nowrap;
             flex-shrink: 0;
         }
         .tutorial-title {
             flex: 1;
-            font-size: 0.95rem;
+            font-size: var(--fs-body);
             font-weight: 700;
-            color: var(--text-primary);
+            color: var(--fg-1);
+            min-width: 0;
         }
         .tutorial-close {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 32px; height: 32px;
+            flex-shrink: 0;
             background: transparent;
             border: none;
-            color: var(--text-muted);
-            font-size: 1.3rem;
-            line-height: 1;
+            border-radius: var(--r-sm);
+            color: var(--fg-3);
             cursor: pointer;
-            padding: 0 0.15rem;
-            flex-shrink: 0;
-            transition: var(--transition);
+            transition: background var(--dur-base) var(--ease-out), color var(--dur-base) var(--ease-out);
         }
-        .tutorial-close:hover { color: var(--text-primary); }
+        .tutorial-close:hover { background: var(--bg-muted); color: var(--fg-1); }
 
         .tutorial-body {
-            font-size: 0.85rem;
-            line-height: 1.6;
-            color: var(--text-secondary);
-            margin-bottom: 0.9rem;
+            font-size: var(--fs-body-sm);
+            line-height: var(--lh-relaxed);
+            color: var(--fg-2);
+            margin-bottom: var(--s-3);
         }
 
         .tutorial-dots {
             display: flex;
             align-items: center;
-            gap: 0.3rem;
-            margin-bottom: 0.9rem;
+            gap: var(--s-1);
+            margin-bottom: var(--s-3);
         }
         .tutorial-dot {
             width: 6px;
             height: 6px;
-            border-radius: 9999px;
-            background: rgba(128,128,128,0.3);
-            transition: var(--transition);
+            border-radius: var(--r-pill);
+            background: var(--border-strong);
+            transition: width var(--dur-base) var(--ease-out), background var(--dur-base) var(--ease-out);
         }
         .tutorial-dot.active {
             width: 18px;
-            background: var(--color-accent);
+            background: var(--ten-red);
         }
 
         .tutorial-footer {
             display: flex;
             align-items: center;
             justify-content: space-between;
-            gap: 0.75rem;
+            gap: var(--s-3);
         }
         .tutorial-skip {
-            font-size: 0.8rem;
-            color: var(--text-muted);
+            background: none;
+            border: none;
+            font-family: inherit;
+            font-size: var(--fs-body-sm);
+            font-weight: 500;
+            color: var(--fg-3);
             cursor: pointer;
-            transition: var(--transition);
+            padding: 10px var(--s-1);
+            min-height: 44px;
         }
-        .tutorial-skip:hover { color: var(--text-secondary); text-decoration: underline; }
+        .tutorial-skip:hover { color: var(--fg-1); text-decoration: underline; }
 
-        .tutorial-nav-btns { display: flex; gap: 0.5rem; }
+        .tutorial-nav-btns { display: flex; gap: var(--s-2); }
         .tutorial-nav-btn {
             display: flex;
             align-items: center;
-            gap: 0.3rem;
-            background: rgba(128,128,128,0.1);
-            border: 1px solid var(--card-border);
-            color: var(--text-primary);
-            padding: 0.4rem 0.8rem;
-            border-radius: var(--radius-sm);
-            font-family: var(--font-main);
-            font-size: 0.8rem;
-            font-weight: 500;
+            gap: var(--s-1);
+            min-height: 44px;
+            padding: 10px var(--s-4);
+            background: var(--surface-card);
+            border: 1px solid var(--border-strong);
+            border-radius: var(--r-sm);
+            color: var(--fg-1);
+            font-family: inherit;
+            font-size: var(--fs-body-sm);
+            font-weight: 600;
             cursor: pointer;
-            transition: var(--transition);
+            transition: background var(--dur-base) var(--ease-out), transform var(--dur-fast) var(--ease-out);
         }
-        .tutorial-nav-btn:hover { background: rgba(128,128,128,0.18); }
+        .tutorial-nav-btn:hover { background: var(--gray-50); }
+        html.dark-theme .tutorial-nav-btn:hover { background: rgba(255, 255, 255, 0.06); }
+        .tutorial-nav-btn:active { transform: scale(0.98); }
         .tutorial-nav-btn-primary {
-            background: rgba(176,110,243,0.2);
-            border-color: rgba(176,110,243,0.4);
-            color: #d8b4fe;
+            background: var(--success);
+            border-color: var(--success-dark);
+            box-shadow: var(--sh-inset-btn);
+            color: var(--ten-white);
+            font-weight: 700;
         }
-        .tutorial-nav-btn-primary:hover { background: rgba(176,110,243,0.32); }
+        .tutorial-nav-btn-primary:hover { background: #17994B; }
 
-        @media (max-width: 640px) {
-            .tutorial-tooltip { padding: 0.9rem 1rem; }
+        /* =============================================================
+           TABLET
+           ============================================================= */
+        @media (max-width: 900px) {
+            body { padding: var(--s-6) var(--s-6); }
         }
+
+        /* =============================================================
+           MOBILE — 393px design width, 16px gutters (design.md §6)
+           Mobile is the primary target (implementation-guide.md §4.2.1)
+           ============================================================= */
+        @media (max-width: 640px) {
+            body { padding: var(--s-4); }
+            .container { gap: var(--s-4); }
+
+            header {
+                padding: var(--s-4);
+                border-radius: var(--r-lg);
+                gap: var(--s-3);
+            }
+            .header-title h1 { font-size: var(--fs-h3); }
+            .header-title p { display: none; }
+            .header-icon { width: 40px; height: 40px; }
+            .brand-logo { display: none; }
+            .header-right { width: 100%; gap: var(--s-2); }
+            .header-right .unit-toggle { flex: 1 1 100%; }
+            .header-right .unit-toggle .unit-btn { flex: 1 1 0; min-width: 0; }
+            .header-right .lang-toggle { flex: 0 0 auto; }
+            .header-right .lang-toggle .unit-btn { flex: 0 0 auto; min-width: 52px; }
+            #tutorial-btn { flex: 1 1 auto; }
+
+            .card, .math-panel {
+                padding: var(--s-4);
+                border-radius: var(--r-lg);
+            }
+            /* Hover lift is meaningless on touch and causes jitter */
+            .card:hover { transform: none; box-shadow: none; border-color: var(--border); }
+
+            .dashboard-grid { gap: var(--s-4); }
+
+            .case-tab { font-size: var(--fs-caption); min-height: 60px; }
+            .case-tab small { font-size: var(--fs-micro); }
+
+            .input-header { flex-direction: column; align-items: stretch; }
+            .input-value-wrapper { width: 100%; }
+            .input-value-wrapper .number-input { flex: 1 1 auto; width: auto; min-width: 0; }
+
+            .vector-container { height: 200px; }
+
+            /* Every control clears 44x44 on touch (design.md §12) — the base
+               rules above are tightened for desktop/mouse use, where WCAG's
+               24px minimum (not the 44px touch guideline) applies. */
+            .unit-btn, .speed-btn { min-height: 44px; padding: 10px var(--s-3); }
+            .toggle-btn { min-height: 40px; }
+            .lang-toggle .unit-btn { min-width: 52px; }
+            .number-input { min-height: 44px; padding: 10px var(--s-3); }
+            .range-slider { height: 44px; }
+
+            .playback-controls { padding: var(--s-2); gap: var(--s-2); }
+            .btn-group { width: 100%; }
+            .btn-group .btn { flex: 1 1 calc(50% - var(--s-2)); }
+            .btn { min-height: 44px; padding: 10px var(--s-3); }
+            .btn-icon { width: 44px; min-height: 44px; }
+            .btn-compare-label { display: none; }
+            .speed-multiplier { width: 100%; }
+            .speed-btn { flex: 1 1 0; }
+            .infinite-warning { width: 100%; }
+
+            .readouts-grid { grid-template-columns: 1fr 1fr; gap: var(--s-2); }
+            .readout-box { padding: var(--s-3); }
+            .readout-value { font-size: var(--fs-h3); }
+
+            .math-panel-header { flex-direction: column; gap: var(--s-2); }
+
+            .tutorial-tooltip { padding: var(--s-3) var(--s-4); }
+        }
+
+        @media (max-width: 330px) {
+            .case-selector { grid-template-columns: 1fr; }
+            .readouts-grid { grid-template-columns: 1fr; }
+        }
+
+        /* =============================================================
+           THEME SWAP
+           Applied for a single frame while the theme class flips, so the
+           palette changes instantly instead of cross-fading every surface.
+           ============================================================= */
+        html.theme-switching *,
+        html.theme-switching *::before,
+        html.theme-switching *::after {
+            transition: none !important;
+        }
+
+        /* =============================================================
+           REDUCED MOTION (design.md §12)
+           ============================================================= */
+        @media (prefers-reduced-motion: reduce) {
+            *, *::before, *::after {
+                animation: none !important;
+                transition: none !important;
+                scroll-behavior: auto !important;
+            }
+        }
+
+        /* =============================================================
+           PRINT
+           ============================================================= */
+        @media print {
+            .playback-controls, .tutorial-backdrop, .tutorial-tooltip, .header-right { display: none !important; }
+            .card, .math-panel, header { break-inside: avoid; }
+        }
+
     </style>
 </head>
 <body>
@@ -1153,28 +1369,33 @@
     <!-- ========== HEADER ========== -->
     <header>
         <div class="header-left">
-            <div class="header-icon">🚣</div>
+            <div class="header-icon" aria-hidden="true">
+                <svg class="icon icon-lg" viewBox="0 0 24 24"><path d="M22 18H2a4 4 0 0 0 4 4h12a4 4 0 0 0 4-4Z"/><path d="M21 14 10 2 3 14h18Z"/><path d="M10 2v16"/></svg>
+            </div>
             <div class="header-title">
                 <h1><span data-i18n="header.title">River Crossing Simulator</span>
-                    <span class="hsc-badge" data-i18n="header.badge" style="font-size:0.6rem; vertical-align: middle; margin-left:0.35rem;">HSC Physics</span>
+                    <span class="hsc-badge" data-i18n="header.badge">HSC Physics</span>
                 </h1>
                 <p data-i18n="header.subtitle">Interactive relative-velocity tool &mdash; Chapter 2: Vectors</p>
             </div>
+            <img class="brand-logo" src="https://cdn.10minuteschool.com/images/svg/Origin%20Labs%20Black.svg" alt="Origin Labs" loading="lazy">
         </div>
         <div class="header-right">
             <button id="tutorial-btn" class="btn" onclick="startTutorial()">
-                🎓 <span data-i18n="tutorial.button">Tutorial</span>
+                <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M21.42 10.92a1 1 0 0 0-.02-1.84L12.83 5.18a2 2 0 0 0-1.66 0L2.6 9.08a1 1 0 0 0 0 1.83l8.57 3.91a2 2 0 0 0 1.66 0Z"/><path d="M22 10v6"/><path d="M6 12.5V16a6 3 0 0 0 12 0v-3.5"/></svg>
+                <span data-i18n="tutorial.button">Tutorial</span>
             </button>
-            <button id="theme-toggle" onclick="toggleTheme()" aria-label="Toggle theme">
-                <span id="theme-icon">☀️</span>
+            <button id="theme-toggle" class="btn btn-icon" onclick="toggleTheme()" aria-label="Toggle light and dark theme">
+                <svg class="icon icon-theme-light" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/></svg>
+                <svg class="icon icon-theme-dark" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/></svg>
             </button>
             <div class="unit-toggle lang-toggle">
                 <button id="lang-en" class="unit-btn active" onclick="setLang('en')">EN</button>
                 <button id="lang-bn" class="unit-btn" onclick="setLang('bn')">বাং</button>
             </div>
             <div class="unit-toggle">
-                <button id="unit-metric" class="unit-btn active" onclick="setUnit('metric')"><span data-i18n="unit.metric">Metric</span> <small style="opacity:0.6">(m, m/s)</small></button>
-                <button id="unit-practical" class="unit-btn" onclick="setUnit('practical')"><span data-i18n="unit.practical">Practical</span> <small style="opacity:0.6">(km, km/h)</small></button>
+                <button id="unit-metric" class="unit-btn active" onclick="setUnit('metric')"><span data-i18n="unit.metric">Metric</span></button>
+                <button id="unit-practical" class="unit-btn" onclick="setUnit('practical')"><span data-i18n="unit.practical">Practical</span></button>
             </div>
         </div>
     </header>
@@ -1183,33 +1404,41 @@
     <div class="dashboard-grid">
 
         <!-- LEFT: Controls & Vector Diagram -->
-        <div class="card" style="display:flex;flex-direction:column;gap:1.25rem;">
+        <div class="card" style="display:flex;flex-direction:column;gap:0.85rem;">
 
             <div class="card-title">
                 <span data-i18n="card.paramsTitle">Parameters &amp; Case</span>
-                <div class="card-title-icon">⚙️</div>
+                <div class="card-title-icon" aria-hidden="true">
+                    <svg class="icon" viewBox="0 0 24 24"><line x1="21" x2="14" y1="4" y2="4"/><line x1="10" x2="3" y1="4" y2="4"/><line x1="21" x2="12" y1="12" y2="12"/><line x1="8" x2="3" y1="12" y2="12"/><line x1="21" x2="16" y1="20" y2="20"/><line x1="12" x2="3" y1="20" y2="20"/><line x1="14" x2="14" y1="2" y2="6"/><line x1="8" x2="8" y1="10" y2="14"/><line x1="16" x2="16" y1="18" y2="22"/></svg>
+                </div>
             </div>
 
             <!-- Case Selector -->
             <div class="input-group">
-                <span data-i18n="selectCase" style="font-size:0.8rem;color:var(--text-secondary);font-weight:500;text-transform:uppercase;letter-spacing:0.06em;">Select Problem Case</span>
-                <div class="case-selector">
-                    <button id="case-a" class="case-tab active" onclick="setCase('A')" data-i18n-tooltip="case.a.tooltip" data-tooltip="Case A: The boat heads straight across for minimum crossing time. (সবচেয়ে কম সময়ে পারাপার)"><span data-i18n="case.a.title">Case A</span><small data-i18n="case.a.sub">Minimum Time</small></button>
-                    <button id="case-b" class="case-tab" onclick="setCase('B')" data-i18n-tooltip="case.b.tooltip" data-tooltip="Case B: The boat fights the current to go perfectly straight. (ন্যূনতম দূরত্বে সোজাসুজি পারাপার)"><span data-i18n="case.b.title">Case B</span><span id="case-b-warn" style="color:var(--color-warning); margin-left:2px; display:none;">⚠️</span><small data-i18n="case.b.sub">Shortest Path</small></button>
+                <span class="field-legend" data-i18n="selectCase">Select Problem Case</span>
+                <div class="case-selector" role="group" aria-labelledby="case-desc">
+                    <button id="case-a" class="case-tab active" onclick="setCase('A')" data-i18n-tooltip="case.a.tooltip" data-tooltip="Case A: The boat heads straight across for minimum crossing time. (সবচেয়ে কম সময়ে পারাপার)"><span data-i18n="case.a.title">Case A</span><small data-i18n="case.a.sub">Minimum Time</small></button>
+                    <button id="case-b" class="case-tab" onclick="setCase('B')" data-i18n-tooltip="case.b.tooltip" data-tooltip="Case B: The boat fights the current to go perfectly straight. (ন্যূনতম দূরত্বে সোজাসুজি পারাপার)"><span data-i18n="case.b.title">Case B</span><span id="case-b-warn" class="case-warn-flag"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg></span><small data-i18n="case.b.sub">Shortest Path</small></button>
                     <button id="case-d" class="case-tab" onclick="setCase('D')" data-i18n-tooltip="case.d.tooltip" data-tooltip="Case D: Set any boat heading angle from the perpendicular or current direction. (যেকোনো কোণ)"><span data-i18n="case.d.title">Case D</span><small data-i18n="case.d.sub">Custom Angle</small></button>
                     <button id="case-e" class="case-tab" onclick="setCase('E')" data-i18n-tooltip="case.e.tooltip" data-tooltip="Case E: Locks boat speed to 2x current speed and heading to 120° from current. (HSC স্পেশাল ১২০° কেস)"><span data-i18n="case.e.title">Case E</span><small data-i18n="case.e.sub">120° Spotlight</small></button>
                 </div>
+                <!-- Always-visible description of the selected case (touch devices cannot hover) -->
+                <p id="case-desc" class="case-desc" aria-live="polite"></p>
             </div>
 
             <!-- Impossible Case B banner -->
-            <div id="impossible-banner" class="warning-box" data-i18n="banner.impossible">
-                ⚠️ <strong>Impossible Case B:</strong> Boat speed v<sub>b</sub> is less than river speed v<sub>r</sub>. Zero drift cannot be achieved — increase v<sub>b</sub> or decrease v<sub>r</sub>.
+            <div id="impossible-banner" class="warning-box" role="alert">
+                <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg>
+                <span data-i18n="banner.impossible"><strong>Impossible Case B:</strong> Boat speed v<sub>b</sub> is less than river speed v<sub>r</sub>. Zero drift cannot be achieved — increase v<sub>b</sub> or decrease v<sub>r</sub>.</span>
             </div>
 
             <!-- Case E Spotlight Banner -->
             <div id="spotlight-banner" class="info-box" style="display: none;">
-                <div data-i18n="banner.spotlightTitle">🌟 <strong>120° Spotlight Case:</strong></div>
-                <div style="font-size: 0.75rem; opacity: 0.9;" data-i18n="banner.spotlightBody">
+                <div class="info-box-title">
+                    <svg class="icon icon-sm icon-fill" viewBox="0 0 24 24" aria-hidden="true"><path d="M11.5 2.3a.5.5 0 0 1 1 0l2.3 4.7a2 2 0 0 0 1.6 1.1l5.2.8a.5.5 0 0 1 .3.9l-3.8 3.6a2 2 0 0 0-.6 1.9l.9 5.1a.5.5 0 0 1-.8.6l-4.6-2.4a2 2 0 0 0-2 0L6.4 21a.5.5 0 0 1-.8-.6l.9-5.1a2 2 0 0 0-.6-1.9L2.2 9.8a.5.5 0 0 1 .3-.9l5.2-.8a2 2 0 0 0 1.6-1.1z"/></svg>
+                    <span data-i18n="banner.spotlightTitle">120° Spotlight Case</span>
+                </div>
+                <div style="font-size: var(--fs-caption);" data-i18n="banner.spotlightBody">
                     In Bangladeshi HSC problems, this 120° case is very commonly asked.
                     The angle is measured from the direction the river is flowing (φ = 120°).
                     Boat speed is locked to 2 × current speed (v<sub>b</sub> = 2v<sub>r</sub>).
@@ -1220,66 +1449,72 @@
             <!-- vb slider -->
             <div class="input-group" id="group-vb">
                 <div class="input-header">
-                    <span class="input-label">
+                    <label class="input-label" for="num-vb">
                         <span class="color-swatch swatch-vb"></span>
                         <span data-i18n="input.vb">Boat Speed (v<sub>b</sub>)</span>
-                    </span>
+                    </label>
                     <div class="input-value-wrapper">
-                        <input type="number" id="num-vb" class="number-input" step="0.1" onchange="updateFromNum('vb',this.value)">
+                        <input type="number" id="num-vb" class="number-input" step="0.1" inputmode="decimal" onchange="updateFromNum('vb',this.value)">
                         <span class="unit-label text-vb-unit">m/s</span>
                     </div>
                 </div>
-                <input type="range" id="slider-vb" class="range-slider" oninput="updateFromSlider('vb',this.value)">
+                <input type="range" id="slider-vb" class="range-slider" aria-label="Boat speed" oninput="updateFromSlider('vb',this.value)">
             </div>
 
             <!-- vr slider -->
             <div class="input-group" id="group-vr">
                 <div class="input-header">
-                    <span class="input-label">
+                    <label class="input-label" for="num-vr">
                         <span class="color-swatch swatch-vr"></span>
                         <span data-i18n="input.vr">River Current Speed (v<sub>r</sub>)</span>
-                    </span>
+                    </label>
                     <div class="input-value-wrapper">
-                        <input type="number" id="num-vr" class="number-input" step="0.1" onchange="updateFromNum('vr',this.value)">
+                        <input type="number" id="num-vr" class="number-input" step="0.1" inputmode="decimal" onchange="updateFromNum('vr',this.value)">
                         <span class="unit-label text-vr-unit">m/s</span>
                     </div>
                 </div>
-                <input type="range" id="slider-vr" class="range-slider" oninput="updateFromSlider('vr',this.value)">
+                <input type="range" id="slider-vr" class="range-slider" aria-label="River current speed" oninput="updateFromSlider('vr',this.value)">
             </div>
 
-            <!-- Speed Ratio Indicator Badge -->
-            <div id="ratio-badge-container" style="display: flex; justify-content: space-between; align-items: center; margin-top: -0.25rem; margin-bottom: 0.25rem; padding: 0 0.1rem;">
-                <span class="input-label" data-i18n="ratio.label" style="font-size: 0.75rem;">Speed Ratio:</span>
+            <!-- Speed Ratio Indicator -->
+            <div id="ratio-badge-container" class="ratio-row">
+                <span class="input-label" data-i18n="ratio.label">Speed Ratio:</span>
                 <span id="speed-ratio-badge" class="hsc-badge">v<sub>b</sub> / v<sub>r</sub> = 1.33</span>
             </div>
 
             <!-- d slider -->
             <div class="input-group" id="group-d">
                 <div class="input-header">
-                    <span class="input-label">🌊 <span data-i18n="input.d">River Width (d)</span></span>
+                    <label class="input-label" for="num-d">
+                        <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M2 6c.6.5 1.2 1 2.5 1C7 7 7 5 9.5 5c2.6 0 2.4 2 5 2 2.5 0 2.5-2 5-2 1.3 0 1.9.5 2.5 1"/><path d="M2 12c.6.5 1.2 1 2.5 1 2.5 0 2.5-2 5-2 2.6 0 2.4 2 5 2 2.5 0 2.5-2 5-2 1.3 0 1.9.5 2.5 1"/><path d="M2 18c.6.5 1.2 1 2.5 1 2.5 0 2.5-2 5-2 2.6 0 2.4 2 5 2 2.5 0 2.5-2 5-2 1.3 0 1.9.5 2.5 1"/></svg>
+                        <span data-i18n="input.d">River Width (d)</span>
+                    </label>
                     <div class="input-value-wrapper">
-                        <input type="number" id="num-d" class="number-input" step="1" onchange="updateFromNum('d',this.value)">
+                        <input type="number" id="num-d" class="number-input" step="1" inputmode="decimal" onchange="updateFromNum('d',this.value)">
                         <span class="unit-label text-d-unit">m</span>
                     </div>
                 </div>
-                <input type="range" id="slider-d" class="range-slider" oninput="updateFromSlider('d',this.value)">
+                <input type="range" id="slider-d" class="range-slider" aria-label="River width" oninput="updateFromSlider('d',this.value)">
             </div>
 
             <!-- custom angle control (Case D only) -->
             <div class="input-group" id="custom-angle-control">
-                <div class="input-header" style="justify-content: space-between; align-items: center;">
-                    <span class="input-label">📐 <span data-i18n="input.theta">Heading Angle</span></span>
+                <div class="input-header">
+                    <label class="input-label" for="num-theta">
+                        <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M21.3 15.3a2.4 2.4 0 0 1 0 3.4l-2.6 2.6a2.4 2.4 0 0 1-3.4 0L2.7 8.7a2.4 2.4 0 0 1 0-3.4l2.6-2.6a2.4 2.4 0 0 1 3.4 0Z"/><path d="m14.5 12.5 2-2"/><path d="m11.5 9.5 2-2"/><path d="m8.5 6.5 2-2"/><path d="m17.5 15.5 2-2"/></svg>
+                        <span data-i18n="input.theta">Heading Angle</span>
+                    </label>
                     <div class="angle-convention-toggle">
                         <button id="toggle-angle-perp" class="toggle-btn active" onclick="setAngleConvention('perpendicular')" data-i18n="toggle.perp">θ (Perp)</button>
                         <button id="toggle-angle-curr" class="toggle-btn" onclick="setAngleConvention('current')" data-i18n="toggle.curr">φ (Current)</button>
                     </div>
                     <div class="input-value-wrapper">
-                        <input type="number" id="num-theta" class="number-input" step="1" onchange="updateFromNum('theta',this.value)">
+                        <input type="number" id="num-theta" class="number-input" step="1" inputmode="numeric" onchange="updateFromNum('theta',this.value)">
                         <span class="unit-label">&deg;</span>
                     </div>
                 </div>
-                <input type="range" id="slider-theta" class="range-slider" oninput="updateFromSlider('theta',this.value)">
-                <div class="angle-hint" style="text-align: left; display: flex; justify-content: space-between; font-size: 0.72rem; color: var(--text-muted);">
+                <input type="range" id="slider-theta" class="range-slider" aria-label="Heading angle" oninput="updateFromSlider('theta',this.value)">
+                <div class="angle-hint">
                     <span id="angle-hint-perp">θ (perp): 0°</span>
                     <span id="angle-hint-curr">φ (curr): 90°</span>
                 </div>
@@ -1287,22 +1522,24 @@
 
             <!-- Vector Diagram -->
             <div class="input-group">
-                <span data-i18n="vectorDiagram" style="font-size:0.8rem;color:var(--text-secondary);font-weight:500;text-transform:uppercase;letter-spacing:0.06em;">Relative Velocity Vector Diagram</span>
+                <span class="field-legend" data-i18n="vectorDiagram">Relative Velocity Vector Diagram</span>
                 <div class="vector-container">
-                    <svg id="vector-svg" class="vector-svg" viewBox="0 0 260 164"></svg>
+                    <svg id="vector-svg" class="vector-svg" viewBox="0 0 260 164" role="img" aria-label="Relative velocity vector diagram"></svg>
                 </div>
             </div>
 
         </div><!-- /left card -->
 
-        <!-- RIGHT: Simulation + Readouts + Graph -->
+        <!-- RIGHT: Simulation + Readouts -->
         <div class="card simulation-card">
 
             <div class="card-title">
                 <span data-i18n="simCard.title">Real-Time Crossing Simulation</span>
                 <div style="display:flex;gap:0.5rem;align-items:center;">
                     <div id="crossing-badge" class="canvas-badge" data-i18n="crossingBadge" style="display:none;">CROSSING…</div>
-                    <div class="card-title-icon">🎮</div>
+                    <div class="card-title-icon" aria-hidden="true">
+                        <svg class="icon" viewBox="0 0 24 24"><path d="M22 12h-2.5a2 2 0 0 0-1.9 1.5l-2.4 8.4a.25.25 0 0 1-.5 0L9.2 2.2a.25.25 0 0 0-.5 0l-2.3 8.3A2 2 0 0 1 4.5 12H2"/></svg>
+                    </div>
                 </div>
             </div>
 
@@ -1318,27 +1555,29 @@
             <div class="playback-controls">
                 <div class="btn-group">
                     <button id="btn-play" class="btn btn-primary" onclick="togglePlay()">
-                        <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+                        <svg class="icon icon-fill" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5v14l11-7z"/></svg>
                         <span data-i18n="playback.play">Play</span>
                     </button>
                     <button id="btn-pause" class="btn" onclick="pauseAnim()" disabled>
-                        <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>
+                        <svg class="icon icon-fill" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>
                         <span data-i18n="playback.pause">Pause</span>
                     </button>
                     <button class="btn" onclick="resetAnim()">
-                        <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M12 5V1L7 6l5 5V7c3.31 0 6 2.69 6 6s-2.69 6-6 6-6-2.69-6-6H4c0 4.42 3.58 8 8 8s8-3.58 8-8-3.58-8-8-8z"/></svg>
+                        <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
                         <span data-i18n="playback.reset">Reset</span>
                     </button>
-                    <button id="btn-compare" class="btn" onclick="toggleCompareMode()">
-                        ⚔️ <span class="btn-compare-label" data-i18n="playback.compare">Compare A vs B</span>
+                    <button id="btn-compare" class="btn" onclick="toggleCompareMode()" aria-pressed="false" aria-label="Compare Case A with Case B">
+                        <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="18" cy="18" r="3"/><circle cx="6" cy="6" r="3"/><path d="M13 6h3a2 2 0 0 1 2 2v7"/><path d="M11 18H8a2 2 0 0 1-2-2V9"/></svg>
+                        <span class="btn-compare-label" data-i18n="playback.compare">Compare A vs B</span>
                     </button>
                 </div>
 
-                <div id="infinite-alert" class="infinite-warning" data-i18n="infiniteWarning">
-                    ⚠️ Boat is parallel to bank — crossing time is &infin;
+                <div id="infinite-alert" class="infinite-warning" role="status">
+                    <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg>
+                    <span data-i18n="infiniteWarning">Boat is parallel to bank — crossing time is &infin;</span>
                 </div>
 
-                <div class="speed-multiplier">
+                <div class="speed-multiplier" role="group" aria-label="Playback speed">
                     <button id="speed-1"  class="speed-btn active" onclick="setSpeed(1)">1×</button>
                     <button id="speed-5"  class="speed-btn" onclick="setSpeed(5)">5×</button>
                     <button id="speed-10" class="speed-btn" onclick="setSpeed(10)">10×</button>
@@ -1378,7 +1617,10 @@
     <div class="math-panel">
         <div class="math-panel-header">
             <div>
-                <h2 data-i18n="math.title">📐 Textbook Worked Solution</h2>
+                <h2>
+                    <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M21.3 15.3a2.4 2.4 0 0 1 0 3.4l-2.6 2.6a2.4 2.4 0 0 1-3.4 0L2.7 8.7a2.4 2.4 0 0 1 0-3.4l2.6-2.6a2.4 2.4 0 0 1 3.4 0Z"/><path d="m14.5 12.5 2-2"/><path d="m11.5 9.5 2-2"/><path d="m8.5 6.5 2-2"/><path d="m17.5 15.5 2-2"/></svg>
+                    <span data-i18n="math.title">Textbook Worked Solution</span>
+                </h2>
                 <p data-i18n="math.subtitle">বাংলাদেশি কারিকুলাম অনুসরণী &mdash; HSC Physics 1st Paper, Chapter 2 (Vectors)</p>
             </div>
             <div class="math-tag" data-i18n="math.tag">Live Derivation</div>
@@ -1420,24 +1662,26 @@
 
 <!-- ========== GUIDED TUTORIAL OVERLAY ========== -->
 <div id="tutorial-backdrop" class="tutorial-backdrop"></div>
-<div id="tutorial-tooltip" class="tutorial-tooltip" role="dialog" aria-live="polite">
+<div id="tutorial-tooltip" class="tutorial-tooltip" role="dialog" aria-modal="true" aria-labelledby="tutorial-title" aria-describedby="tutorial-body" tabindex="-1">
     <div class="tutorial-tooltip-header">
         <span id="tutorial-counter" class="tutorial-badge">1/10</span>
         <span id="tutorial-title" class="tutorial-title"></span>
-        <button class="tutorial-close" onclick="endTutorial()" aria-label="Close tutorial">&times;</button>
+        <button class="tutorial-close" onclick="endTutorial()" aria-label="Close tutorial">
+            <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+        </button>
     </div>
     <p id="tutorial-body" class="tutorial-body"></p>
     <div id="tutorial-dots" class="tutorial-dots"></div>
     <div class="tutorial-footer">
-        <span class="tutorial-skip" onclick="endTutorial()" data-i18n="tutorial.skip">Skip</span>
+        <button type="button" class="tutorial-skip" onclick="endTutorial()" data-i18n="tutorial.skip">Skip</button>
         <div class="tutorial-nav-btns">
             <button id="tutorial-back" class="tutorial-nav-btn" onclick="prevTutorialStep()">
-                <svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor"><path d="M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z"/></svg>
+                <svg class="icon icon-sm" viewBox="0 0 24 24" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg>
                 <span data-i18n="tutorial.back">Back</span>
             </button>
             <button id="tutorial-next" class="tutorial-nav-btn tutorial-nav-btn-primary" onclick="nextTutorialStep()">
                 <span id="tutorial-next-label" data-i18n="tutorial.next">Next</span>
-                <svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor"><path d="M8.59 16.59L10 18l6-6-6-6-1.41 1.41L13.17 12z"/></svg>
+                <svg class="icon icon-sm" viewBox="0 0 24 24" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg>
             </button>
         </div>
     </div>
@@ -1446,20 +1690,26 @@
 <script>
 'use strict';
 
-// Immediately check local storage to prevent theme flashing
-(function() {
-    const savedTheme = localStorage.getItem('theme');
-    if (savedTheme === 'light') {
-        document.body.classList.add('light-theme');
-    }
-})();
+/* Theme is restored before first paint by the inline <head> script.
+   Light is the 10MS default (design.md §1); dark is an explicit opt-in. */
+function isLightTheme() {
+    return !document.documentElement.classList.contains('dark-theme');
+}
+
+/* Storage access throws in a sandboxed iframe. The sim has to keep working
+   inside a chat WebView (implementation-guide.md §4.2.1), so never let a
+   preference read take the whole script down. */
+const prefs = {
+    get(key) { try { return localStorage.getItem(key); } catch (e) { return null; } },
+    set(key, value) { try { localStorage.setItem(key, value); } catch (e) { /* no-op */ } },
+};
 
 /* =============================================================
    STATE
    ============================================================= */
 const state = {
     unit: 'metric',
-    lang: localStorage.getItem('lang') === 'bn' ? 'bn' : 'en',
+    lang: prefs.get('lang') === 'bn' ? 'bn' : 'en',
     vb: 4.0,   // m/s  (always SI internally)
     vr: 3.0,   // m/s
     d: 100.0,  // m
@@ -1536,8 +1786,8 @@ const I18N = {
         'case.e.title': 'Case E',
         'case.e.sub': '120° Spotlight',
         'case.e.tooltip': 'Case E: Locks boat speed to 2x current speed and heading to 120° from current.',
-        'banner.impossible': '⚠️ <strong>Impossible Case B:</strong> Boat speed v<sub>b</sub> is less than river speed v<sub>r</sub>. Zero drift cannot be achieved — increase v<sub>b</sub> or decrease v<sub>r</sub>.',
-        'banner.spotlightTitle': '🌟 <strong>120° Spotlight Case:</strong>',
+        'banner.impossible': '<strong>Impossible Case B:</strong> Boat speed v<sub>b</sub> is less than river speed v<sub>r</sub>. Zero drift cannot be achieved — increase v<sub>b</sub> or decrease v<sub>r</sub>.',
+        'banner.spotlightTitle': '120° Spotlight Case',
         'banner.spotlightBody': 'In Bangladeshi HSC problems, this 120° case is very commonly asked. The angle is measured from the direction the river is flowing (φ = 120°). Boat speed is locked to 2 × current speed (v<sub>b</sub> = 2v<sub>r</sub>). Zero drift is guaranteed. Formula: φ = cos⁻¹(−u/v).',
         'input.vb': 'Boat Speed (v<sub>b</sub>)',
         'input.vr': 'River Current Speed (v<sub>r</sub>)',
@@ -1558,13 +1808,13 @@ const I18N = {
         'playback.replay': 'Replay',
         'playback.reset': 'Reset',
         'playback.compare': 'Compare A vs B',
-        'infiniteWarning': '⚠️ Boat is parallel to bank — crossing time is &infin;',
+        'infiniteWarning': 'Boat is parallel to bank — crossing time is &infin;',
         'readout.time': 'Crossing Time',
         'readout.drift': 'Downstream Drift',
         'readout.vR': 'Resultant Speed (v<sub>R</sub>)',
         'readout.alpha': 'Direction (&alpha; from bank)',
         'readout.L': 'Path Length (L)',
-        'math.title': '📐 Textbook Worked Solution',
+        'math.title': 'Textbook Worked Solution',
         'math.subtitle': 'Following the Bangladesh curriculum &mdash; HSC Physics 1st Paper, Chapter 2 (Vectors)',
         'math.tag': 'Live Derivation',
         'math.section1': '1. Given Values &amp; Setup',
@@ -1681,8 +1931,8 @@ const I18N = {
         'case.e.title': 'কেস E',
         'case.e.sub': '১২০° স্পটলাইট',
         'case.e.tooltip': 'কেস E: নৌকার গতি স্রোতের ২ গুণ এবং কোণ স্রোত থেকে ১২০° নির্ধারিত থাকে।',
-        'banner.impossible': '⚠️ <strong>অসম্ভব কেস B:</strong> নৌকার গতি v<sub>b</sub>, স্রোতের গতি v<sub>r</sub> অপেক্ষা কম। শূন্য সরণ অর্জন করা সম্ভব নয় — v<sub>b</sub> বাড়ান অথবা v<sub>r</sub> কমান।',
-        'banner.spotlightTitle': '🌟 <strong>১২০° স্পটলাইট কেস:</strong>',
+        'banner.impossible': '<strong>অসম্ভব কেস B:</strong> নৌকার গতি v<sub>b</sub>, স্রোতের গতি v<sub>r</sub> অপেক্ষা কম। শূন্য সরণ অর্জন করা সম্ভব নয় — v<sub>b</sub> বাড়ান অথবা v<sub>r</sub> কমান।',
+        'banner.spotlightTitle': '১২০° স্পটলাইট কেস',
         'banner.spotlightBody': 'বাংলাদেশের এইচএসসি প্রশ্নে এই ১২০° কেসটি খুবই সাধারণ। কোণটি নদীর স্রোতের দিক থেকে পরিমাপ করা হয় (φ = ১২০°)। নৌকার গতি স্রোতের গতির ২ গুণে নির্ধারিত থাকে (v<sub>b</sub> = 2v<sub>r</sub>)। শূন্য সরণ নিশ্চিত। সূত্র: φ = cos⁻¹(−u/v)।',
         'input.vb': 'নৌকার গতি (v<sub>b</sub>)',
         'input.vr': 'নদীর স্রোতের গতি (v<sub>r</sub>)',
@@ -1703,13 +1953,13 @@ const I18N = {
         'playback.replay': 'পুনরায় চালান',
         'playback.reset': 'রিসেট',
         'playback.compare': 'তুলনা: A বনাম B',
-        'infiniteWarning': '⚠️ নৌকা তীরের সমান্তরালে — পারাপারের সময় অসীম &infin;',
+        'infiniteWarning': 'নৌকা তীরের সমান্তরালে — পারাপারের সময় অসীম &infin;',
         'readout.time': 'পারাপারের সময়',
         'readout.drift': 'স্রোতজনিত সরণ',
         'readout.vR': 'লব্ধি গতি (v<sub>R</sub>)',
         'readout.alpha': 'দিক (তীর থেকে &alpha;)',
         'readout.L': 'পথের দৈর্ঘ্য (L)',
-        'math.title': '📐 পাঠ্যপুস্তক সমাধান',
+        'math.title': 'পাঠ্যপুস্তক সমাধান',
         'math.subtitle': 'বাংলাদেশি কারিকুলাম অনুসরণী &mdash; এইচএসসি পদার্থবিজ্ঞান ১ম পত্র, দ্বিতীয় অধ্যায় (ভেক্টর)',
         'math.tag': 'লাইভ সমাধান',
         'math.section1': '১. প্রদত্ত মান ও প্রস্তুতি',
@@ -1824,7 +2074,7 @@ function applyStaticTranslations() {
 
 function setLang(lang) {
     state.lang = lang;
-    localStorage.setItem('lang', lang);
+    prefs.set('lang', lang);
     document.getElementById('lang-en').classList.toggle('active', lang === 'en');
     document.getElementById('lang-bn').classList.toggle('active', lang === 'bn');
     applyStaticTranslations();
@@ -1843,10 +2093,23 @@ const vectorSvg = document.getElementById('vector-svg');
    INIT
    ============================================================= */
 window.addEventListener('DOMContentLoaded', () => {
-    // Sync theme toggle icon
-    const isLight = document.body.classList.contains('light-theme');
-    const icon = document.getElementById('theme-icon');
-    if (icon) icon.textContent = isLight ? '🌙' : '☀️';
+    // A deep-linked URL (?case=E&vb=6&vr=3&d=150&...) overrides the saved/
+    // default state before anything renders. Routed through the same public
+    // setters the UI itself uses, so every dependent class/label/computed
+    // value (Case E's vb=2vr lock, the impossible-B flag, etc.) stays correct.
+    const urlState = parseUrlParams();
+    if (urlState) {
+        if (urlState.unit) setUnit(urlState.unit);
+        if (urlState.lang) setLang(urlState.lang);
+        if (urlState.vb !== undefined) state.vb = urlState.vb;
+        if (urlState.vr !== undefined) state.vr = urlState.vr;
+        if (urlState.d  !== undefined) state.d  = urlState.d;
+        if (urlState.theta !== undefined) state.customTheta = urlState.theta;
+        if (urlState.ac) setAngleConvention(urlState.ac);
+        if (urlState.compare) toggleCompareMode();
+        if (urlState.case) setCase(urlState.case);
+        syncSlidersConfig();
+    }
 
     // Sync language toggle buttons and static text
     document.getElementById('lang-en').classList.toggle('active', state.lang === 'en');
@@ -1923,12 +2186,18 @@ function syncSlidersConfig() {
    PUBLIC UI HANDLERS
    ============================================================= */
 function toggleTheme() {
-    const isLight = document.body.classList.toggle('light-theme');
-    localStorage.setItem('theme', isLight ? 'light' : 'dark');
-    const icon = document.getElementById('theme-icon');
-    if (icon) {
-        icon.textContent = isLight ? '🌙' : '☀️';
-    }
+    const root = document.documentElement;
+
+    /* Suppress transitions across the swap. Two reasons: a whole-page colour
+       cross-fade is not a 10MS motion pattern (design.md §10), and Chrome
+       otherwise keeps the pre-swap value cached on transitioned controls,
+       which leaves buttons and case tabs painted in the previous theme. */
+    root.classList.add('theme-switching');
+    const isDark = root.classList.toggle('dark-theme');
+    void document.body.offsetHeight;   // flush the themed styles with no transition
+    root.classList.remove('theme-switching');
+
+    prefs.set('theme', isDark ? 'dark' : 'light');
     updateUI();
     drawFrame();
 }
@@ -2054,15 +2323,8 @@ function updateValue(param, val) {
 function toggleCompareMode() {
     state.compareMode = !state.compareMode;
     const btn = document.getElementById('btn-compare');
-    if (state.compareMode) {
-        btn.classList.add('btn-primary');
-        btn.style.borderColor = 'var(--color-accent)';
-        btn.style.boxShadow = '0 0 8px rgba(16, 185, 129, 0.2)';
-    } else {
-        btn.classList.remove('btn-primary');
-        btn.style.borderColor = '';
-        btn.style.boxShadow = '';
-    }
+    btn.classList.toggle('btn-toggled', state.compareMode);
+    btn.setAttribute('aria-pressed', String(state.compareMode));
     resetAnim();
     updateUI();
 }
@@ -2119,6 +2381,16 @@ function solvePhysics() {
     return solvePhysicsForCase(state.activeCase);
 }
 
+/* Mirror the active case's explanation into a persistent panel.
+   Hover-only tooltips are unusable on phones, and phones are the primary
+   target for TenTen sims (implementation-guide.md §4.2.1). */
+function syncCaseDescription() {
+    const target = document.getElementById('case-desc');
+    if (!target) return;
+    const activeTab = document.querySelector('.case-tab.active');
+    target.textContent = activeTab ? (activeTab.getAttribute('data-tooltip') || '') : '';
+}
+
 /* =============================================================
    UPDATE UI
    ============================================================= */
@@ -2132,25 +2404,21 @@ function updateUI() {
     // Hide angle control unless in custom Case D
     document.getElementById('custom-angle-control').classList.toggle('active', state.activeCase === 'D');
     
-    // Update Case B warning flag next to tab tab B
+    // Update Case B warning flag next to tab B
     const bWarn = document.getElementById('case-b-warn');
-    if (bWarn) bWarn.style.display = state.vb < state.vr ? 'inline' : 'none';
+    if (bWarn) bWarn.style.display = state.vb < state.vr ? 'inline-flex' : 'none';
+
+    // Description of the selected case — always visible, so touch users get it too
+    syncCaseDescription();
 
     // Update Speed Ratio Badge
     const ratio = res.vr > 0 ? (res.vb / res.vr) : Infinity;
     const ratioBadge = document.getElementById('speed-ratio-badge');
     if (ratioBadge) {
-        ratioBadge.innerHTML = `v<sub>b</sub> / v<sub>r</sub> = ${isFinite(ratio) ? ratio.toFixed(2) : '∞'}`;
-        if (Math.abs(ratio - 2.0) <= 0.05) {
-            ratioBadge.innerHTML += t('ratio.spotlight');
-            ratioBadge.style.background = 'rgba(16, 185, 129, 0.15)';
-            ratioBadge.style.borderColor = 'rgba(16, 185, 129, 0.4)';
-            ratioBadge.style.color = 'var(--color-accent)';
-        } else {
-            ratioBadge.style.background = 'rgba(255, 255, 255, 0.05)';
-            ratioBadge.style.borderColor = 'rgba(255, 255, 255, 0.1)';
-            ratioBadge.style.color = 'var(--text-secondary)';
-        }
+        const isSpotlightRatio = Math.abs(ratio - 2.0) <= 0.05;
+        ratioBadge.innerHTML = `v<sub>b</sub> / v<sub>r</sub> = ${isFinite(ratio) ? ratio.toFixed(2) : '∞'}`
+                             + (isSpotlightRatio ? t('ratio.spotlight') : '');
+        ratioBadge.classList.toggle('badge-success', isSpotlightRatio);
     }
 
     const infAlert = document.getElementById('infinite-alert');
@@ -2186,6 +2454,99 @@ function updateUI() {
 
     renderVectorDiagram(res);
     renderWorkedMath(res);
+    syncUrlFromState();
+}
+
+/* =============================================================
+   URL <-> STATE SYNC
+   Lets a link fully reproduce a scenario (?case=E&vb=6&vr=3&d=150&...),
+   which is also the mechanism TenTen's url_template/url_param_schema
+   deep-linking expects (implementation-guide.md §4.2).
+   ============================================================= */
+let urlSyncTimer = null;
+function syncUrlFromState() {
+    // Debounced: sliders fire oninput continuously while dragging, and
+    // history.replaceState on every tick is wasteful and can jank on some
+    // browsers. 250ms after the user stops moving something is plenty.
+    clearTimeout(urlSyncTimer);
+    urlSyncTimer = setTimeout(() => {
+        try {
+            const params = new URLSearchParams();
+            params.set('case', state.activeCase);
+            params.set('vb', state.vb.toFixed(2));
+            params.set('vr', state.vr.toFixed(2));
+            params.set('d',  state.d.toFixed(1));
+            if (state.activeCase === 'D') {
+                params.set('theta', state.customTheta.toFixed(1));
+                params.set('ac', state.angleConvention === 'current' ? 'phi' : 'theta');
+            }
+            params.set('unit', state.unit);
+            params.set('lang', state.lang);
+            if (state.compareMode) params.set('compare', '1');
+
+            const newUrl = window.location.pathname + '?' + params.toString() + window.location.hash;
+            history.replaceState(null, '', newUrl);
+        } catch (e) { /* sandboxed iframe (implementation-guide.md §4.2.1) may block history writes */ }
+    }, 250);
+}
+
+/* Reads ?case=&vb=&vr=&d=&theta=&ac=&unit=&lang=&compare= on load and
+   clamps everything to the same bounds the sliders enforce, so a hand-typed
+   or AI-built URL can't push the sim into an invalid state. vb/vr/d are
+   always SI (m/s, m) regardless of the `unit` param, which only controls
+   which unit the UI displays/edits in. */
+function parseUrlParams() {
+    const params = new URLSearchParams(window.location.search);
+    if (![...params.keys()].length) return null;
+
+    const cfg = UNIT_CFG.metric;
+    const clamp = (v, min, max) => Math.max(min, Math.min(max, v));
+    const out = {};
+
+    if (params.has('unit')) {
+        const u = params.get('unit');
+        if (u === 'metric' || u === 'practical') out.unit = u;
+    }
+    if (params.has('lang')) {
+        const l = params.get('lang');
+        if (l === 'en' || l === 'bn') out.lang = l;
+    }
+    if (params.has('vb')) {
+        const v = parseFloat(params.get('vb'));
+        if (isFinite(v)) out.vb = clamp(v, cfg.vb.min, cfg.vb.max);
+    }
+    if (params.has('vr')) {
+        const v = parseFloat(params.get('vr'));
+        if (isFinite(v)) out.vr = clamp(v, cfg.vr.min, cfg.vr.max);
+    }
+    if (params.has('d')) {
+        const v = parseFloat(params.get('d'));
+        if (isFinite(v)) out.d = clamp(v, cfg.d.min, cfg.d.max);
+    }
+    // `ac` must be resolved before `theta` — the raw theta number means
+    // something different in each convention (perpendicular: -89..89 from
+    // straight-across; current: 1..179 from the downstream direction), the
+    // same way the numeric input reinterprets its own value on toggle.
+    if (params.has('ac')) {
+        const ac = params.get('ac');
+        if (ac === 'phi' || ac === 'current') out.ac = 'current';
+        else if (ac === 'theta' || ac === 'perpendicular') out.ac = 'perpendicular';
+    }
+    if (params.has('theta')) {
+        const v = parseFloat(params.get('theta'));
+        if (isFinite(v)) {
+            const conv = out.ac || state.angleConvention;
+            out.theta = conv === 'current' ? clamp(v, 1, 179) - 90 : clamp(v, -89, 89);
+        }
+    }
+    if (params.has('compare')) {
+        out.compare = params.get('compare') === '1' || params.get('compare') === 'true';
+    }
+    if (params.has('case')) {
+        const c = params.get('case').toUpperCase();
+        if (['A', 'B', 'D', 'E'].includes(c)) out.case = c;
+    }
+    return Object.keys(out).length ? out : null;
 }
 
 /* --- formatting helpers --- */
@@ -2213,11 +2574,11 @@ function renderVectorDiagram(res) {
     const maxV  = Math.max(res.vb, res.vr, Math.abs(res.vR), 0.5);
     const scale = 112 / maxV;
 
-    const isLight = document.body.classList.contains('light-theme');
-    const arcColor = isLight ? '#475569' : '#e2e8f0';
-    const gridColor = isLight ? 'rgba(15, 23, 42, 0.12)' : 'rgba(255, 255, 255, 0.1)';
-    const guideColor = isLight ? 'rgba(15, 23, 42, 0.16)' : 'rgba(255, 255, 255, 0.12)';
-    const originColor = isLight ? '#0f172a' : '#ffffff';
+    const isLight = isLightTheme();
+    const arcColor    = isLight ? '#4B5563' : '#B7C0CC';   /* --gray-600 / dark --fg-2 */
+    const gridColor   = isLight ? '#E5E7EB' : 'rgba(255, 255, 255, 0.12)';  /* --border */
+    const guideColor  = isLight ? '#D1D5DB' : 'rgba(255, 255, 255, 0.20)';  /* --border-strong */
+    const originColor = isLight ? '#111827' : '#F3F4F6';   /* --ten-ink */
 
     // vector endpoints
     const vrEndX = cx + res.vr * scale;
@@ -2245,7 +2606,7 @@ function renderVectorDiagram(res) {
         arcs += `<path d="M ${startX} ${startY} A ${r} ${r} 0 0 ${sweep} ${endX} ${endY}"
             fill="none" stroke="${arcColor}" stroke-width="1.0" stroke-dasharray="2,2" opacity="0.6"/>`;
         arcs += `<text x="${cx + (res.thetaDeg > 0 ? -28 : 5)}" y="${cy - r + 9}"
-            fill="${arcColor}" font-size="8.5" font-family="var(--font-main)" opacity="0.8">θ=${Math.abs(res.thetaDeg).toFixed(0)}°</text>`;
+            fill="${arcColor}" font-size="8.5" font-family="var(--font-sans)" opacity="0.8">θ=${Math.abs(res.thetaDeg).toFixed(0)}°</text>`;
     }
 
     // alpha arc (resultant from x-axis)
@@ -2258,7 +2619,7 @@ function renderVectorDiagram(res) {
         arcs += `<path d="M ${startX} ${startY} A ${r} ${r} 0 0 0 ${endX} ${endY}"
             fill="none" stroke="var(--color-vR)" stroke-width="1.2"/>`;
         arcs += `<text x="${cx + r + 2}" y="${cy - 2}"
-            fill="var(--color-vR)" font-size="8.5" font-family="var(--font-main)">α=${res.alphaDeg.toFixed(0)}°</text>`;
+            fill="var(--color-vR)" font-size="8.5" font-family="var(--font-sans)">α=${res.alphaDeg.toFixed(0)}°</text>`;
     }
 
     // phi arc (HSC textbook convention - measured from downstream river current direction)
@@ -2271,7 +2632,7 @@ function renderVectorDiagram(res) {
         const endY = cy - r * Math.sin(phiRad);
         
         const is120 = Math.abs(res.phiDeg - 120) <= 0.5;
-        const strokeColor = is120 ? 'var(--color-accent)' : '#38bdf8';
+        const strokeColor = is120 ? 'var(--color-accent)' : 'var(--color-info)';
         const strokeW = is120 ? 1.6 : 1.0;
         const dash = is120 ? '' : '3,2';
         
@@ -2280,13 +2641,13 @@ function renderVectorDiagram(res) {
         
         // label placement
         const midPhiRad = (res.phiDeg / 2) * Math.PI / 180;
-        const textDist = r + 11;
+        const textDist = r - 13;   // inside the arc - outside it collides with the v_R label
         const tx = cx + textDist * Math.cos(midPhiRad);
         const ty = cy - textDist * Math.sin(midPhiRad);
         
-        const labelText = is120 ? '★ φ=120°' : `φ=${res.phiDeg.toFixed(0)}°`;
+        const labelText = `φ=${res.phiDeg.toFixed(0)}°`;
         const textWeight = is120 ? 'bold' : 'normal';
-        arcs += `<text x="${tx}" y="${ty}" fill="${strokeColor}" font-size="9.5" font-family="var(--font-main)" font-weight="${textWeight}" text-anchor="middle">
+        arcs += `<text x="${tx}" y="${ty}" fill="${strokeColor}" font-size="9.5" font-family="var(--font-sans)" font-weight="${textWeight}" text-anchor="middle">
             ${labelText}
         </text>`;
     }
@@ -2312,24 +2673,24 @@ function renderVectorDiagram(res) {
         <line x1="${cx}" y1="${cy}" x2="${vrEndX}" y2="${vrEndY}"
             stroke="var(--color-vr)" stroke-width="2.8" marker-end="url(#arr-vr)"/>
         <text x="${(cx+vrEndX)/2}" y="${cy+15}" fill="var(--color-vr)"
-            font-size="10" font-weight="600" text-anchor="middle" font-family="var(--font-main)">
-            v_r = ${fmtSpeedRaw(res.vr)}
+            font-size="10" font-weight="600" text-anchor="middle" font-family="var(--font-sans)">
+            v<tspan font-size="7" dy="2">r</tspan><tspan dy="-2"> = ${fmtSpeedRaw(res.vr)}</tspan>
         </text>
 
         <!-- vb vector -->
         <line x1="${cx}" y1="${cy}" x2="${vbEndX}" y2="${vbEndY}"
             stroke="var(--color-vb)" stroke-width="2.8" marker-end="url(#arr-vb)"/>
         <text x="${(cx+vbEndX)/2 - 8}" y="${(cy+vbEndY)/2 - 6}" fill="var(--color-vb)"
-            font-size="10" font-weight="600" text-anchor="end" font-family="var(--font-main)">
-            v_b = ${fmtSpeedRaw(res.vb)}
+            font-size="10" font-weight="600" text-anchor="end" font-family="var(--font-sans)">
+            v<tspan font-size="7" dy="2">b</tspan><tspan dy="-2"> = ${fmtSpeedRaw(res.vb)}</tspan>
         </text>
 
         <!-- vR vector -->
         <line x1="${cx}" y1="${cy}" x2="${vREndX}" y2="${vREndY}"
             stroke="var(--color-vR)" stroke-width="2.8" marker-end="url(#arr-vR)"/>
         <text x="${(cx+vREndX)/2 + 10}" y="${(cy+vREndY)/2 - 5}" fill="var(--color-vR)"
-            font-size="10" font-weight="600" text-anchor="start" font-family="var(--font-main)">
-            v_R = ${fmtSpeedRaw(res.vR)}
+            font-size="10" font-weight="600" text-anchor="start" font-family="var(--font-sans)">
+            v<tspan font-size="7" dy="2">R</tspan><tspan dy="-2"> = ${fmtSpeedRaw(res.vR)}</tspan>
         </text>
 
         <!-- origin -->
@@ -2650,25 +3011,25 @@ function animationLoop(ts) {
    CANVAS RENDERING
    ============================================================= */
 function drawSpeedLegend(ctx, x, y) {
-    const isLight = document.body.classList.contains('light-theme');
+    const isLight = isLightTheme();
 
     ctx.save();
-    ctx.fillStyle = isLight ? 'rgba(255, 255, 255, 0.9)' : 'rgba(15, 23, 42, 0.85)';
-    ctx.strokeStyle = isLight ? 'rgba(15, 23, 42, 0.12)' : 'rgba(255, 255, 255, 0.1)';
+    ctx.fillStyle = isLight ? 'rgba(255, 255, 255, 0.92)' : 'rgba(11, 17, 23, 0.88)';
+    ctx.strokeStyle = isLight ? '#E5E7EB' : 'rgba(255, 255, 255, 0.14)';
     ctx.lineWidth = 1;
     ctx.beginPath();
     ctx.roundRect(x, y, 140, 58, 6);
     ctx.fill();
     ctx.stroke();
 
-    ctx.fillStyle = isLight ? '#0f172a' : '#f1f5f9';
-    ctx.font = 'bold 9px Outfit, sans-serif';
+    ctx.fillStyle = isLight ? '#111827' : '#F3F4F6';
+    ctx.font = 'bold 9px Inter, "Hind Siliguri", sans-serif';
     ctx.fillText(t('canvas.legendTitle'), x + 10, y + 14);
 
     const levels = [
-        { label: '0%', val: '0', speedText: t('canvas.legendStatic'), color: '#64748b' },
-        { label: '50%', val: '5', speedText: t('canvas.legendSlow'), color: 'rgba(255, 159, 28, 0.6)' },
-        { label: '100%', val: '10', speedText: t('canvas.legendFast'), color: '#ff9f1c' }
+        { label: '0%', val: '0', speedText: t('canvas.legendStatic'), color: '#6B7280' },
+        { label: '50%', val: '5', speedText: t('canvas.legendSlow'), color: 'rgba(234, 88, 12, 0.55)' },
+        { label: '100%', val: '10', speedText: t('canvas.legendFast'), color: '#EA580C' }
     ];
 
     levels.forEach((lvl, idx) => {
@@ -2677,8 +3038,8 @@ function drawSpeedLegend(ctx, x, y) {
         ctx.fillStyle = lvl.color;
         ctx.fillRect(lx, ly, 15, 3);
         
-        ctx.font = '8px JetBrains Mono, monospace';
-        ctx.fillStyle = '#64748b';
+        ctx.font = '8px Inter, "Hind Siliguri", sans-serif';
+        ctx.fillStyle = '#6B7280';
         ctx.fillText(lvl.label, lx, ly + 12);
         ctx.fillText(lvl.speedText, lx, ly + 21);
     });
@@ -2689,7 +3050,7 @@ function drawRiverSection(res, yOffset, sectionHeight, caseLabel, boatColor, ani
     const d = res.d;
     const drift = res.crossingTime === Infinity ? 0 : res.drift;
 
-    const isLight = document.body.classList.contains('light-theme');
+    const isLight = isLightTheme();
 
     // Viewport coordinates computed using Case A drift for consistent scaling in comparison mode
     const physA = solvePhysicsForCase('A');
@@ -2719,20 +3080,20 @@ function drawRiverSection(res, yOffset, sectionHeight, caseLabel, boatColor, ani
     if (res.impossibleCaseB) {
         // Impossible Case B — Faint amber/orange tint
         if (isLight) {
-            waterGrad.addColorStop(0,   'rgba(254, 215, 170, 0.96)');
-            waterGrad.addColorStop(0.5, 'rgba(255, 247, 237, 0.98)');
-            waterGrad.addColorStop(1,   'rgba(254, 215, 170, 0.95)');
+            waterGrad.addColorStop(0,   'rgba(255, 214, 219, 0.96)');
+            waterGrad.addColorStop(0.5, 'rgba(255, 245, 246, 0.98)');
+            waterGrad.addColorStop(1,   'rgba(255, 214, 219, 0.95)');
         } else {
-            waterGrad.addColorStop(0,   'rgba(30, 20, 10, 0.96)');
-            waterGrad.addColorStop(0.5, 'rgba(40, 25, 8, 0.98)');
-            waterGrad.addColorStop(1,   'rgba(30, 18, 5, 0.95)');
+            waterGrad.addColorStop(0,   'rgba(46, 10, 14, 0.96)');
+            waterGrad.addColorStop(0.5, 'rgba(56, 12, 18, 0.98)');
+            waterGrad.addColorStop(1,   'rgba(46, 10, 14, 0.95)');
         }
     } else if (res.thetaDeg === Math.asin(res.vr/res.vb)*180/Math.PI && res.vb >= res.vr) {
         // Case B (Zero Drift) — Faint green tint
         if (isLight) {
-            waterGrad.addColorStop(0,   'rgba(167, 243, 208, 0.96)');
-            waterGrad.addColorStop(0.5, 'rgba(236, 253, 245, 0.98)');
-            waterGrad.addColorStop(1,   'rgba(167, 243, 208, 0.95)');
+            waterGrad.addColorStop(0,   'rgba(204, 235, 192, 0.96)');
+            waterGrad.addColorStop(0.5, 'rgba(240, 251, 244, 0.98)');
+            waterGrad.addColorStop(1,   'rgba(204, 235, 192, 0.95)');
         } else {
             waterGrad.addColorStop(0,   'rgba(10, 30, 20, 0.96)');
             waterGrad.addColorStop(0.5, 'rgba(12, 40, 25, 0.98)');
@@ -2741,9 +3102,9 @@ function drawRiverSection(res, yOffset, sectionHeight, caseLabel, boatColor, ani
     } else {
         // Default water color
         if (isLight) {
-            waterGrad.addColorStop(0,   'rgba(186, 230, 253, 0.95)');
-            waterGrad.addColorStop(0.5, 'rgba(240, 249, 255, 0.98)');
-            waterGrad.addColorStop(1,   'rgba(186, 230, 253, 0.92)');
+            waterGrad.addColorStop(0,   'rgba(216, 243, 255, 0.95)');
+            waterGrad.addColorStop(0.5, 'rgba(243, 252, 255, 0.98)');
+            waterGrad.addColorStop(1,   'rgba(216, 243, 255, 0.92)');
         } else {
             waterGrad.addColorStop(0,   'rgba(10, 38, 78, 0.95)');
             waterGrad.addColorStop(0.5, 'rgba(8, 30, 62, 0.98)');
@@ -2773,7 +3134,7 @@ function drawRiverSection(res, yOffset, sectionHeight, caseLabel, boatColor, ani
         }
         ctx.lineWidth = 1.0 + (res.vr / 10.0) * 1.5;
         const alpha = 0.12 + 0.08 * i;
-        const waveCol = isLight ? `rgba(2, 132, 199, ${alpha * 1.5})` : `rgba(56, 189, 248, ${alpha})`;
+        const waveCol = isLight ? `rgba(39, 79, 227, ${alpha * 1.3})` : `rgba(124, 160, 255, ${alpha})`;
         ctx.strokeStyle = waveCol;
         ctx.stroke();
     }
@@ -2791,8 +3152,8 @@ function drawRiverSection(res, yOffset, sectionHeight, caseLabel, boatColor, ani
         const endX = pos.x + p.len * scale * 0.2;
 
         const grad = ctx.createLinearGradient(pos.x, pos.y, endX, pos.y);
-        grad.addColorStop(0, `rgba(255, 159, 28, 0)`);
-        const pCol = isLight ? `rgba(180, 83, 9, ${p.opacity * vrAlpha * 1.4})` : `rgba(255, 159, 28, ${p.opacity * vrAlpha})`;
+        grad.addColorStop(0, `rgba(234, 88, 12, 0)`);
+        const pCol = isLight ? `rgba(162, 63, 0, ${p.opacity * vrAlpha * 1.4})` : `rgba(251, 146, 60, ${p.opacity * vrAlpha})`;
         grad.addColorStop(1, pCol);
         ctx.strokeStyle = grad;
         ctx.lineWidth   = 1.1;
@@ -2806,8 +3167,8 @@ function drawRiverSection(res, yOffset, sectionHeight, caseLabel, boatColor, ani
     // Near bank
     const bankGradBot = ctx.createLinearGradient(0, waterBot, 0, yOffset + sectionHeight);
     if (isLight) {
-        bankGradBot.addColorStop(0, '#a7f3d0');
-        bankGradBot.addColorStop(1, '#6ee7b7');
+        bankGradBot.addColorStop(0, '#CCEBC0');
+        bankGradBot.addColorStop(1, '#A9DC98');
     } else {
         bankGradBot.addColorStop(0, '#122012');
         bankGradBot.addColorStop(1, '#081008');
@@ -2818,8 +3179,8 @@ function drawRiverSection(res, yOffset, sectionHeight, caseLabel, boatColor, ani
     // Far bank
     const bankGradTop = ctx.createLinearGradient(0, yOffset, 0, waterTop);
     if (isLight) {
-        bankGradTop.addColorStop(0, '#6ee7b7');
-        bankGradTop.addColorStop(1, '#a7f3d0');
+        bankGradTop.addColorStop(0, '#A9DC98');
+        bankGradTop.addColorStop(1, '#CCEBC0');
     } else {
         bankGradTop.addColorStop(0, '#081008');
         bankGradTop.addColorStop(1, '#122012');
@@ -2828,7 +3189,7 @@ function drawRiverSection(res, yOffset, sectionHeight, caseLabel, boatColor, ani
     ctx.fillRect(0, yOffset, canvas.width, waterTop - yOffset);
 
     // Bank edge lines
-    [[waterTop, '#10b981', 0.8], [waterBot, '#10b981', 0.8]].forEach(([y, col, op]) => {
+    [[waterTop, '#1CAB55', 0.8], [waterBot, '#1CAB55', 0.8]].forEach(([y, col, op]) => {
         ctx.strokeStyle = col;
         ctx.globalAlpha = op;
         ctx.lineWidth   = 1.5;
@@ -2839,18 +3200,22 @@ function drawRiverSection(res, yOffset, sectionHeight, caseLabel, boatColor, ani
         ctx.globalAlpha = 1;
     });
 
-    // Bank labels
-    ctx.fillStyle = isLight ? 'rgba(15, 23, 42, 0.65)' : 'rgba(255,255,255,0.45)';
-    ctx.font      = `500 ${Math.max(9, Math.min(11, canvas.width / 95))}px Outfit, sans-serif`;
-    ctx.fillText(t('canvas.start'), px(0, -d * 0.05).x - 12, waterBot + 14);
-    ctx.fillText(t('canvas.oppositeBank'), px(0, d * 1.05).x - 32, waterTop - 8);
+    // Bank labels — right-aligned so the top-left gutter stays free for the
+    // status badge, and clamped so a short bank strip never clips them.
+    ctx.save();
+    ctx.fillStyle = isLight ? 'rgba(75, 85, 99, 0.85)' : 'rgba(183, 192, 204, 0.75)';
+    ctx.font      = `500 ${Math.max(9, Math.min(11, canvas.width / 95))}px Inter, "Hind Siliguri", sans-serif`;
+    ctx.textAlign = 'right';
+    ctx.fillText(t('canvas.oppositeBank'), canvas.width - 10, Math.max(yOffset + 12, waterTop - 7));
+    ctx.fillText(t('canvas.start'),        canvas.width - 10, Math.min(yOffset + sectionHeight - 6, waterBot + 14));
+    ctx.restore();
 
     // River Current Static Indicator
     const arrowY = waterBot - 12;
     const startArrowX = px(xL + d * 0.05, 0).x;
     const endArrowX = px(xR - d * 0.05, 0).x;
     ctx.save();
-    ctx.strokeStyle = isLight ? 'rgba(180, 83, 9, 0.5)' : 'rgba(255, 159, 28, 0.4)';
+    ctx.strokeStyle = isLight ? 'rgba(162, 63, 0, 0.5)' : 'rgba(251, 146, 60, 0.4)';
     ctx.lineWidth = 1.2;
     ctx.setLineDash([4, 3]);
     ctx.beginPath();
@@ -2858,9 +3223,9 @@ function drawRiverSection(res, yOffset, sectionHeight, caseLabel, boatColor, ani
     ctx.lineTo(endArrowX, arrowY);
     ctx.stroke();
     ctx.setLineDash([]);
-    drawArrow(startArrowX, arrowY, endArrowX, arrowY, isLight ? 'rgba(180, 83, 9, 0.7)' : 'rgba(255, 159, 28, 0.6)', 1.2);
-    ctx.fillStyle = isLight ? 'rgba(180, 83, 9, 0.85)' : 'rgba(255, 159, 28, 0.7)';
-    ctx.font = 'italic 9px Outfit, sans-serif';
+    drawArrow(startArrowX, arrowY, endArrowX, arrowY, isLight ? 'rgba(162, 63, 0, 0.7)' : 'rgba(251, 146, 60, 0.6)', 1.2);
+    ctx.fillStyle = isLight ? 'rgba(162, 63, 0, 0.85)' : 'rgba(251, 146, 60, 0.7)';
+    ctx.font = 'italic 9px Inter, "Hind Siliguri", sans-serif';
     ctx.fillText(res.vr > 0 ? `${t('canvas.riverCurrent')} (v_r = ${fmtSpeedRaw(res.vr)})` : t('canvas.noCurrent'), (startArrowX + endArrowX)/2 - 50, arrowY - 4);
     ctx.restore();
 
@@ -2874,7 +3239,7 @@ function drawRiverSection(res, yOffset, sectionHeight, caseLabel, boatColor, ani
 
         ctx.save();
         ctx.setLineDash([5, 4]);
-        ctx.strokeStyle = isLight ? 'rgba(15, 23, 42, 0.4)' : 'rgba(255, 255, 255, 0.35)';
+        ctx.strokeStyle = isLight ? 'rgba(75, 85, 99, 0.45)' : 'rgba(255, 255, 255, 0.35)';
         ctx.lineWidth   = 1.5;
         ctx.beginPath();
         ctx.moveTo(headingStart.x, headingStart.y);
@@ -2884,8 +3249,8 @@ function drawRiverSection(res, yOffset, sectionHeight, caseLabel, boatColor, ani
 
         // Draw static annotation for Heading direction
         if (animProgress > 0.02 && animProgress < 0.98) {
-            ctx.fillStyle = isLight ? 'rgba(15, 23, 42, 0.65)' : 'rgba(255, 255, 255, 0.55)';
-            ctx.font = '8px Outfit, sans-serif';
+            ctx.fillStyle = isLight ? 'rgba(75, 85, 99, 0.85)' : 'rgba(255, 255, 255, 0.55)';
+            ctx.font = '8px Inter, "Hind Siliguri", sans-serif';
             ctx.fillText(t('canvas.headingDirection'), headingEnd.x + 8, headingEnd.y + 14);
         }
     }
@@ -2897,7 +3262,7 @@ function drawRiverSection(res, yOffset, sectionHeight, caseLabel, boatColor, ani
 
         ctx.save();
         ctx.setLineDash([6, 5]);
-        ctx.strokeStyle = isLight ? 'rgba(15, 23, 42, 0.25)' : 'rgba(255, 255, 255, 0.15)';
+        ctx.strokeStyle = isLight ? 'rgba(107, 114, 128, 0.35)' : 'rgba(255, 255, 255, 0.15)';
         ctx.lineWidth   = 1.5;
         ctx.beginPath();
         ctx.moveTo(startP.x, startP.y);
@@ -2932,7 +3297,7 @@ function drawRiverSection(res, yOffset, sectionHeight, caseLabel, boatColor, ani
         // Target Ring and vertical indicator
         ctx.save();
         ctx.setLineDash([3, 3]);
-        ctx.strokeStyle = isLight ? 'rgba(15, 23, 42, 0.2)' : 'rgba(255,255,255,0.12)';
+        ctx.strokeStyle = isLight ? 'rgba(107, 114, 128, 0.30)' : 'rgba(255,255,255,0.12)';
         ctx.lineWidth   = 0.9;
         ctx.beginPath();
         ctx.moveTo(land.x, land.y);
@@ -2957,7 +3322,7 @@ function drawRiverSection(res, yOffset, sectionHeight, caseLabel, boatColor, ani
         // Landing target point
         ctx.save();
         ctx.strokeStyle = boatColor;
-        ctx.fillStyle   = isLight ? 'rgba(15, 23, 42, 0.05)' : 'rgba(255,255,255,0.1)';
+        ctx.fillStyle   = isLight ? 'rgba(249, 250, 251, 0.9)' : 'rgba(255,255,255,0.1)';
         ctx.lineWidth   = 1.8;
         ctx.beginPath();
         ctx.arc(land.x, land.y, 6, 0, Math.PI * 2);
@@ -2967,7 +3332,7 @@ function drawRiverSection(res, yOffset, sectionHeight, caseLabel, boatColor, ani
 
         // Landing and drift annotations
         ctx.fillStyle = boatColor;
-        ctx.font      = `600 ${Math.max(8, Math.min(10, canvas.width / 95))}px JetBrains Mono, monospace`;
+        ctx.font      = `600 ${Math.max(8, Math.min(10, canvas.width / 95))}px Inter, "Hind Siliguri", sans-serif`;
         const isZeroDrift = Math.abs(drift) < 0.1;
         const driftText = isZeroDrift ? t('canvas.zeroDrift') : `${t('canvas.drift')}: ${fmtDist(drift)}`;
         ctx.fillText(driftText, land.x + 10, land.y + 20);
@@ -2975,14 +3340,14 @@ function drawRiverSection(res, yOffset, sectionHeight, caseLabel, boatColor, ani
         // 0-drift reference marker
         if (!isZeroDrift) {
             const ref0 = px(0, d);
-            ctx.fillStyle   = isLight ? 'rgba(15, 23, 42, 0.1)' : 'rgba(255,255,255,0.15)';
-            ctx.strokeStyle = isLight ? 'rgba(15, 23, 42, 0.15)' : 'rgba(255,255,255,0.2)';
+            ctx.fillStyle   = isLight ? 'rgba(107, 114, 128, 0.14)' : 'rgba(255,255,255,0.15)';
+            ctx.strokeStyle = isLight ? 'rgba(107, 114, 128, 0.22)' : 'rgba(255,255,255,0.2)';
             ctx.lineWidth   = 1;
             ctx.beginPath();
             ctx.arc(ref0.x, ref0.y, 3.5, 0, Math.PI * 2);
             ctx.fill(); ctx.stroke();
-            ctx.fillStyle = isLight ? 'rgba(15, 23, 42, 0.45)' : 'rgba(255,255,255,0.25)';
-            ctx.font      = '8px sans-serif';
+            ctx.fillStyle = isLight ? 'rgba(107, 114, 128, 0.65)' : 'rgba(255,255,255,0.25)';
+            ctx.font      = '8px Inter, "Hind Siliguri", sans-serif';
             ctx.fillText(t('canvas.zeroDriftRef'), ref0.x - 18, ref0.y + 20);
         }
     }
@@ -2992,29 +3357,32 @@ function drawRiverSection(res, yOffset, sectionHeight, caseLabel, boatColor, ani
     let badgeText = '';
     let badgeColor = '';
     if (res.impossibleCaseB) {
-        badgeText = `⚠️ ${t('canvas.badgeImpossible')}`;
-        badgeColor = isLight ? '#c2410c' : '#ff9f1c';
+        badgeText = `✕  ${t('canvas.badgeImpossible')}`;
+        badgeColor = isLight ? '#E8001D' : '#FF6B7A';
     } else if (Math.abs(drift) < 0.1) {
-        badgeText = `✅ ${t('canvas.badgeZeroDrift')}`;
-        badgeColor = isLight ? '#047857' : '#10b981';
+        badgeText = `✓  ${t('canvas.badgeZeroDrift')}`;
+        badgeColor = isLight ? '#0E7B4F' : '#4ADE80';
     } else {
-        badgeText = `ℹ️ ${t('canvas.badgeCompleted')}`;
-        badgeColor = isLight ? '#0369a1' : '#38bdf8';
+        badgeText = `●  ${t('canvas.badgeCompleted')}`;
+        badgeColor = isLight ? '#274FE3' : '#7CA0FF';
     }
     if (isCompare) {
         badgeText = `${caseLabel}: ${badgeText}`;
     }
-    ctx.fillStyle = isLight ? 'rgba(255, 255, 255, 0.85)' : 'rgba(15, 23, 42, 0.7)';
-    ctx.strokeStyle = isLight ? 'rgba(15, 23, 42, 0.15)' : 'rgba(255,255,255,0.1)';
+    ctx.fillStyle = isLight ? 'rgba(255, 255, 255, 0.92)' : 'rgba(11, 17, 23, 0.82)';
+    ctx.strokeStyle = isLight ? '#E5E7EB' : 'rgba(255,255,255,0.14)';
     ctx.lineWidth = 1;
+    // The HTML case pill sits in the canvas's top-left corner, so the first
+    // section drops below it instead of stacking two badges on top of it.
+    const badgeY = yOffset + (yOffset === 0 ? 40 : 10);
     ctx.beginPath();
-    ctx.roundRect(10, yOffset + 10, isCompare ? 220 : 180, 20, 4);
+    ctx.roundRect(10, badgeY, isCompare ? 220 : 180, 20, 4);
     ctx.fill();
     ctx.stroke();
 
     ctx.fillStyle = badgeColor;
-    ctx.font = 'bold 9px Outfit, sans-serif';
-    ctx.fillText(badgeText, 16, yOffset + 23);
+    ctx.font = 'bold 9px Inter, "Hind Siliguri", sans-serif';
+    ctx.fillText(badgeText, 16, badgeY + 13);
     ctx.restore();
 
     /* --- Heading = Actual path coinciding badge --- */
@@ -3022,8 +3390,8 @@ function drawRiverSection(res, yOffset, sectionHeight, caseLabel, boatColor, ani
         const isZeroDrift = Math.abs(drift) < 0.1;
         if (isZeroDrift) {
             ctx.save();
-            ctx.fillStyle = isLight ? 'rgba(4, 120, 87, 0.9)' : 'rgba(16, 185, 129, 0.8)';
-            ctx.font = '8px Outfit, sans-serif';
+            ctx.fillStyle = isLight ? 'rgba(14, 123, 79, 0.95)' : 'rgba(74, 222, 128, 0.85)';
+            ctx.font = '8px Inter, "Hind Siliguri", sans-serif';
             ctx.fillText(t('canvas.headingEqualsPath'), px(0, d/2).x + 8, px(0, d/2).y);
             ctx.restore();
         }
@@ -3031,7 +3399,7 @@ function drawRiverSection(res, yOffset, sectionHeight, caseLabel, boatColor, ani
 
     /* --- Origin marker --- */
     const origin = px(0, 0);
-    ctx.strokeStyle = isLight ? 'rgba(15, 23, 42, 0.25)' : 'rgba(255,255,255,0.2)';
+    ctx.strokeStyle = isLight ? 'rgba(107, 114, 128, 0.35)' : 'rgba(255,255,255,0.2)';
     ctx.lineWidth   = 1;
     ctx.beginPath();
     ctx.arc(origin.x, origin.y, 4, 0, Math.PI * 2);
@@ -3196,7 +3564,7 @@ function drawRiverSection(res, yOffset, sectionHeight, caseLabel, boatColor, ani
         const vbLen = 28 * boatScale;
         const vbArrX = boatP.x - vbLen * Math.sin(res.thetaRad);
         const vbArrY = boatP.y - vbLen * Math.cos(res.thetaRad);
-        drawArrow(boatP.x, boatP.y, vbArrX, vbArrY, '#00e5ff', 1.8 * boatScale);
+        drawArrow(boatP.x, boatP.y, vbArrX, vbArrY, isLight ? '#274FE3' : '#7CA0FF', 1.8 * boatScale);
 
         // vR arrow
         if (res.vR > 0.05) {
@@ -3215,7 +3583,7 @@ function drawFrame() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
     /* --- General Canvas Background --- */
-    ctx.fillStyle = '#060c18';
+    ctx.fillStyle = isLightTheme() ? '#F3F4F6' : '#0B1117';
     ctx.fillRect(0, 0, canvas.width, canvas.height);
 
     if (state.compareMode) {
@@ -3224,11 +3592,11 @@ function drawFrame() {
         
         // Case A (Min Time) top split
         const resA = solvePhysicsForCase('A');
-        drawRiverSection(resA, 0, height, t('caseLabelA'), 'var(--color-accent)', state.compareAnimProgressA, state.compareWakePtsA, true);
+        drawRiverSection(resA, 0, height, t('caseLabelA'), cssColor('--color-accent', '#1CAB55'), state.compareAnimProgressA, state.compareWakePtsA, true);
 
         // Case B bottom split
         const resB = solvePhysicsForCase('B');
-        const boatColorB = resB.impossibleCaseB ? 'var(--color-vr)' : 'rgba(34, 197, 94, 1)';
+        const boatColorB = resB.impossibleCaseB ? '#E8001D' : '#1CAB55';
         drawRiverSection(resB, height, height, t('caseLabelB'), boatColorB, state.compareAnimProgressB, state.compareWakePtsB, true);
 
         // Draw split line divider
@@ -3242,18 +3610,26 @@ function drawFrame() {
     } else {
         // Single Case Simulation
         const res = solvePhysics();
-        let pathColor = 'var(--color-vR)';
-        if (state.activeCase === 'B' && !res.impossibleCaseB) pathColor = 'rgba(34, 197, 94, 1)'; // green
-        if (res.impossibleCaseB) pathColor = 'var(--color-vr)'; // orange/amber
-        if (state.activeCase === 'A') pathColor = 'var(--color-accent)'; // emerald
+        let pathColor = cssColor('--color-vR', '#1CAB55');
+        if (state.activeCase === 'B' && !res.impossibleCaseB) pathColor = '#1CAB55'; // --success
+        if (res.impossibleCaseB) pathColor = cssColor('--color-warning', '#E8001D');
+        if (state.activeCase === 'A') pathColor = cssColor('--color-accent', '#1CAB55');
         
         drawRiverSection(res, 0, canvas.height, `Case ${state.activeCase}`, pathColor, state.animProgress, state.wakePts, false);
     }
 
-    // Draw Speed Legend once at the bottom right corner
-    const legX = canvas.width - 150;
-    const legY = canvas.height - 65;
-    drawSpeedLegend(ctx, legX, legY);
+    // Draw Speed Legend once at the bottom right corner.
+    // It is a fixed 140x58 box, so it is dropped on narrow (phone) canvases
+    // rather than covering a third of the river.
+    if (canvas.width >= 460) {
+        drawSpeedLegend(ctx, canvas.width - 150, canvas.height - 65);
+    }
+}
+
+/* Canvas 2D ignores `var(--x)` colour strings, so resolve tokens up front. */
+function cssColor(name, fallback) {
+    const v = getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+    return v || fallback;
 }
 
 /* --- arrow helper --- */
@@ -3280,11 +3656,11 @@ function drawArrow(x1, y1, x2, y2, color, w) {
    PHYSICS SELF-TEST SUITE  (runs on load, logs to console)
    ============================================================= */
 function runPhysicsSelfTests() {
-    const VIOLET = 'color:#b06ef3;font-weight:bold;';
-    const GREEN  = 'color:#10b981;font-weight:600;';
-    const RED    = 'color:#ef4444;font-weight:600;';
+    const BRAND  = 'color:#E8001D;font-weight:bold;';
+    const GREEN  = 'color:#1CAB55;font-weight:600;';
+    const RED    = 'color:#E8001D;font-weight:600;';
 
-    console.log('%c─── PHYSICS SELF-TEST SUITE ───', VIOLET);
+    console.log('%c─── PHYSICS SELF-TEST SUITE ───', BRAND);
     let pass = 0, fail = 0;
 
     const assert = (cond, msg) => {
@@ -3384,9 +3760,19 @@ const TUTORIAL_STEPS = [
 let tutorialIndex = 0;
 let tutorialActive = false;
 let tutorialTarget = null;
+let tutorialReturnFocusEl = null;
 
 function startTutorial() {
     tutorialActive = true;
+    tutorialReturnFocusEl = document.activeElement;
+
+    // The tour only highlights controls, it never needs to operate them, so
+    // the page behind the dialog is made inert for the duration — this is
+    // what keeps Tab from ever leaving the dialog (WCAG 2.2 focus-not-obscured
+    // / focus-trap requirement), without a hand-rolled tabindex sweep.
+    const container = document.querySelector('.container');
+    if (container) container.inert = true;
+
     document.getElementById('tutorial-backdrop').classList.add('active');
     document.getElementById('tutorial-tooltip').classList.add('active');
     window.addEventListener('resize', onTutorialResize);
@@ -3398,11 +3784,30 @@ function onTutorialResize() {
     if (tutorialTarget) positionTutorialTooltip(tutorialTarget);
 }
 
+function getTutorialFocusable() {
+    const tip = document.getElementById('tutorial-tooltip');
+    return Array.from(tip.querySelectorAll('button, [href], input, [tabindex]:not([tabindex="-1"])'))
+        .filter(el => el.offsetParent !== null || el === document.activeElement);
+}
+
 function onTutorialKeydown(e) {
     if (!tutorialActive) return;
-    if (e.key === 'Escape') endTutorial();
-    else if (e.key === 'ArrowRight') nextTutorialStep();
-    else if (e.key === 'ArrowLeft') prevTutorialStep();
+    if (e.key === 'Escape') { endTutorial(); return; }
+    if (e.key === 'ArrowRight') { nextTutorialStep(); return; }
+    if (e.key === 'ArrowLeft') { prevTutorialStep(); return; }
+
+    // Manual focus trap — belt-and-suspenders alongside `inert` above, so the
+    // dialog still traps focus correctly in a browser without `inert` support.
+    if (e.key === 'Tab') {
+        const focusable = getTutorialFocusable();
+        if (focusable.length === 0) return;
+        const first = focusable[0], last = focusable[focusable.length - 1];
+        if (e.shiftKey && document.activeElement === first) {
+            e.preventDefault(); last.focus();
+        } else if (!e.shiftKey && document.activeElement === last) {
+            e.preventDefault(); first.focus();
+        }
+    }
 }
 
 function showTutorialStep(i) {
@@ -3420,6 +3825,14 @@ function showTutorialStep(i) {
 
     renderTutorialContent();
     setTimeout(() => { if (target) positionTutorialTooltip(target); }, 400);
+
+    // Move focus into the dialog itself so keyboard/screen-reader users land
+    // somewhere sensible instead of on whatever was focused (now inert).
+    const tip = document.getElementById('tutorial-tooltip');
+    if (!tip.contains(document.activeElement)) {
+        const focusable = getTutorialFocusable();
+        (focusable[0] || tip).focus();
+    }
 }
 
 function renderTutorialContent() {
@@ -3472,6 +3885,16 @@ function endTutorial() {
     document.getElementById('tutorial-tooltip').classList.remove('active');
     window.removeEventListener('resize', onTutorialResize);
     document.removeEventListener('keydown', onTutorialKeydown);
+
+    const container = document.querySelector('.container');
+    if (container) container.inert = false;
+
+    // Return focus to whatever opened the tour (normally #tutorial-btn) so a
+    // keyboard user's position on the page isn't lost when the dialog closes.
+    if (tutorialReturnFocusEl && document.contains(tutorialReturnFocusEl)) {
+        tutorialReturnFocusEl.focus();
+    }
+    tutorialReturnFocusEl = null;
 }
 </script>
 </body>
