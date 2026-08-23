@@ -137,7 +137,7 @@
             margin-top: 0.1rem;
         }
 
-        .header-right { display: flex; align-items: center; gap: 0.75rem; flex-shrink: 0; }
+        .header-right { display: flex; align-items: center; flex-wrap: wrap; gap: 0.75rem; }
 
         .hsc-badge {
             background: rgba(16, 185, 129, 0.1);
@@ -189,6 +189,7 @@
             gap: 1.5rem;
             align-items: start;
         }
+        .dashboard-grid > * { min-width: 0; }
 
         @media (max-width: 1100px) {
             .dashboard-grid { grid-template-columns: 1fr; }
@@ -281,7 +282,7 @@
             border-radius: var(--radius-sm);
             font-size: 0.72rem;
             line-height: 1.4;
-            width: 240px;
+            width: min(240px, 80vw);
             text-align: center;
             pointer-events: none;
             opacity: 0;
@@ -356,8 +357,10 @@
 
         .input-header {
             display: flex;
+            flex-wrap: wrap;
             justify-content: space-between;
             align-items: center;
+            row-gap: 0.4rem;
             font-size: 0.875rem;
             font-weight: 500;
         }
@@ -367,6 +370,7 @@
             align-items: center;
             gap: 0.45rem;
             color: var(--text-secondary);
+            min-width: 0;
         }
 
         .color-swatch {
@@ -515,7 +519,7 @@
             flex-wrap: wrap;
         }
 
-        .btn-group { display: flex; gap: 0.4rem; }
+        .btn-group { display: flex; gap: 0.4rem; flex-wrap: wrap; }
 
         .btn {
             background: rgba(128,128,128,0.1);
@@ -635,36 +639,6 @@
 
         .readout-box.hl-vR  .readout-value { color: var(--color-vR);   text-shadow: 0 0 10px var(--glow-vR); }
         .readout-box.hl-acc .readout-value { color: var(--color-accent); text-shadow: 0 0 10px var(--glow-acc); }
-
-        /* ===================== GRAPH ===================== */
-        .graph-wrapper {
-            background: rgba(128,128,128,0.06);
-            border: 1px solid var(--card-border);
-            border-radius: var(--radius-md);
-            padding: 1rem;
-            height: 210px;
-            position: relative;
-        }
-
-        #graph-svg { width: 100%; height: 100%; overflow: visible; cursor: crosshair; }
-
-        /* graph tooltip */
-        .graph-tooltip {
-            position: absolute;
-            background: var(--card-bg);
-            border: 1px solid var(--card-border-hover);
-            border-radius: var(--radius-sm);
-            padding: 0.4rem 0.7rem;
-            font-size: 0.75rem;
-            color: var(--text-primary);
-            pointer-events: none;
-            display: none;
-            white-space: nowrap;
-            backdrop-filter: blur(8px);
-            z-index: 10;
-            font-family: var(--font-mono);
-            box-shadow: 0 4px 16px rgba(0,0,0,0.15);
-        }
 
         /* ===================== MATH PANEL ===================== */
         .math-panel {
@@ -913,7 +887,6 @@
         body.light-theme .math-box,
         body.light-theme .readout-box,
         body.light-theme .vector-container,
-        body.light-theme .graph-wrapper,
         body.light-theme .playback-controls {
             background: rgba(15, 23, 42, 0.03);
             border-color: rgba(15, 23, 42, 0.08);
@@ -991,6 +964,187 @@
             background: rgba(255, 255, 255, 0.08);
             border-color: var(--card-border-hover);
         }
+
+        /* ===================== MOBILE / PHONE SCREENS ===================== */
+        @media (max-width: 640px) {
+            body { padding: 0.75rem; }
+            .container { gap: 1rem; }
+
+            header {
+                padding: 0.85rem 1rem;
+                border-radius: var(--radius-lg);
+            }
+            .header-title h1 { font-size: 1.1rem; }
+            .header-title p { font-size: 0.72rem; }
+            .header-icon { width: 34px; height: 34px; font-size: 1.05rem; }
+            .header-title h1 .hsc-badge { display: none; }
+            .header-right { flex-direction: column; align-items: stretch; width: 100%; gap: 0.5rem; }
+            .header-right .unit-toggle { width: 100%; }
+            .header-right .unit-toggle .unit-btn { flex: 1 1 0; }
+            #theme-toggle { align-self: flex-end; }
+
+            .card, .math-panel {
+                padding: 1rem;
+                border-radius: var(--radius-lg);
+            }
+
+            .dashboard-grid { gap: 1rem; }
+
+            .case-tab { min-width: 0; font-size: 0.75rem; padding: 0.55rem 0.4rem; }
+            .case-tab::after { display: none; } /* hover tooltips don't work on touch and can overflow */
+
+            .input-header { flex-direction: column; align-items: stretch; }
+            .input-value-wrapper { width: 100%; }
+            .input-value-wrapper .number-input { flex: 1 1 auto; width: auto; min-width: 0; }
+
+            .number-input { width: 68px; }
+
+            .vector-container { height: 190px; }
+
+            .playback-controls { padding: 0.6rem 0.75rem; }
+            .btn { padding: 0.4rem 0.7rem; font-size: 0.78rem; white-space: normal; }
+            .btn-compare-label { display: none; }
+
+            .readouts-grid { grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); }
+            .readout-value { font-size: 1.05rem; }
+        }
+
+        /* ===================== GUIDED TUTORIAL ===================== */
+        .tutorial-backdrop {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(4, 8, 14, 0.72);
+            z-index: 9998;
+        }
+        .tutorial-backdrop.active { display: block; }
+
+        .tutorial-spotlight {
+            position: relative !important;
+            z-index: 10000 !important;
+            border-radius: 14px;
+            box-shadow: 0 0 0 4px var(--color-accent), 0 0 0 9999px rgba(4, 8, 14, 0.72);
+            transition: box-shadow 0.2s ease;
+        }
+
+        .tutorial-tooltip {
+            display: none;
+            position: fixed;
+            z-index: 10001;
+            width: min(340px, 92vw);
+            background: var(--card-bg);
+            border: 1px solid var(--card-border-hover);
+            border-radius: var(--radius-lg);
+            padding: 1.1rem 1.2rem;
+            backdrop-filter: blur(16px) saturate(1.4);
+            -webkit-backdrop-filter: blur(16px) saturate(1.4);
+            box-shadow: 0 12px 40px rgba(0,0,0,0.5);
+        }
+        .tutorial-tooltip.active { display: block; }
+
+        .tutorial-tooltip-header {
+            display: flex;
+            align-items: center;
+            gap: 0.6rem;
+            margin-bottom: 0.6rem;
+        }
+        .tutorial-badge {
+            background: rgba(16, 185, 129, 0.15);
+            color: var(--color-accent);
+            border: 1px solid rgba(16, 185, 129, 0.3);
+            border-radius: 9999px;
+            padding: 0.15rem 0.6rem;
+            font-size: 0.7rem;
+            font-weight: 700;
+            font-family: var(--font-mono);
+            white-space: nowrap;
+            flex-shrink: 0;
+        }
+        .tutorial-title {
+            flex: 1;
+            font-size: 0.95rem;
+            font-weight: 700;
+            color: var(--text-primary);
+        }
+        .tutorial-close {
+            background: transparent;
+            border: none;
+            color: var(--text-muted);
+            font-size: 1.3rem;
+            line-height: 1;
+            cursor: pointer;
+            padding: 0 0.15rem;
+            flex-shrink: 0;
+            transition: var(--transition);
+        }
+        .tutorial-close:hover { color: var(--text-primary); }
+
+        .tutorial-body {
+            font-size: 0.85rem;
+            line-height: 1.6;
+            color: var(--text-secondary);
+            margin-bottom: 0.9rem;
+        }
+
+        .tutorial-dots {
+            display: flex;
+            align-items: center;
+            gap: 0.3rem;
+            margin-bottom: 0.9rem;
+        }
+        .tutorial-dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 9999px;
+            background: rgba(128,128,128,0.3);
+            transition: var(--transition);
+        }
+        .tutorial-dot.active {
+            width: 18px;
+            background: var(--color-accent);
+        }
+
+        .tutorial-footer {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 0.75rem;
+        }
+        .tutorial-skip {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            cursor: pointer;
+            transition: var(--transition);
+        }
+        .tutorial-skip:hover { color: var(--text-secondary); text-decoration: underline; }
+
+        .tutorial-nav-btns { display: flex; gap: 0.5rem; }
+        .tutorial-nav-btn {
+            display: flex;
+            align-items: center;
+            gap: 0.3rem;
+            background: rgba(128,128,128,0.1);
+            border: 1px solid var(--card-border);
+            color: var(--text-primary);
+            padding: 0.4rem 0.8rem;
+            border-radius: var(--radius-sm);
+            font-family: var(--font-main);
+            font-size: 0.8rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+        .tutorial-nav-btn:hover { background: rgba(128,128,128,0.18); }
+        .tutorial-nav-btn-primary {
+            background: rgba(176,110,243,0.2);
+            border-color: rgba(176,110,243,0.4);
+            color: #d8b4fe;
+        }
+        .tutorial-nav-btn-primary:hover { background: rgba(176,110,243,0.32); }
+
+        @media (max-width: 640px) {
+            .tutorial-tooltip { padding: 0.9rem 1rem; }
+        }
     </style>
 </head>
 <body>
@@ -1001,19 +1155,26 @@
         <div class="header-left">
             <div class="header-icon">🚣</div>
             <div class="header-title">
-                <h1>River Crossing Simulator
-                    <span class="hsc-badge" style="font-size:0.6rem; vertical-align: middle; margin-left:0.35rem;">HSC Physics</span>
+                <h1><span data-i18n="header.title">River Crossing Simulator</span>
+                    <span class="hsc-badge" data-i18n="header.badge" style="font-size:0.6rem; vertical-align: middle; margin-left:0.35rem;">HSC Physics</span>
                 </h1>
-                <p>Interactive relative-velocity tool &mdash; নদী-নৌকার গতিশীলতা &mdash; Chapter 2: Vectors</p>
+                <p data-i18n="header.subtitle">Interactive relative-velocity tool &mdash; Chapter 2: Vectors</p>
             </div>
         </div>
         <div class="header-right">
+            <button id="tutorial-btn" class="btn" onclick="startTutorial()">
+                🎓 <span data-i18n="tutorial.button">Tutorial</span>
+            </button>
             <button id="theme-toggle" onclick="toggleTheme()" aria-label="Toggle theme">
                 <span id="theme-icon">☀️</span>
             </button>
+            <div class="unit-toggle lang-toggle">
+                <button id="lang-en" class="unit-btn active" onclick="setLang('en')">EN</button>
+                <button id="lang-bn" class="unit-btn" onclick="setLang('bn')">বাং</button>
+            </div>
             <div class="unit-toggle">
-                <button id="unit-metric" class="unit-btn active" onclick="setUnit('metric')">Metric <small style="opacity:0.6">(m, m/s)</small></button>
-                <button id="unit-practical" class="unit-btn" onclick="setUnit('practical')">Practical <small style="opacity:0.6">(km, km/h)</small></button>
+                <button id="unit-metric" class="unit-btn active" onclick="setUnit('metric')"><span data-i18n="unit.metric">Metric</span> <small style="opacity:0.6">(m, m/s)</small></button>
+                <button id="unit-practical" class="unit-btn" onclick="setUnit('practical')"><span data-i18n="unit.practical">Practical</span> <small style="opacity:0.6">(km, km/h)</small></button>
             </div>
         </div>
     </header>
@@ -1025,45 +1186,43 @@
         <div class="card" style="display:flex;flex-direction:column;gap:1.25rem;">
 
             <div class="card-title">
-                <span>Parameters &amp; Case</span>
+                <span data-i18n="card.paramsTitle">Parameters &amp; Case</span>
                 <div class="card-title-icon">⚙️</div>
             </div>
 
             <!-- Case Selector -->
             <div class="input-group">
-                <span style="font-size:0.8rem;color:var(--text-secondary);font-weight:500;text-transform:uppercase;letter-spacing:0.06em;">Select Problem Case</span>
+                <span data-i18n="selectCase" style="font-size:0.8rem;color:var(--text-secondary);font-weight:500;text-transform:uppercase;letter-spacing:0.06em;">Select Problem Case</span>
                 <div class="case-selector">
-                    <button id="case-a" class="case-tab active" onclick="setCase('A')" data-tooltip="Case A: The boat heads straight across for minimum crossing time. (সবচেয়ে কম সময়ে পারাপার)">Case A<small>Minimum Time</small></button>
-                    <button id="case-b" class="case-tab" onclick="setCase('B')" data-tooltip="Case B: The boat fights the current to go perfectly straight. (ন্যূনতম দূরত্বে সোজাসুজি পারাপার)">Case B<span id="case-b-warn" style="color:var(--color-warning); margin-left:2px; display:none;">⚠️</span><small>Shortest Path</small></button>
-                    <button id="case-c" class="case-tab" onclick="setCase('C')" data-tooltip="Case C: The boat minimizes downstream drift when it is too slow to cross straight. (ন্যূনতম সরণ)">Case C<small>Minimum Drift</small></button>
-                    <button id="case-d" class="case-tab" onclick="setCase('D')" data-tooltip="Case D: Set any boat heading angle from the perpendicular or current direction. (যেকোনো কোণ)">Case D<small>Custom Angle</small></button>
-                    <button id="case-e" class="case-tab" id="case-e" onclick="setCase('E')" data-tooltip="Case E: Locks boat speed to 2x current speed and heading to 120° from current. (HSC স্পেশাল ১২০° কেস)">Case E<small>120° Spotlight</small></button>
+                    <button id="case-a" class="case-tab active" onclick="setCase('A')" data-i18n-tooltip="case.a.tooltip" data-tooltip="Case A: The boat heads straight across for minimum crossing time. (সবচেয়ে কম সময়ে পারাপার)"><span data-i18n="case.a.title">Case A</span><small data-i18n="case.a.sub">Minimum Time</small></button>
+                    <button id="case-b" class="case-tab" onclick="setCase('B')" data-i18n-tooltip="case.b.tooltip" data-tooltip="Case B: The boat fights the current to go perfectly straight. (ন্যূনতম দূরত্বে সোজাসুজি পারাপার)"><span data-i18n="case.b.title">Case B</span><span id="case-b-warn" style="color:var(--color-warning); margin-left:2px; display:none;">⚠️</span><small data-i18n="case.b.sub">Shortest Path</small></button>
+                    <button id="case-d" class="case-tab" onclick="setCase('D')" data-i18n-tooltip="case.d.tooltip" data-tooltip="Case D: Set any boat heading angle from the perpendicular or current direction. (যেকোনো কোণ)"><span data-i18n="case.d.title">Case D</span><small data-i18n="case.d.sub">Custom Angle</small></button>
+                    <button id="case-e" class="case-tab" onclick="setCase('E')" data-i18n-tooltip="case.e.tooltip" data-tooltip="Case E: Locks boat speed to 2x current speed and heading to 120° from current. (HSC স্পেশাল ১২০° কেস)"><span data-i18n="case.e.title">Case E</span><small data-i18n="case.e.sub">120° Spotlight</small></button>
                 </div>
             </div>
 
             <!-- Impossible Case B banner -->
-            <div id="impossible-banner" class="warning-box">
-                ⚠️ <strong>Impossible Case B:</strong> Boat speed v<sub>b</sub> is less than river speed v<sub>r</sub>. Zero drift cannot be achieved.
-                Automatically switched to <strong>Case C (Minimum Drift)</strong>.
+            <div id="impossible-banner" class="warning-box" data-i18n="banner.impossible">
+                ⚠️ <strong>Impossible Case B:</strong> Boat speed v<sub>b</sub> is less than river speed v<sub>r</sub>. Zero drift cannot be achieved — increase v<sub>b</sub> or decrease v<sub>r</sub>.
             </div>
 
             <!-- Case E Spotlight Banner -->
             <div id="spotlight-banner" class="info-box" style="display: none;">
-                <div>🌟 <strong>120° Spotlight Case:</strong></div>
-                <div style="font-size: 0.75rem; opacity: 0.9;">
-                    In Bangladeshi HSC problems, this 120° case is very commonly asked. 
-                    The angle is measured from the direction the river is flowing (φ = 120°). 
-                    Boat speed is locked to 2 × current speed (v<sub>b</sub> = 2v<sub>r</sub>). 
+                <div data-i18n="banner.spotlightTitle">🌟 <strong>120° Spotlight Case:</strong></div>
+                <div style="font-size: 0.75rem; opacity: 0.9;" data-i18n="banner.spotlightBody">
+                    In Bangladeshi HSC problems, this 120° case is very commonly asked.
+                    The angle is measured from the direction the river is flowing (φ = 120°).
+                    Boat speed is locked to 2 × current speed (v<sub>b</sub> = 2v<sub>r</sub>).
                     Zero drift is guaranteed. Formula: φ = cos⁻¹(−u/v).
                 </div>
             </div>
 
             <!-- vb slider -->
-            <div class="input-group">
+            <div class="input-group" id="group-vb">
                 <div class="input-header">
                     <span class="input-label">
                         <span class="color-swatch swatch-vb"></span>
-                        Boat Speed (v<sub>b</sub>)
+                        <span data-i18n="input.vb">Boat Speed (v<sub>b</sub>)</span>
                     </span>
                     <div class="input-value-wrapper">
                         <input type="number" id="num-vb" class="number-input" step="0.1" onchange="updateFromNum('vb',this.value)">
@@ -1074,11 +1233,11 @@
             </div>
 
             <!-- vr slider -->
-            <div class="input-group">
+            <div class="input-group" id="group-vr">
                 <div class="input-header">
                     <span class="input-label">
                         <span class="color-swatch swatch-vr"></span>
-                        River Current Speed (v<sub>r</sub>)
+                        <span data-i18n="input.vr">River Current Speed (v<sub>r</sub>)</span>
                     </span>
                     <div class="input-value-wrapper">
                         <input type="number" id="num-vr" class="number-input" step="0.1" onchange="updateFromNum('vr',this.value)">
@@ -1090,14 +1249,14 @@
 
             <!-- Speed Ratio Indicator Badge -->
             <div id="ratio-badge-container" style="display: flex; justify-content: space-between; align-items: center; margin-top: -0.25rem; margin-bottom: 0.25rem; padding: 0 0.1rem;">
-                <span class="input-label" style="font-size: 0.75rem;">Speed Ratio:</span>
+                <span class="input-label" data-i18n="ratio.label" style="font-size: 0.75rem;">Speed Ratio:</span>
                 <span id="speed-ratio-badge" class="hsc-badge">v<sub>b</sub> / v<sub>r</sub> = 1.33</span>
             </div>
 
             <!-- d slider -->
-            <div class="input-group">
+            <div class="input-group" id="group-d">
                 <div class="input-header">
-                    <span class="input-label">🌊 River Width (d)</span>
+                    <span class="input-label">🌊 <span data-i18n="input.d">River Width (d)</span></span>
                     <div class="input-value-wrapper">
                         <input type="number" id="num-d" class="number-input" step="1" onchange="updateFromNum('d',this.value)">
                         <span class="unit-label text-d-unit">m</span>
@@ -1109,10 +1268,10 @@
             <!-- custom angle control (Case D only) -->
             <div class="input-group" id="custom-angle-control">
                 <div class="input-header" style="justify-content: space-between; align-items: center;">
-                    <span class="input-label">📐 Heading Angle</span>
+                    <span class="input-label">📐 <span data-i18n="input.theta">Heading Angle</span></span>
                     <div class="angle-convention-toggle">
-                        <button id="toggle-angle-perp" class="toggle-btn active" onclick="setAngleConvention('perpendicular')">θ (Perp)</button>
-                        <button id="toggle-angle-curr" class="toggle-btn" onclick="setAngleConvention('current')">φ (Current)</button>
+                        <button id="toggle-angle-perp" class="toggle-btn active" onclick="setAngleConvention('perpendicular')" data-i18n="toggle.perp">θ (Perp)</button>
+                        <button id="toggle-angle-curr" class="toggle-btn" onclick="setAngleConvention('current')" data-i18n="toggle.curr">φ (Current)</button>
                     </div>
                     <div class="input-value-wrapper">
                         <input type="number" id="num-theta" class="number-input" step="1" onchange="updateFromNum('theta',this.value)">
@@ -1128,9 +1287,9 @@
 
             <!-- Vector Diagram -->
             <div class="input-group">
-                <span style="font-size:0.8rem;color:var(--text-secondary);font-weight:500;text-transform:uppercase;letter-spacing:0.06em;">Relative Velocity Vector Diagram</span>
+                <span data-i18n="vectorDiagram" style="font-size:0.8rem;color:var(--text-secondary);font-weight:500;text-transform:uppercase;letter-spacing:0.06em;">Relative Velocity Vector Diagram</span>
                 <div class="vector-container">
-                    <svg id="vector-svg" class="vector-svg" viewBox="0 0 260 260"></svg>
+                    <svg id="vector-svg" class="vector-svg" viewBox="0 0 260 164"></svg>
                 </div>
             </div>
 
@@ -1140,9 +1299,9 @@
         <div class="card simulation-card">
 
             <div class="card-title">
-                <span>Real-Time Crossing Simulation</span>
+                <span data-i18n="simCard.title">Real-Time Crossing Simulation</span>
                 <div style="display:flex;gap:0.5rem;align-items:center;">
-                    <div id="crossing-badge" class="canvas-badge" style="display:none;">CROSSING…</div>
+                    <div id="crossing-badge" class="canvas-badge" data-i18n="crossingBadge" style="display:none;">CROSSING…</div>
                     <div class="card-title-icon">🎮</div>
                 </div>
             </div>
@@ -1160,22 +1319,22 @@
                 <div class="btn-group">
                     <button id="btn-play" class="btn btn-primary" onclick="togglePlay()">
                         <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
-                        <span>Play</span>
+                        <span data-i18n="playback.play">Play</span>
                     </button>
                     <button id="btn-pause" class="btn" onclick="pauseAnim()" disabled>
                         <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>
-                        <span>Pause</span>
+                        <span data-i18n="playback.pause">Pause</span>
                     </button>
                     <button class="btn" onclick="resetAnim()">
                         <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M12 5V1L7 6l5 5V7c3.31 0 6 2.69 6 6s-2.69 6-6 6-6-2.69-6-6H4c0 4.42 3.58 8 8 8s8-3.58 8-8-3.58-8-8-8z"/></svg>
-                        <span>Reset</span>
+                        <span data-i18n="playback.reset">Reset</span>
                     </button>
                     <button id="btn-compare" class="btn" onclick="toggleCompareMode()">
-                        ⚔️ <span>Compare A vs B</span>
+                        ⚔️ <span class="btn-compare-label" data-i18n="playback.compare">Compare A vs B</span>
                     </button>
                 </div>
 
-                <div id="infinite-alert" class="infinite-warning">
+                <div id="infinite-alert" class="infinite-warning" data-i18n="infiniteWarning">
                     ⚠️ Boat is parallel to bank — crossing time is &infin;
                 </div>
 
@@ -1190,31 +1349,25 @@
             <!-- Readouts -->
             <div class="readouts-grid">
                 <div class="readout-box hl-acc">
-                    <span class="readout-label">Crossing Time</span>
+                    <span class="readout-label" data-i18n="readout.time">Crossing Time</span>
                     <span class="readout-value" id="val-time">—</span>
                 </div>
                 <div class="readout-box">
-                    <span class="readout-label">Downstream Drift</span>
+                    <span class="readout-label" data-i18n="readout.drift">Downstream Drift</span>
                     <span class="readout-value" id="val-drift">—</span>
                 </div>
                 <div class="readout-box hl-vR">
-                    <span class="readout-label">Resultant Speed (v<sub>R</sub>)</span>
+                    <span class="readout-label" data-i18n="readout.vR">Resultant Speed (v<sub>R</sub>)</span>
                     <span class="readout-value" id="val-vR">—</span>
                 </div>
                 <div class="readout-box">
-                    <span class="readout-label">Direction (&alpha; from bank)</span>
+                    <span class="readout-label" data-i18n="readout.alpha">Direction (&alpha; from bank)</span>
                     <span class="readout-value" id="val-alpha">—</span>
                 </div>
                 <div class="readout-box">
-                    <span class="readout-label">Path Length (L)</span>
+                    <span class="readout-label" data-i18n="readout.L">Path Length (L)</span>
                     <span class="readout-value" id="val-L">—</span>
                 </div>
-            </div>
-
-            <!-- Interactive Graph -->
-            <div class="graph-wrapper">
-                <svg id="graph-svg" viewBox="0 0 420 190"></svg>
-                <div class="graph-tooltip" id="graph-tooltip"></div>
             </div>
 
         </div><!-- /right card -->
@@ -1225,22 +1378,22 @@
     <div class="math-panel">
         <div class="math-panel-header">
             <div>
-                <h2>📐 Textbook Worked Solution</h2>
-                <p>বাংলাদেশি কারিকুলাম অনুসরণী &mdash; HSC Physics 1st Paper, Chapter 2 (Vectors)</p>
+                <h2 data-i18n="math.title">📐 Textbook Worked Solution</h2>
+                <p data-i18n="math.subtitle">বাংলাদেশি কারিকুলাম অনুসরণী &mdash; HSC Physics 1st Paper, Chapter 2 (Vectors)</p>
             </div>
-            <div class="math-tag">Live Derivation</div>
+            <div class="math-tag" data-i18n="math.tag">Live Derivation</div>
         </div>
 
         <div class="math-grid">
             <!-- Given Data -->
             <div class="math-section">
-                <div class="math-section-title">
+                <div class="math-section-title" data-i18n="math.section1">
                     1. Given Values &amp; Setup
                 </div>
                 <div class="math-box" id="math-given">
                     <!-- Rendered dynamically -->
                 </div>
-                <div class="concept-note">
+                <div class="concept-note" data-i18n="math.conceptNote">
                     <strong>Key Conceptual Distinction (HSC Exam Tip):</strong><br>
                     The <strong>Heading Angle (&theta;)</strong> is measured from the straight-across direction (y-axis)
                     relative to the <em>water</em>. The <strong>Path Angle (&alpha;)</strong> is the boat's actual
@@ -1251,7 +1404,7 @@
 
             <!-- Formula & Derivation -->
             <div class="math-section">
-                <div class="math-section-title">
+                <div class="math-section-title" data-i18n="math.section2">
                     2. Formula, Substitution &amp; Result
                 </div>
                 <div class="math-box" id="math-solved">
@@ -1261,9 +1414,34 @@
         </div>
     </div><!-- /math-panel -->
 
-    <footer>HSC Physics Interactive Simulator &mdash; River Crossing (নদী-নৌকার আপেক্ষিক গতি) &mdash; All physics computed in SI units internally.</footer>
+    <footer data-i18n="footer">HSC Physics Interactive Simulator &mdash; River Crossing (নদী-নৌকার আপেক্ষিক গতি) &mdash; All physics computed in SI units internally.</footer>
 
 </div><!-- /container -->
+
+<!-- ========== GUIDED TUTORIAL OVERLAY ========== -->
+<div id="tutorial-backdrop" class="tutorial-backdrop"></div>
+<div id="tutorial-tooltip" class="tutorial-tooltip" role="dialog" aria-live="polite">
+    <div class="tutorial-tooltip-header">
+        <span id="tutorial-counter" class="tutorial-badge">1/10</span>
+        <span id="tutorial-title" class="tutorial-title"></span>
+        <button class="tutorial-close" onclick="endTutorial()" aria-label="Close tutorial">&times;</button>
+    </div>
+    <p id="tutorial-body" class="tutorial-body"></p>
+    <div id="tutorial-dots" class="tutorial-dots"></div>
+    <div class="tutorial-footer">
+        <span class="tutorial-skip" onclick="endTutorial()" data-i18n="tutorial.skip">Skip</span>
+        <div class="tutorial-nav-btns">
+            <button id="tutorial-back" class="tutorial-nav-btn" onclick="prevTutorialStep()">
+                <svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor"><path d="M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z"/></svg>
+                <span data-i18n="tutorial.back">Back</span>
+            </button>
+            <button id="tutorial-next" class="tutorial-nav-btn tutorial-nav-btn-primary" onclick="nextTutorialStep()">
+                <span id="tutorial-next-label" data-i18n="tutorial.next">Next</span>
+                <svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor"><path d="M8.59 16.59L10 18l6-6-6-6-1.41 1.41L13.17 12z"/></svg>
+            </button>
+        </div>
+    </div>
+</div>
 
 <script>
 'use strict';
@@ -1281,6 +1459,7 @@
    ============================================================= */
 const state = {
     unit: 'metric',
+    lang: localStorage.getItem('lang') === 'bn' ? 'bn' : 'en',
     vb: 4.0,   // m/s  (always SI internally)
     vr: 3.0,   // m/s
     d: 100.0,  // m
@@ -1334,13 +1513,331 @@ const UNIT_CFG = {
 };
 
 /* =============================================================
+   LANGUAGE / TRANSLATIONS
+   ============================================================= */
+const I18N = {
+    en: {
+        'header.title': 'River Crossing Simulator',
+        'header.badge': 'HSC Physics',
+        'header.subtitle': 'Interactive relative-velocity tool &mdash; Chapter 2: Vectors',
+        'unit.metric': 'Metric',
+        'unit.practical': 'Practical',
+        'card.paramsTitle': 'Parameters &amp; Case',
+        'selectCase': 'Select Problem Case',
+        'case.a.title': 'Case A',
+        'case.a.sub': 'Minimum Time',
+        'case.a.tooltip': 'Case A: The boat heads straight across for minimum crossing time.',
+        'case.b.title': 'Case B',
+        'case.b.sub': 'Shortest Path',
+        'case.b.tooltip': 'Case B: The boat fights the current to go perfectly straight.',
+        'case.d.title': 'Case D',
+        'case.d.sub': 'Custom Angle',
+        'case.d.tooltip': 'Case D: Set any boat heading angle from the perpendicular or current direction.',
+        'case.e.title': 'Case E',
+        'case.e.sub': '120° Spotlight',
+        'case.e.tooltip': 'Case E: Locks boat speed to 2x current speed and heading to 120° from current.',
+        'banner.impossible': '⚠️ <strong>Impossible Case B:</strong> Boat speed v<sub>b</sub> is less than river speed v<sub>r</sub>. Zero drift cannot be achieved — increase v<sub>b</sub> or decrease v<sub>r</sub>.',
+        'banner.spotlightTitle': '🌟 <strong>120° Spotlight Case:</strong>',
+        'banner.spotlightBody': 'In Bangladeshi HSC problems, this 120° case is very commonly asked. The angle is measured from the direction the river is flowing (φ = 120°). Boat speed is locked to 2 × current speed (v<sub>b</sub> = 2v<sub>r</sub>). Zero drift is guaranteed. Formula: φ = cos⁻¹(−u/v).',
+        'input.vb': 'Boat Speed (v<sub>b</sub>)',
+        'input.vr': 'River Current Speed (v<sub>r</sub>)',
+        'input.d': 'River Width (d)',
+        'input.theta': 'Heading Angle',
+        'toggle.perp': 'θ (Perp)',
+        'toggle.curr': 'φ (Current)',
+        'angleHint.perp': 'perp',
+        'angleHint.curr': 'curr',
+        'ratio.label': 'Speed Ratio:',
+        'ratio.spotlight': ' → 120° applies!',
+        'vectorDiagram': 'Relative Velocity Vector Diagram',
+        'simCard.title': 'Real-Time Crossing Simulation',
+        'crossingBadge': 'CROSSING…',
+        'playback.play': 'Play',
+        'playback.pause': 'Pause',
+        'playback.resume': 'Resume',
+        'playback.replay': 'Replay',
+        'playback.reset': 'Reset',
+        'playback.compare': 'Compare A vs B',
+        'infiniteWarning': '⚠️ Boat is parallel to bank — crossing time is &infin;',
+        'readout.time': 'Crossing Time',
+        'readout.drift': 'Downstream Drift',
+        'readout.vR': 'Resultant Speed (v<sub>R</sub>)',
+        'readout.alpha': 'Direction (&alpha; from bank)',
+        'readout.L': 'Path Length (L)',
+        'math.title': '📐 Textbook Worked Solution',
+        'math.subtitle': 'Following the Bangladesh curriculum &mdash; HSC Physics 1st Paper, Chapter 2 (Vectors)',
+        'math.tag': 'Live Derivation',
+        'math.section1': '1. Given Values &amp; Setup',
+        'math.section2': '2. Formula, Substitution &amp; Result',
+        'math.conceptNote': '<strong>Key Conceptual Distinction (HSC Exam Tip):</strong><br>The <strong>Heading Angle (&theta;)</strong> is measured from the straight-across direction (y-axis) relative to the <em>water</em>. The <strong>Path Angle (&alpha;)</strong> is the boat\'s actual trajectory angle measured from the river bank in the <em>ground</em> frame. Students frequently confuse these two — always check which frame of reference a question uses.',
+        'footer': 'HSC Physics Interactive Simulator &mdash; River Crossing &mdash; All physics computed in SI units internally.',
+
+        'given.d': 'River Width (d)',
+        'given.vb': 'Boat Speed (v_b, rel. to water)',
+        'given.vr': 'River Current Speed (v_r)',
+        'given.thetaPerp': 'Heading Angle (θ from perp)',
+        'given.thetaCurr': 'Heading Angle (φ from current, HSC)',
+
+        'caseA.title': 'Case A — Minimum Time',
+        'caseA.crossingLabel': 'Crossing time formula:',
+        'caseA.insightLabel': 'Key Insight:',
+        'caseA.insightExpr': 'This is always the fastest way regardless of current speed',
+        'caseA.driftLabel': 'Downstream drift:',
+        'caseA.vRLabel': 'Resultant ground speed:',
+
+        'caseB.title': 'Case B — Shortest Path / Zero Drift',
+        'caseB.thetaLabel': 'Heading angle (from perpendicular, &theta;):',
+        'caseB.phiLabel': 'Heading angle (from current direction, &phi;):',
+        'caseB.spotlightNote': '(HSC Classic Spotlight!)',
+        'caseB.vyLabel': 'Resultant across-river component:',
+        'caseB.timeLabel': 'Crossing time:',
+        'caseB.driftLabel': 'Drift:',
+        'caseB.driftWord': 'drift',
+        'caseB.driftNote': '(boat lands exactly opposite to start point)',
+
+        'impossibleB.title': 'Case B — Impossible',
+        'impossibleB.note': 'no real solution — zero drift cannot be achieved',
+
+        'caseD.title': 'Case D — Custom Angle',
+        'caseD.acrossLabel': 'Across-river component:',
+        'caseD.timeLabel': 'Crossing time:',
+        'caseD.driftLabel': 'Downstream drift:',
+        'caseD.lengthLabel': 'Actual path length:',
+
+        'caseE.title': 'Case E — The 120° Spotlight Special Case (v_b = 2v_r locked)',
+        'caseE.deriveLabel': 'Deriving the 120° angle formula (φ = cos⁻¹(−u/v)):',
+        'caseE.zeroDriftLabel': 'This heading produces ZERO DRIFT. The boat crosses straight across.',
+        'caseE.timeLabel': 'Crossing time formula (t = d / (v_b cos 30°)):',
+
+        'canvas.start': 'Start',
+        'canvas.oppositeBank': 'Opposite bank',
+        'canvas.riverCurrent': 'River current',
+        'canvas.noCurrent': 'No current',
+        'canvas.headingDirection': 'Heading direction (water frame)',
+        'canvas.zeroDrift': 'Zero Drift',
+        'canvas.drift': 'Drift',
+        'canvas.zeroDriftRef': '0-drift ref',
+        'canvas.badgeImpossible': 'IMPOSSIBLE — v_b < v_r',
+        'canvas.badgeZeroDrift': 'ZERO DRIFT — straight path',
+        'canvas.badgeCompleted': 'CROSSING COMPLETED',
+        'canvas.headingEqualsPath': 'Heading = Actual path (no drift)',
+        'canvas.legendTitle': 'Current Speed Key',
+        'canvas.legendStatic': 'Static',
+        'canvas.legendSlow': 'Slow',
+        'canvas.legendFast': 'Fast',
+
+        'caseWord': 'Case',
+        'caseName.A': 'Min Time',
+        'caseName.B': 'Shortest Path',
+        'caseName.D': 'Custom Angle',
+        'caseName.E': '120° Spotlight',
+        'caseLabelA': 'Case A (Min Time)',
+        'caseLabelB': 'Case B',
+        'comparisonMode': 'Comparison Mode — A vs B',
+
+        'tutorial.button': 'Tutorial',
+        'tutorial.skip': 'Skip',
+        'tutorial.back': 'Back',
+        'tutorial.next': 'Next',
+        'tutorial.finish': 'Finish',
+        'tutorial.step1.title': 'Problem Case Selector',
+        'tutorial.step1.body': 'Pick which physics scenario to explore: minimum crossing time, shortest path, a custom heading angle, or the classic 120° spotlight case.',
+        'tutorial.step2.title': 'Boat Speed (v_b)',
+        'tutorial.step2.body': "Drag this slider to change the boat's speed relative to the water.",
+        'tutorial.step3.title': 'River Current Speed (v_r)',
+        'tutorial.step3.body': 'Drag this slider to change how fast the river current flows.',
+        'tutorial.step4.title': 'River Width (d)',
+        'tutorial.step4.body': 'Set how wide the river is — this affects the crossing time and drift.',
+        'tutorial.step5.title': 'Vector Diagram',
+        'tutorial.step5.body': 'This diagram shows the boat velocity, river current, and resultant velocity as vectors.',
+        'tutorial.step6.title': 'Simulation Canvas',
+        'tutorial.step6.body': 'Watch the boat cross the river in real time based on your chosen values.',
+        'tutorial.step7.title': 'Playback Controls',
+        'tutorial.step7.body': 'Play, pause, or reset the animation, or compare Case A and Case B side by side.',
+        'tutorial.step8.title': 'Result Readouts',
+        'tutorial.step8.body': 'These cards show the crossing time, drift, resultant speed, direction, and path length.',
+        'tutorial.step9.title': 'Worked Solution',
+        'tutorial.step9.body': 'A full step-by-step textbook derivation for the current case, updated live as you change values.',
+        'tutorial.step10.title': 'Language & Units',
+        'tutorial.step10.body': 'Switch between English and Bangla, or between metric and practical units, at any time.',
+    },
+    bn: {
+        'header.title': 'নদী পারাপার সিমুলেটর',
+        'header.badge': 'এইচএসসি পদার্থবিজ্ঞান',
+        'header.subtitle': 'আপেক্ষিক বেগের ইন্টারেক্টিভ টুল &mdash; দ্বিতীয় অধ্যায়: ভেক্টর',
+        'unit.metric': 'মেট্রিক',
+        'unit.practical': 'ব্যবহারিক',
+        'card.paramsTitle': 'প্যারামিটার ও কেস',
+        'selectCase': 'সমস্যার ধরন নির্বাচন করুন',
+        'case.a.title': 'কেস A',
+        'case.a.sub': 'সর্বনিম্ন সময়',
+        'case.a.tooltip': 'কেস A: সর্বনিম্ন সময়ে পারাপারের জন্য নৌকা সোজা ওপারে যায়।',
+        'case.b.title': 'কেস B',
+        'case.b.sub': 'সংক্ষিপ্ত পথ',
+        'case.b.tooltip': 'কেস B: স্রোতের বিপরীতে গিয়ে নৌকা একদম সোজা পারাপার করে।',
+        'case.d.title': 'কেস D',
+        'case.d.sub': 'কাস্টম কোণ',
+        'case.d.tooltip': 'কেস D: লম্ব বা স্রোতের দিক থেকে যেকোনো কোণে নৌকা চালান।',
+        'case.e.title': 'কেস E',
+        'case.e.sub': '১২০° স্পটলাইট',
+        'case.e.tooltip': 'কেস E: নৌকার গতি স্রোতের ২ গুণ এবং কোণ স্রোত থেকে ১২০° নির্ধারিত থাকে।',
+        'banner.impossible': '⚠️ <strong>অসম্ভব কেস B:</strong> নৌকার গতি v<sub>b</sub>, স্রোতের গতি v<sub>r</sub> অপেক্ষা কম। শূন্য সরণ অর্জন করা সম্ভব নয় — v<sub>b</sub> বাড়ান অথবা v<sub>r</sub> কমান।',
+        'banner.spotlightTitle': '🌟 <strong>১২০° স্পটলাইট কেস:</strong>',
+        'banner.spotlightBody': 'বাংলাদেশের এইচএসসি প্রশ্নে এই ১২০° কেসটি খুবই সাধারণ। কোণটি নদীর স্রোতের দিক থেকে পরিমাপ করা হয় (φ = ১২০°)। নৌকার গতি স্রোতের গতির ২ গুণে নির্ধারিত থাকে (v<sub>b</sub> = 2v<sub>r</sub>)। শূন্য সরণ নিশ্চিত। সূত্র: φ = cos⁻¹(−u/v)।',
+        'input.vb': 'নৌকার গতি (v<sub>b</sub>)',
+        'input.vr': 'নদীর স্রোতের গতি (v<sub>r</sub>)',
+        'input.d': 'নদীর প্রস্থ (d)',
+        'input.theta': 'দিক কোণ',
+        'toggle.perp': 'θ (লম্ব)',
+        'toggle.curr': 'φ (স্রোত)',
+        'angleHint.perp': 'লম্ব',
+        'angleHint.curr': 'স্রোত',
+        'ratio.label': 'গতির অনুপাত:',
+        'ratio.spotlight': ' → ১২০° প্রযোজ্য!',
+        'vectorDiagram': 'আপেক্ষিক বেগের ভেক্টর চিত্র',
+        'simCard.title': 'রিয়েল-টাইম পারাপার সিমুলেশন',
+        'crossingBadge': 'পারাপার চলছে…',
+        'playback.play': 'চালান',
+        'playback.pause': 'বিরতি',
+        'playback.resume': 'আবার চালান',
+        'playback.replay': 'পুনরায় চালান',
+        'playback.reset': 'রিসেট',
+        'playback.compare': 'তুলনা: A বনাম B',
+        'infiniteWarning': '⚠️ নৌকা তীরের সমান্তরালে — পারাপারের সময় অসীম &infin;',
+        'readout.time': 'পারাপারের সময়',
+        'readout.drift': 'স্রোতজনিত সরণ',
+        'readout.vR': 'লব্ধি গতি (v<sub>R</sub>)',
+        'readout.alpha': 'দিক (তীর থেকে &alpha;)',
+        'readout.L': 'পথের দৈর্ঘ্য (L)',
+        'math.title': '📐 পাঠ্যপুস্তক সমাধান',
+        'math.subtitle': 'বাংলাদেশি কারিকুলাম অনুসরণী &mdash; এইচএসসি পদার্থবিজ্ঞান ১ম পত্র, দ্বিতীয় অধ্যায় (ভেক্টর)',
+        'math.tag': 'লাইভ সমাধান',
+        'math.section1': '১. প্রদত্ত মান ও প্রস্তুতি',
+        'math.section2': '২. সূত্র, প্রতিস্থাপন ও ফলাফল',
+        'math.conceptNote': '<strong>মূল ধারণাগত পার্থক্য (এইচএসসি পরীক্ষার টিপস):</strong><br><strong>দিক কোণ (&theta;)</strong> পরিমাপ করা হয় সরাসরি-আড়াআড়ি দিক (y-অক্ষ) থেকে, <em>পানির</em> সাপেক্ষে। <strong>পথ কোণ (&alpha;)</strong> হলো নৌকার প্রকৃত গতিপথের কোণ, যা নদীর তীর থেকে <em>মাটির</em> ফ্রেমে পরিমাপ করা হয়। শিক্ষার্থীরা প্রায়ই এই দুটি গুলিয়ে ফেলে — সর্বদা প্রশ্নের রেফারেন্স ফ্রেম যাচাই করুন।',
+        'footer': 'এইচএসসি পদার্থবিজ্ঞান ইন্টারেক্টিভ সিমুলেটর &mdash; নদী পারাপার &mdash; সব হিসাব অভ্যন্তরীণভাবে SI এককে করা হয়।',
+
+        'given.d': 'নদীর প্রস্থ (d)',
+        'given.vb': 'নৌকার গতি (v_b, পানির সাপেক্ষে)',
+        'given.vr': 'নদীর স্রোতের গতি (v_r)',
+        'given.thetaPerp': 'দিক কোণ (লম্ব থেকে θ)',
+        'given.thetaCurr': 'দিক কোণ (স্রোত থেকে φ, এইচএসসি)',
+
+        'caseA.title': 'কেস A — সর্বনিম্ন সময়',
+        'caseA.crossingLabel': 'পারাপারের সময়ের সূত্র:',
+        'caseA.insightLabel': 'মূল ধারণা:',
+        'caseA.insightExpr': 'স্রোতের গতি যাই হোক না কেন, এটি সবসময় দ্রুততম উপায়',
+        'caseA.driftLabel': 'স্রোতজনিত সরণ:',
+        'caseA.vRLabel': 'লব্ধি মাটি-সাপেক্ষ গতি:',
+
+        'caseB.title': 'কেস B — সংক্ষিপ্ত পথ / শূন্য সরণ',
+        'caseB.thetaLabel': 'দিক কোণ (লম্ব থেকে, &theta;):',
+        'caseB.phiLabel': 'দিক কোণ (স্রোতের দিক থেকে, &phi;):',
+        'caseB.spotlightNote': '(এইচএসসি ক্লাসিক স্পটলাইট!)',
+        'caseB.vyLabel': 'লব্ধি আড়াআড়ি উপাংশ:',
+        'caseB.timeLabel': 'পারাপারের সময়:',
+        'caseB.driftLabel': 'সরণ:',
+        'caseB.driftWord': 'সরণ',
+        'caseB.driftNote': '(নৌকা ঠিক বিপরীত বিন্দুতে ভেড়ে)',
+
+        'impossibleB.title': 'কেস B — অসম্ভব',
+        'impossibleB.note': 'বাস্তব সমাধান নেই — শূন্য সরণ অর্জন করা সম্ভব নয়',
+
+        'caseD.title': 'কেস D — কাস্টম কোণ',
+        'caseD.acrossLabel': 'আড়াআড়ি উপাংশ:',
+        'caseD.timeLabel': 'পারাপারের সময়:',
+        'caseD.driftLabel': 'স্রোতজনিত সরণ:',
+        'caseD.lengthLabel': 'প্রকৃত পথের দৈর্ঘ্য:',
+
+        'caseE.title': 'কেস E — ১২০° স্পটলাইট বিশেষ ক্ষেত্র (v_b = 2v_r নির্ধারিত)',
+        'caseE.deriveLabel': '১২০° কোণের সূত্র নির্ণয় (φ = cos⁻¹(−u/v)):',
+        'caseE.zeroDriftLabel': 'এই দিকে নৌকা চালালে শূন্য সরণ হয়। নৌকা সরাসরি ওপারে যায়।',
+        'caseE.timeLabel': 'পারাপারের সময়ের সূত্র (t = d / (v_b cos 30°)):',
+
+        'canvas.start': 'শুরু',
+        'canvas.oppositeBank': 'বিপরীত তীর',
+        'canvas.riverCurrent': 'নদীর স্রোত',
+        'canvas.noCurrent': 'কোনো স্রোত নেই',
+        'canvas.headingDirection': 'দিক নির্দেশনা (পানির ফ্রেম)',
+        'canvas.zeroDrift': 'শূন্য সরণ',
+        'canvas.drift': 'সরণ',
+        'canvas.zeroDriftRef': '০-সরণ রেফ',
+        'canvas.badgeImpossible': 'অসম্ভব — v_b < v_r',
+        'canvas.badgeZeroDrift': 'শূন্য সরণ — সরাসরি পথ',
+        'canvas.badgeCompleted': 'পারাপার সম্পন্ন',
+        'canvas.headingEqualsPath': 'দিক = প্রকৃত পথ (সরণ নেই)',
+        'canvas.legendTitle': 'স্রোতের গতি চাবি',
+        'canvas.legendStatic': 'স্থির',
+        'canvas.legendSlow': 'ধীর',
+        'canvas.legendFast': 'দ্রুত',
+
+        'caseWord': 'কেস',
+        'caseName.A': 'সর্বনিম্ন সময়',
+        'caseName.B': 'সংক্ষিপ্ত পথ',
+        'caseName.D': 'কাস্টম কোণ',
+        'caseName.E': '১২০° স্পটলাইট',
+        'caseLabelA': 'কেস A (সর্বনিম্ন সময়)',
+        'caseLabelB': 'কেস B',
+        'comparisonMode': 'তুলনা মোড — A বনাম B',
+
+        'tutorial.button': 'টিউটোরিয়াল',
+        'tutorial.skip': 'বাদ দিন',
+        'tutorial.back': 'পেছনে',
+        'tutorial.next': 'পরবর্তী',
+        'tutorial.finish': 'শেষ',
+        'tutorial.step1.title': 'সমস্যার ধরন নির্বাচক',
+        'tutorial.step1.body': 'কোন পদার্থবিজ্ঞান দৃশ্যকল্প দেখতে চান তা বেছে নিন: সর্বনিম্ন সময়, সংক্ষিপ্ত পথ, কাস্টম কোণ, অথবা বিখ্যাত ১২০° স্পটলাইট কেস।',
+        'tutorial.step2.title': 'নৌকার গতি (v_b)',
+        'tutorial.step2.body': 'পানির সাপেক্ষে নৌকার গতি পরিবর্তন করতে এই স্লাইডারটি টানুন।',
+        'tutorial.step3.title': 'নদীর স্রোতের গতি (v_r)',
+        'tutorial.step3.body': 'নদীর স্রোত কত দ্রুত প্রবাহিত হয় তা পরিবর্তন করতে এই স্লাইডারটি টানুন।',
+        'tutorial.step4.title': 'নদীর প্রস্থ (d)',
+        'tutorial.step4.body': 'নদী কত চওড়া তা নির্ধারণ করুন — এটি পারাপারের সময় ও সরণকে প্রভাবিত করে।',
+        'tutorial.step5.title': 'ভেক্টর চিত্র',
+        'tutorial.step5.body': 'এই চিত্রে নৌকার বেগ, নদীর স্রোত এবং লব্ধি বেগ ভেক্টর আকারে দেখানো হয়েছে।',
+        'tutorial.step6.title': 'সিমুলেশন ক্যানভাস',
+        'tutorial.step6.body': 'আপনার নির্বাচিত মান অনুযায়ী নৌকাটি রিয়েল-টাইমে নদী পার হতে দেখুন।',
+        'tutorial.step7.title': 'প্লেব্যাক নিয়ন্ত্রণ',
+        'tutorial.step7.body': 'অ্যানিমেশন চালান, বিরতি দিন বা রিসেট করুন, অথবা কেস A ও কেস B পাশাপাশি তুলনা করুন।',
+        'tutorial.step8.title': 'ফলাফল রিডআউট',
+        'tutorial.step8.body': 'এই কার্ডগুলোতে পারাপারের সময়, সরণ, লব্ধি গতি, দিক এবং পথের দৈর্ঘ্য দেখানো হয়।',
+        'tutorial.step9.title': 'সমাধান পদ্ধতি',
+        'tutorial.step9.body': 'বর্তমান কেসের জন্য সম্পূর্ণ ধাপে ধাপে পাঠ্যপুস্তক সমাধান, যা মান পরিবর্তনের সাথে সাথে আপডেট হয়।',
+        'tutorial.step10.title': 'ভাষা ও একক',
+        'tutorial.step10.body': 'যেকোনো সময় ইংরেজি ও বাংলার মধ্যে, অথবা মেট্রিক ও ব্যবহারিক এককের মধ্যে পরিবর্তন করুন।',
+    },
+};
+
+function t(key) {
+    return (I18N[state.lang] && I18N[state.lang][key]) || I18N.en[key] || key;
+}
+
+function applyStaticTranslations() {
+    document.documentElement.lang = state.lang;
+    document.querySelectorAll('[data-i18n]').forEach(el => {
+        el.innerHTML = t(el.getAttribute('data-i18n'));
+    });
+    document.querySelectorAll('[data-i18n-tooltip]').forEach(el => {
+        el.setAttribute('data-tooltip', t(el.getAttribute('data-i18n-tooltip')));
+    });
+}
+
+function setLang(lang) {
+    state.lang = lang;
+    localStorage.setItem('lang', lang);
+    document.getElementById('lang-en').classList.toggle('active', lang === 'en');
+    document.getElementById('lang-bn').classList.toggle('active', lang === 'bn');
+    applyStaticTranslations();
+    updateUI();
+    if (typeof tutorialActive !== 'undefined' && tutorialActive) renderTutorialContent();
+}
+
+/* =============================================================
    DOM REFS
    ============================================================= */
 const canvas    = document.getElementById('simulation-canvas');
 const ctx       = canvas.getContext('2d');
 const vectorSvg = document.getElementById('vector-svg');
-const graphSvg  = document.getElementById('graph-svg');
-const tooltip   = document.getElementById('graph-tooltip');
 
 /* =============================================================
    INIT
@@ -1351,6 +1848,11 @@ window.addEventListener('DOMContentLoaded', () => {
     const icon = document.getElementById('theme-icon');
     if (icon) icon.textContent = isLight ? '🌙' : '☀️';
 
+    // Sync language toggle buttons and static text
+    document.getElementById('lang-en').classList.toggle('active', state.lang === 'en');
+    document.getElementById('lang-bn').classList.toggle('active', state.lang === 'bn');
+    applyStaticTranslations();
+
     initParticles();
     syncSlidersConfig();
     updateUI();
@@ -1358,12 +1860,9 @@ window.addEventListener('DOMContentLoaded', () => {
     runPhysicsSelfTests();
 
     window.addEventListener('resize', resizeCanvas);
+    window.addEventListener('orientationchange', resizeCanvas);
     resizeCanvas();
     requestAnimationFrame(animationLoop);
-
-    // graph hover
-    graphSvg.addEventListener('mousemove', onGraphHover);
-    graphSvg.addEventListener('mouseleave', () => { tooltip.style.display = 'none'; });
 });
 
 /* =============================================================
@@ -1462,7 +1961,6 @@ function setCase(code) {
     }
 
     if (code === 'B' && state.vb < state.vr) {
-        active = 'C';
         state.showImpossibleBWarning = true;
     }
 
@@ -1546,17 +2044,8 @@ function updateValue(param, val) {
         }
     }
 
-    // auto-switch Case B → C when impossible
-    if (state.activeCase === 'B' && state.vb < state.vr) {
-        state.activeCase = 'C';
-        state.showImpossibleBWarning = true;
-        document.querySelectorAll('.case-tab').forEach(el => el.classList.remove('active'));
-        document.getElementById('case-c').classList.add('active');
-    } else if (state.showImpossibleBWarning && state.vb >= state.vr) {
-        state.showImpossibleBWarning = false;
-    } else if (state.activeCase !== 'C') {
-        state.showImpossibleBWarning = false;
-    }
+    // flag impossible Case B (boat too slow to cancel the current)
+    state.showImpossibleBWarning = state.activeCase === 'B' && state.vb < state.vr;
 
     resetAnim();
     updateUI();
@@ -1592,12 +2081,7 @@ function solvePhysicsForCase(caseCode, vb = state.vb, vr = state.vr, d = state.d
             thetaDeg = Math.asin(vr / vb) * (180 / Math.PI);
         } else {
             impossibleCaseB = true;
-            thetaDeg = Math.asin(vb / vr) * (180 / Math.PI);
         }
-    } else if (caseCode === 'C') {
-        thetaDeg = vb < vr
-            ? Math.asin(vb / vr) * (180 / Math.PI)
-            : Math.asin(vr / vb) * (180 / Math.PI);
     } else if (caseCode === 'E') {
         thetaDeg = 30; // locks phi = 120 deg
     } else { // D
@@ -1613,7 +2097,7 @@ function solvePhysicsForCase(caseCode, vb = state.vb, vr = state.vr, d = state.d
 
     let crossingTime = Infinity, drift = Infinity, vR = Math.abs(vx), alphaDeg = 0, pathLength = Infinity;
 
-    if (!isParallel && Math.abs(vy) > 1e-6) {
+    if (!impossibleCaseB && !isParallel && Math.abs(vy) > 1e-6) {
         crossingTime = d / vy;
         drift        = vx * crossingTime;
         vR           = Math.sqrt(vx * vx + vy * vy);
@@ -1658,7 +2142,7 @@ function updateUI() {
     if (ratioBadge) {
         ratioBadge.innerHTML = `v<sub>b</sub> / v<sub>r</sub> = ${isFinite(ratio) ? ratio.toFixed(2) : '∞'}`;
         if (Math.abs(ratio - 2.0) <= 0.05) {
-            ratioBadge.innerHTML += ` → 120° applies!`;
+            ratioBadge.innerHTML += t('ratio.spotlight');
             ratioBadge.style.background = 'rgba(16, 185, 129, 0.15)';
             ratioBadge.style.borderColor = 'rgba(16, 185, 129, 0.4)';
             ratioBadge.style.color = 'var(--color-accent)';
@@ -1670,19 +2154,19 @@ function updateUI() {
     }
 
     const infAlert = document.getElementById('infinite-alert');
-    infAlert.style.display = res.crossingTime === Infinity ? 'flex' : 'none';
+    infAlert.style.display = (res.crossingTime === Infinity && !res.impossibleCaseB) ? 'flex' : 'none';
 
     // case badge on canvas
-    const caseName = { A: 'Min Time', B: 'Shortest Path', C: 'Min Drift', D: 'Custom Angle', E: '120° Spotlight' };
+    const caseName = { A: t('caseName.A'), B: t('caseName.B'), D: t('caseName.D'), E: t('caseName.E') };
     const cb = document.getElementById('case-badge');
-    cb.textContent = state.compareMode ? 'Comparison Mode — A vs B' : `Case ${state.activeCase} — ${caseName[state.activeCase]}`;
+    cb.textContent = state.compareMode ? t('comparisonMode') : `${t('caseWord')} ${state.activeCase} — ${caseName[state.activeCase]}`;
 
     // Update custom angle hints
     if (state.activeCase === 'D') {
         const thetaH = state.customTheta;
         const phiH = 90 + thetaH;
-        document.getElementById('angle-hint-perp').textContent = `θ (perp): ${thetaH.toFixed(0)}°`;
-        document.getElementById('angle-hint-curr').textContent = `φ (curr): ${phiH.toFixed(0)}°`;
+        document.getElementById('angle-hint-perp').textContent = `θ (${t('angleHint.perp')}): ${thetaH.toFixed(0)}°`;
+        document.getElementById('angle-hint-curr').textContent = `φ (${t('angleHint.curr')}): ${phiH.toFixed(0)}°`;
     }
 
     // readouts
@@ -1701,7 +2185,6 @@ function updateUI() {
     }
 
     renderVectorDiagram(res);
-    renderGraph(res);
     renderWorkedMath(res);
 }
 
@@ -1725,10 +2208,10 @@ function fmtSpeed(v) {
    VECTOR DIAGRAM SVG
    ============================================================= */
 function renderVectorDiagram(res) {
-    const W = 260, H = 260;
-    const cx = W / 2, cy = H / 2;
+    const W = 260, H = 164;
+    const cx = W / 2, cy = H - 32;  // origin near the bottom — only the upper half-plane is ever used
     const maxV  = Math.max(res.vb, res.vr, Math.abs(res.vR), 0.5);
-    const scale = 90 / maxV;
+    const scale = 112 / maxV;
 
     const isLight = document.body.classList.contains('light-theme');
     const arcColor = isLight ? '#475569' : '#e2e8f0';
@@ -1753,7 +2236,7 @@ function renderVectorDiagram(res) {
 
     // theta arc (heading angle from y-axis)
     if (Math.abs(res.thetaDeg) > 1.5) {
-        const r = 30;
+        const r = 37;
         const startX = cx;
         const startY = cy - r;
         const endX = cx + r * Math.cos((90 + res.thetaDeg) * Math.PI / 180);
@@ -1767,7 +2250,7 @@ function renderVectorDiagram(res) {
 
     // alpha arc (resultant from x-axis)
     if (res.alphaDeg > 2 && res.alphaDeg < 178 && res.vR > 0.05) {
-        const r = 18;
+        const r = 22;
         const startX = cx + r;
         const startY = cy;
         const endX = cx + r * Math.cos(res.alphaDeg * Math.PI / 180);
@@ -1780,7 +2263,7 @@ function renderVectorDiagram(res) {
 
     // phi arc (HSC textbook convention - measured from downstream river current direction)
     if (res.phiDeg > 1 && res.phiDeg < 179) {
-        const r = 44;
+        const r = 55;
         const startX = cx + r;
         const startY = cy;
         const phiRad = res.phiDeg * Math.PI / 180;
@@ -1816,8 +2299,8 @@ function renderVectorDiagram(res) {
         </defs>
 
         <!-- crosshairs -->
-        <line x1="${cx-110}" y1="${cy}" x2="${cx+110}" y2="${cy}" stroke="${gridColor}" stroke-dasharray="2,3"/>
-        <line x1="${cx}" y1="${cy-110}" x2="${cx}" y2="${cy+110}" stroke="${gridColor}" stroke-dasharray="2,3"/>
+        <line x1="${cx-125}" y1="${cy}" x2="${cx+125}" y2="${cy}" stroke="${gridColor}" stroke-dasharray="2,3"/>
+        <line x1="${cx}" y1="${cy-125}" x2="${cx}" y2="${cy+18}" stroke="${gridColor}" stroke-dasharray="2,3"/>
 
         <!-- parallelogram guide lines -->
         <line x1="${vrEndX}" y1="${vrEndY}" x2="${vREndX}" y2="${vREndY}" stroke="${guideColor}" stroke-dasharray="4,3"/>
@@ -1865,154 +2348,6 @@ function fmtSpeedRaw(v) {
 }
 
 /* =============================================================
-   INTERACTIVE TIME vs. ANGLE GRAPH SVG
-   ============================================================= */
-const G = { L: 46, R: 12, T: 18, B: 30 };
-
-function graphCoords(W, H) {
-    const gW = W - G.L - G.R;
-    const gH = H - G.T - G.B;
-    return { gW, gH };
-}
-
-function renderGraph(res) {
-    const W = 420, H = 190;
-    const { gW, gH } = graphCoords(W, H);
-
-    const tMin = state.d / state.vb;
-    const yMax = 5.0 * tMin;
-
-    const isLight = document.body.classList.contains('light-theme');
-    const borderCol = isLight ? 'rgba(15, 23, 42, 0.15)' : 'rgba(255, 255, 255, 0.1)';
-    const tickColMain = isLight ? 'rgba(15, 23, 42, 0.25)' : 'rgba(255, 255, 255, 0.25)';
-    const tickColGrid = isLight ? 'rgba(15, 23, 42, 0.05)' : 'rgba(255, 255, 255, 0.04)';
-    const curveCol = isLight ? 'rgba(15, 23, 42, 0.35)' : 'rgba(255, 255, 255, 0.35)';
-    const dotFill = isLight ? '#f8fafc' : 'white';
-
-    const mapX = deg => G.L + ((deg + 80) / 160) * gW;
-    const mapY = t   => {
-        if (t === Infinity || t > yMax) return G.T;
-        return G.T + gH - (t / yMax) * gH;
-    };
-
-    // curve
-    let pathD = '';
-    for (let deg = -80; deg <= 80; deg += 1) {
-        const t = state.d / (state.vb * Math.cos(deg * Math.PI / 180));
-        const px = mapX(deg), py = mapY(t);
-        pathD += (deg === -80 ? `M ${px} ${py}` : ` L ${px} ${py}`);
-    }
-
-    // x-axis ticks
-    let ticks = '';
-    [-60,-30,0,30,60].forEach(deg => {
-        const x = mapX(deg);
-        ticks += `<line x1="${x}" y1="${G.T+gH}" x2="${x}" y2="${G.T+gH+4}" stroke="${tickColMain}"/>`;
-        ticks += `<text x="${x}" y="${H-8}" fill="var(--text-muted)" font-size="8.5" text-anchor="middle" font-family="var(--font-main)">${deg}°</text>`;
-        ticks += `<line x1="${x}" y1="${G.T}" x2="${x}" y2="${G.T+gH}" stroke="${tickColGrid}"/>`;
-    });
-
-    // y-axis ticks
-    [tMin, 2*tMin, 3*tMin, 4*tMin].forEach(tv => {
-        const y = mapY(tv);
-        ticks += `<line x1="${G.L-4}" y1="${y}" x2="${G.L}" y2="${y}" stroke="${tickColMain}"/>`;
-        ticks += `<line x1="${G.L}" y1="${y}" x2="${G.L+gW}" y2="${y}" stroke="${tickColGrid}"/>`;
-        ticks += `<text x="${G.L-6}" y="${y+3}" fill="var(--text-muted)" font-size="8" text-anchor="end" font-family="var(--font-mono)">${tv.toFixed(0)}s</text>`;
-    });
-
-    // Case A dot
-    const pxA = mapX(0), pyA = mapY(tMin);
-    let refDots = `
-        <circle cx="${pxA}" cy="${pyA}" r="5" fill="var(--color-accent)" opacity="0.9"/>
-        <text x="${pxA}" y="${pyA-8}" fill="var(--color-accent)" font-size="7.5" text-anchor="middle" font-weight="600" font-family="var(--font-main)">Case A</text>`;
-
-    // Case B or C dot
-    if (state.vb >= state.vr) {
-        const tB   = Math.asin(state.vr / state.vb);
-        const tBdeg = tB * 180 / Math.PI;
-        const tBt   = state.d / (state.vb * Math.cos(tB));
-        const pxB = mapX(tBdeg), pyB = mapY(tBt);
-        refDots += `
-            <circle cx="${pxB}" cy="${pyB}" r="5" fill="var(--color-vR)" opacity="0.9"/>
-            <text x="${pxB-7}" y="${pyB-8}" fill="var(--color-vR)" font-size="7.5" text-anchor="end" font-weight="600" font-family="var(--font-main)">Case B</text>`;
-    } else {
-        const tC    = Math.asin(state.vb / state.vr);
-        const tCdeg = tC * 180 / Math.PI;
-        const tCt   = state.d / (state.vb * Math.cos(tC));
-        const pxC = mapX(tCdeg), pyC = mapY(tCt);
-        refDots += `
-            <circle cx="${pxC}" cy="${pyC}" r="5" fill="var(--color-info)" opacity="0.9"/>
-            <text x="${pxC-7}" y="${pyC-8}" fill="var(--color-info)" font-size="7.5" text-anchor="end" font-weight="600" font-family="var(--font-main)">Case C</text>`;
-    }
-
-    // active dot
-    let activeDot = '';
-    if (res.crossingTime !== Infinity && res.crossingTime <= yMax) {
-        const ax = mapX(res.thetaDeg), ay = mapY(res.crossingTime);
-        activeDot = `
-            <line x1="${G.L}" y1="${ay}" x2="${ax}" y2="${ay}" stroke="var(--color-vR)" stroke-width="0.7" stroke-dasharray="2,2" opacity="0.5"/>
-            <line x1="${ax}" y1="${ay}" x2="${ax}" y2="${G.T+gH}" stroke="var(--color-vR)" stroke-width="0.7" stroke-dasharray="2,2" opacity="0.5"/>
-            <circle cx="${ax}" cy="${ay}" r="6" fill="${dotFill}" stroke="var(--color-vR)" stroke-width="2.2"/>`;
-    }
-
-    graphSvg.innerHTML = `
-        <!-- border -->
-        <rect x="${G.L}" y="${G.T}" width="${gW}" height="${gH}" fill="none" stroke="${borderCol}"/>
-
-        <!-- y-axis label -->
-        <text x="10" y="${G.T + gH/2}" fill="var(--text-muted)" font-size="7.5" text-anchor="middle"
-            transform="rotate(-90 10 ${G.T + gH/2})" font-family="var(--font-main)">TIME (s)</text>
-
-        <!-- x-axis label -->
-        <text x="${G.L + gW/2}" y="${H-1}" fill="var(--text-muted)" font-size="8.5" text-anchor="middle" font-family="var(--font-main)">HEADING ANGLE θ (°)</text>
-
-        ${ticks}
-        ${refDots}
-
-        <!-- curve -->
-        <path d="${pathD}" fill="none" stroke="${curveCol}" stroke-width="1.8"/>
-
-        ${activeDot}
-
-        <!-- hidden mouse-capture rect for tooltip -->
-        <rect id="graph-hover-rect" x="${G.L}" y="${G.T}" width="${gW}" height="${gH}"
-            fill="transparent" stroke="none"/>
-    `;
-}
-
-/* --- graph hover tooltip --- */
-function onGraphHover(evt) {
-    const W = 420, H = 190;
-    const { gW, gH } = graphCoords(W, H);
-
-    const svgRect = graphSvg.getBoundingClientRect();
-    const svgScaleX = svgRect.width  / W;
-    const svgScaleY = svgRect.height / H;
-
-    const mouseX = evt.clientX - svgRect.left;
-    const mouseY = evt.clientY - svgRect.top;
-
-    const svgX = mouseX / svgScaleX;
-    if (svgX < G.L || svgX > G.L + gW) { tooltip.style.display = 'none'; return; }
-
-    const deg = ((svgX - G.L) / gW) * 160 - 80;
-    const rad = deg * Math.PI / 180;
-    const t   = state.d / (state.vb * Math.cos(rad));
-
-    if (!isFinite(t) || t <= 0) { tooltip.style.display = 'none'; return; }
-
-    tooltip.textContent = `θ = ${deg.toFixed(1)}°  →  t = ${t.toFixed(2)} s`;
-    tooltip.style.display = 'block';
-
-    const wrapRect = graphSvg.parentElement.getBoundingClientRect();
-    let left = evt.clientX - wrapRect.left + 12;
-    let top  = evt.clientY - wrapRect.top  - 36;
-    if (left + 200 > wrapRect.width) left -= 220;
-    tooltip.style.left = left + 'px';
-    tooltip.style.top  = top  + 'px';
-}
-
-/* =============================================================
    WORKED MATH PANEL — KaTeX rendering
    ============================================================= */
 function renderWorkedMath(res) {
@@ -2024,11 +2359,11 @@ function renderWorkedMath(res) {
 
     // Build given-data HTML
     let givenSteps = [
-        { label: 'River Width (d)', expr: `d = ${fmtNum(dUI)} \\; ${dUnit}${state.unit === 'practical' ? ` = ${res.d.toFixed(0)} \\; \\text{m}` : ''}` },
-        { label: 'Boat Speed (v_b, rel. to water)', expr: `v_b = ${fmtNum(vbUI)} \\; ${vUnit}${state.unit === 'practical' ? ` = ${res.vb.toFixed(2)} \\; \\text{m/s}` : ''}` },
-        { label: 'River Current Speed (v_r)', expr: `v_r = ${fmtNum(vrUI)} \\; ${vUnit}${state.unit === 'practical' ? ` = ${res.vr.toFixed(2)} \\; \\text{m/s}` : ''}` },
-        { label: 'Heading Angle (θ from perp)', expr: `\\theta = ${res.thetaDeg.toFixed(1)}^\\circ = ${res.thetaRad.toFixed(4)} \\; \\text{rad}` },
-        { label: 'Heading Angle (φ from current, HSC)', expr: `\\phi = 90^\\circ + \\theta = ${res.phiDeg.toFixed(1)}^\\circ` },
+        { label: t('given.d'), expr: `d = ${fmtNum(dUI)} \\; ${dUnit}${state.unit === 'practical' ? ` = ${res.d.toFixed(0)} \\; \\text{m}` : ''}` },
+        { label: t('given.vb'), expr: `v_b = ${fmtNum(vbUI)} \\; ${vUnit}${state.unit === 'practical' ? ` = ${res.vb.toFixed(2)} \\; \\text{m/s}` : ''}` },
+        { label: t('given.vr'), expr: `v_r = ${fmtNum(vrUI)} \\; ${vUnit}${state.unit === 'practical' ? ` = ${res.vr.toFixed(2)} \\; \\text{m/s}` : ''}` },
+        { label: t('given.thetaPerp'), expr: `\\theta = ${res.thetaDeg.toFixed(1)}^\\circ = ${res.thetaRad.toFixed(4)} \\; \\text{rad}` },
+        { label: t('given.thetaCurr'), expr: `\\phi = 90^\\circ + \\theta = ${res.phiDeg.toFixed(1)}^\\circ` },
     ];
 
     document.getElementById('math-given').innerHTML = givenSteps.map(s =>
@@ -2045,8 +2380,8 @@ function renderWorkedMath(res) {
         solvedHTML = renderCaseA(res, vUnit, dUnit);
     } else if (state.activeCase === 'B' && !res.impossibleCaseB) {
         solvedHTML = renderCaseB(res, vUnit, dUnit);
-    } else if (state.activeCase === 'C' || res.impossibleCaseB) {
-        solvedHTML = renderCaseC(res, vUnit, dUnit);
+    } else if (state.activeCase === 'B' && res.impossibleCaseB) {
+        solvedHTML = renderImpossibleB();
     } else if (state.activeCase === 'D') {
         solvedHTML = renderCaseD(res, vUnit, dUnit);
     } else if (state.activeCase === 'E') {
@@ -2075,15 +2410,15 @@ function mathStep(labelHTML, exprLatex) {
 
 function renderCaseA(res) {
     return [
-        mathStep('<strong>Case A — Minimum Time (সর্বনিম্ন সময়)</strong>',
+        mathStep(`<strong>${t('caseA.title')}</strong>`,
             `\\theta = 0^\\circ \\quad \\Rightarrow \\quad \\cos\\theta = 1 \\quad (\\phi = 90^\\circ)`),
-        mathStep('Crossing time formula:',
+        mathStep(t('caseA.crossingLabel'),
             `t_{\\min} = \\dfrac{d}{v_b} = \\dfrac{${res.d.toFixed(1)}}{${res.vb.toFixed(2)}} = \\mathbf{${res.crossingTime.toFixed(2)}} \\; \\text{s}`),
-        mathStep('Key Insight:',
-            `\\text{This is always the fastest way regardless of current speed } (v_r).`),
-        mathStep('Downstream drift (নদীর পার বরাবর সরণ):',
+        mathStep(t('caseA.insightLabel'),
+            `\\text{${t('caseA.insightExpr')}} \\; (v_r).`),
+        mathStep(t('caseA.driftLabel'),
             `x = v_r \\times t = ${res.vr.toFixed(2)} \\times ${res.crossingTime.toFixed(2)} = \\mathbf{${res.drift.toFixed(2)}} \\; \\text{m}`),
-        mathStep('Resultant ground speed:',
+        mathStep(t('caseA.vRLabel'),
             `v_R = \\sqrt{v_r^2 + v_b^2} = \\sqrt{${res.vr.toFixed(2)}^2 + ${res.vb.toFixed(2)}^2} = \\mathbf{${res.vR.toFixed(3)}} \\; \\text{m/s}`),
     ].join('');
 }
@@ -2091,60 +2426,48 @@ function renderCaseA(res) {
 function renderCaseB(res) {
     const ratio = (res.vr / res.vb).toFixed(4);
     const isSpotlightRatio = Math.abs(res.vb - 2.0 * res.vr) <= 0.05;
-    
+
     let boxExpr = `\\phi = \\cos^{-1}\\!\\left(-\\dfrac{v_r}{v_b}\\right) = \\cos^{-1}\\!\\left(-\\dfrac{${res.vr.toFixed(2)}}{${res.vb.toFixed(2)}}\\right) = \\mathbf{${res.phiDeg.toFixed(1)}^\\circ}`;
     if (isSpotlightRatio) {
-        boxExpr += ` \\; \\Rightarrow \\quad \\mathbf{\\boxed{\\phi = 120^\\circ}} \\quad \\text{(HSC Classic Spotlight!)}`;
+        boxExpr += ` \\; \\Rightarrow \\quad \\mathbf{\\boxed{\\phi = 120^\\circ}} \\quad \\text{${t('caseB.spotlightNote')}}`;
     }
 
     return [
-        mathStep('<strong>Case B — Shortest Path / Zero Drift (ন্যূনতম দূরত্ব)</strong>',
+        mathStep(`<strong>${t('caseB.title')}</strong>`,
             `v_x = 0 \\Rightarrow v_b \\sin\\theta = v_r \\Rightarrow \\sin\\theta = \\dfrac{v_r}{v_b}`),
-        mathStep('Heading angle (from perpendicular, &theta;):',
+        mathStep(t('caseB.thetaLabel'),
             `\\sin\\theta = \\dfrac{${res.vr.toFixed(2)}}{${res.vb.toFixed(2)}} = ${ratio} \\quad \\Rightarrow \\quad \\theta = \\sin^{-1}(${ratio}) = \\mathbf{${res.thetaDeg.toFixed(1)}^\\circ}`),
-        mathStep('Heading angle (from current direction, &phi;):',
+        mathStep(t('caseB.phiLabel'),
             boxExpr),
-        mathStep('Resultant across-river component:',
+        mathStep(t('caseB.vyLabel'),
             `v_y = \\sqrt{v_b^2 - v_r^2} = \\sqrt{${(res.vb*res.vb).toFixed(2)} - ${(res.vr*res.vr).toFixed(2)}} = \\mathbf{${res.vy.toFixed(3)}} \\; \\text{m/s}`),
-        mathStep('Crossing time (পারাপারের সময়):',
+        mathStep(t('caseB.timeLabel'),
             `t = \\dfrac{d}{v_y} = \\dfrac{${res.d.toFixed(1)}}{${res.vy.toFixed(3)}} = \\mathbf{${res.crossingTime.toFixed(2)}} \\; \\text{s}`),
-        mathStep('Drift:',
-            `\\text{drift} = 0 \\; \\text{m (boat lands exactly opposite to start point)}`),
+        mathStep(t('caseB.driftLabel'),
+            `\\text{${t('caseB.driftWord')}} = 0 \\; \\text{m ${t('caseB.driftNote')}}`),
     ].join('');
 }
 
-function renderCaseC(res) {
-    const ratio = (res.vb / res.vr).toFixed(4);
-    const driftFormula = `\\dfrac{d\\sqrt{v_r^2 - v_b^2}}{v_b}`;
-    return [
-        mathStep('<strong>Case C — Minimum Drift when v_b &lt; v_r (ন্যূনতম সরণ)</strong>',
-            `\\sin\\theta = \\dfrac{v_b}{v_r} \\quad (\\text{optimal heading when boat is slower than current})`),
-        mathStep('Optimal heading angle from perpendicular (&theta;):',
-            `\\theta = \\sin^{-1}\\!\\left(\\dfrac{v_b}{v_r}\\right) = \\sin^{-1}\\!\\left(\\dfrac{${res.vb.toFixed(2)}}{${res.vr.toFixed(2)}}\\right) = \\mathbf{${res.thetaDeg.toFixed(1)}^\\circ}`),
-        mathStep('Optimal heading angle from current direction (&phi;):',
-            `\\phi = \\cos^{-1}\\!\\left(-\\dfrac{v_b}{v_r}\\right) = \\cos^{-1}\\!\\left(-\\dfrac{${res.vb.toFixed(2)}}{${res.vr.toFixed(2)}}\\right) = \\mathbf{${res.phiDeg.toFixed(1)}^\\circ}`),
-        mathStep('Minimum drift distance (সর্বনিম্ন সরণ দূরত্ব):',
-            `x_{\\min} = ${driftFormula} = \\dfrac{${res.d.toFixed(1)} \\times \\sqrt{${res.vr.toFixed(2)}^2 - ${res.vb.toFixed(2)}^2}}{${res.vb.toFixed(2)}} = \\mathbf{${res.drift.toFixed(2)}} \\; \\text{m}`),
-        mathStep('Crossing time at minimum drift:',
-            `t = \\dfrac{d}{v_b \\cos\\theta} = \\dfrac{${res.d.toFixed(1)}}{${res.vb.toFixed(2)} \\times \\cos(${res.thetaDeg.toFixed(1)}^\\circ)} = \\mathbf{${res.crossingTime.toFixed(2)}} \\; \\text{s}`),
-    ].join('');
+function renderImpossibleB() {
+    return mathStep(`<strong>${t('impossibleB.title')}</strong>`,
+        `v_b < v_r \\quad \\Rightarrow \\quad \\sin\\theta = \\dfrac{v_r}{v_b} > 1 \\quad \\text{(${t('impossibleB.note')})}`);
 }
 
 function renderCaseD(res) {
     return [
-        mathStep(`<strong>Case D — Custom Angle (θ = ${res.thetaDeg.toFixed(1)}°, φ = ${res.phiDeg.toFixed(1)}°)</strong>`,
+        mathStep(`<strong>${t('caseD.title')} (θ = ${res.thetaDeg.toFixed(1)}°, φ = ${res.phiDeg.toFixed(1)}°)</strong>`,
             `v_x = v_r - v_b\\sin\\theta = ${res.vr.toFixed(2)} - ${res.vb.toFixed(2)}\\sin(${res.thetaDeg.toFixed(1)}^\\circ) = \\mathbf{${res.vx.toFixed(3)}} \\; \\text{m/s}`),
-        mathStep('Across-river component:',
+        mathStep(t('caseD.acrossLabel'),
             `v_y = v_b\\cos\\theta = ${res.vb.toFixed(2)} \\times \\cos(${res.thetaDeg.toFixed(1)}^\\circ) = \\mathbf{${res.vy.toFixed(3)}} \\; \\text{m/s}`),
-        mathStep('Crossing time:',
+        mathStep(t('caseD.timeLabel'),
             res.crossingTime === Infinity
                 ? `t = \\dfrac{d}{v_y} \\to \\infty \\quad (v_y \\approx 0)`
                 : `t = \\dfrac{d}{v_y} = \\dfrac{${res.d.toFixed(1)}}{${res.vy.toFixed(3)}} = \\mathbf{${res.crossingTime.toFixed(2)}} \\; \\text{s}`),
-        mathStep('Downstream drift:',
+        mathStep(t('caseD.driftLabel'),
             res.drift === Infinity
                 ? `\\text{drift} \\to \\infty`
                 : `x = v_x \\times t = ${res.vx.toFixed(3)} \\times ${res.crossingTime.toFixed(2)} = \\mathbf{${res.drift.toFixed(2)}} \\; \\text{m}`),
-        mathStep('Actual path length:',
+        mathStep(t('caseD.lengthLabel'),
             res.pathLength === Infinity
                 ? `L \\to \\infty`
                 : `L = \\sqrt{d^2 + x^2} = \\sqrt{${res.d.toFixed(1)}^2 + ${res.drift.toFixed(2)}^2} = \\mathbf{${res.pathLength.toFixed(2)}} \\; \\text{m}`),
@@ -2153,13 +2476,13 @@ function renderCaseD(res) {
 
 function renderCaseE(res) {
     return [
-        mathStep('<strong>Case E — The 120° Spotlight Special Case (v_b = 2v_r locked)</strong>',
+        mathStep(`<strong>${t('caseE.title')}</strong>`,
             `\\phi = 120^\\circ \\quad \\Rightarrow \\quad \\theta = 30^\\circ \\text{ upstream}`),
-        mathStep('Deriving the 120° angle formula (φ = cos⁻¹(−u/v)):',
+        mathStep(t('caseE.deriveLabel'),
             `\\phi = \\cos^{-1}\\!\\left(-\\dfrac{v_r}{v_b}\\right) = \\cos^{-1}\\!\\left(-\\dfrac{v_r}{2v_r}\\right) = \\cos^{-1}(-0.5) = \\mathbf{120^\\circ}`),
-        mathStep('This heading produces ZERO DRIFT. The boat crosses straight across.',
+        mathStep(t('caseE.zeroDriftLabel'),
             `x = 0 \\; \\text{m}`),
-        mathStep('Crossing time formula (t = d / (v_b cos 30°)):',
+        mathStep(t('caseE.timeLabel'),
             `t = \\dfrac{d}{\\sqrt{v_b^2 - v_r^2}} = \\dfrac{${res.d.toFixed(1)}}{\\sqrt{${res.vb.toFixed(2)}^2 - ${res.vr.toFixed(2)}^2}} = \\mathbf{${res.crossingTime.toFixed(2)}} \\; \\text{s}`),
     ].join('');
 }
@@ -2218,15 +2541,16 @@ function refreshPlayBtn() {
     const cross = document.getElementById('crossing-badge');
 
     const progress = state.compareMode ? Math.max(state.compareAnimProgressA, state.compareAnimProgressB) : state.animProgress;
+    btn.disabled = !state.compareMode && solvePhysics().crossingTime === Infinity;
 
     if (state.animating) {
-        btn.innerHTML = `<svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg><span>Pause</span>`;
+        btn.innerHTML = `<svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg><span>${t('playback.pause')}</span>`;
         btn.classList.add('btn-primary');
         pause.disabled = false;
         cross.style.display = 'inline-block';
         cross.classList.add('active');
     } else {
-        const label = progress >= 1.0 ? 'Replay' : (progress > 0 ? 'Resume' : 'Play');
+        const label = progress >= 1.0 ? t('playback.replay') : (progress > 0 ? t('playback.resume') : t('playback.play'));
         btn.innerHTML = `<svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg><span>${label}</span>`;
         btn.classList.add('btn-primary');
         pause.disabled = true;
@@ -2262,8 +2586,7 @@ function animationLoop(ts) {
 
     if (state.compareMode) {
         const physA = solvePhysicsForCase('A');
-        const caseBCode = state.vb >= state.vr ? 'B' : 'C';
-        const physB = solvePhysicsForCase(caseBCode);
+        const physB = solvePhysicsForCase('B');
 
         if (state.animating) {
             // Animate Case A (Top split)
@@ -2280,7 +2603,7 @@ function animationLoop(ts) {
                 if (state.compareWakePtsA.length > 300) state.compareWakePtsA.shift();
             }
 
-            // Animate Case B/C (Bottom split)
+            // Animate Case B (Bottom split)
             if (physB.crossingTime !== Infinity) {
                 state.compareAnimTimeSecB += dtS;
                 state.compareAnimProgressB = state.compareAnimTimeSecB / physB.crossingTime;
@@ -2294,14 +2617,10 @@ function animationLoop(ts) {
                 if (state.compareWakePtsB.length > 300) state.compareWakePtsB.shift();
             }
 
-            // Continuous loop reset in comparison mode once BOTH boats arrive
+            // Stop once BOTH boats arrive at the bank
             if (state.compareAnimProgressA >= 1.0 && state.compareAnimProgressB >= 1.0) {
-                state.compareAnimProgressA = 0.0;
-                state.compareAnimProgressB = 0.0;
-                state.compareAnimTimeSecA = 0.0;
-                state.compareAnimTimeSecB = 0.0;
-                state.compareWakePtsA = [];
-                state.compareWakePtsB = [];
+                state.animating = false;
+                refreshPlayBtn();
             }
         }
     } else {
@@ -2311,10 +2630,10 @@ function animationLoop(ts) {
             state.animProgress  = state.animTimeSec / phys.crossingTime;
 
             if (state.animProgress >= 1.0) {
-                // Continuous loop reset in single case mode
-                state.animProgress = 0.0;
-                state.animTimeSec  = 0.0;
-                state.wakePts      = [];
+                // Stop once the boat reaches the bank — don't auto-restart
+                state.animProgress = 1.0;
+                state.animating    = false;
+                refreshPlayBtn();
             } else {
                 const t = state.animProgress * phys.crossingTime;
                 state.wakePts.push({ x: phys.vx * t, y: phys.vy * t });
@@ -2344,12 +2663,12 @@ function drawSpeedLegend(ctx, x, y) {
 
     ctx.fillStyle = isLight ? '#0f172a' : '#f1f5f9';
     ctx.font = 'bold 9px Outfit, sans-serif';
-    ctx.fillText('Current Speed Key', x + 10, y + 14);
+    ctx.fillText(t('canvas.legendTitle'), x + 10, y + 14);
 
     const levels = [
-        { label: '0%', val: '0', speedText: 'Static', color: '#64748b' },
-        { label: '50%', val: '5', speedText: 'Slow', color: 'rgba(255, 159, 28, 0.6)' },
-        { label: '100%', val: '10', speedText: 'Fast', color: '#ff9f1c' }
+        { label: '0%', val: '0', speedText: t('canvas.legendStatic'), color: '#64748b' },
+        { label: '50%', val: '5', speedText: t('canvas.legendSlow'), color: 'rgba(255, 159, 28, 0.6)' },
+        { label: '100%', val: '10', speedText: t('canvas.legendFast'), color: '#ff9f1c' }
     ];
 
     levels.forEach((lvl, idx) => {
@@ -2397,8 +2716,8 @@ function drawRiverSection(res, yOffset, sectionHeight, caseLabel, boatColor, ani
 
     /* --- River water gradient + Case background tints --- */
     const waterGrad = ctx.createLinearGradient(0, waterTop, 0, waterBot);
-    if (res.impossibleCaseB || res.thetaDeg !== 30 && res.thetaDeg !== 0 && res.vb < res.vr && (res.thetaDeg === Math.asin(res.vb/res.vr)*180/Math.PI)) {
-        // Case C (Min Drift) — Faint amber/orange tint
+    if (res.impossibleCaseB) {
+        // Impossible Case B — Faint amber/orange tint
         if (isLight) {
             waterGrad.addColorStop(0,   'rgba(254, 215, 170, 0.96)');
             waterGrad.addColorStop(0.5, 'rgba(255, 247, 237, 0.98)');
@@ -2523,8 +2842,8 @@ function drawRiverSection(res, yOffset, sectionHeight, caseLabel, boatColor, ani
     // Bank labels
     ctx.fillStyle = isLight ? 'rgba(15, 23, 42, 0.65)' : 'rgba(255,255,255,0.45)';
     ctx.font      = `500 ${Math.max(9, Math.min(11, canvas.width / 95))}px Outfit, sans-serif`;
-    ctx.fillText('Start', px(0, -d * 0.05).x - 12, waterBot + 14);
-    ctx.fillText('Opposite bank', px(0, d * 1.05).x - 32, waterTop - 8);
+    ctx.fillText(t('canvas.start'), px(0, -d * 0.05).x - 12, waterBot + 14);
+    ctx.fillText(t('canvas.oppositeBank'), px(0, d * 1.05).x - 32, waterTop - 8);
 
     // River Current Static Indicator
     const arrowY = waterBot - 12;
@@ -2542,7 +2861,7 @@ function drawRiverSection(res, yOffset, sectionHeight, caseLabel, boatColor, ani
     drawArrow(startArrowX, arrowY, endArrowX, arrowY, isLight ? 'rgba(180, 83, 9, 0.7)' : 'rgba(255, 159, 28, 0.6)', 1.2);
     ctx.fillStyle = isLight ? 'rgba(180, 83, 9, 0.85)' : 'rgba(255, 159, 28, 0.7)';
     ctx.font = 'italic 9px Outfit, sans-serif';
-    ctx.fillText(res.vr > 0 ? `River current (v_r = ${fmtSpeedRaw(res.vr)})` : 'No current', (startArrowX + endArrowX)/2 - 50, arrowY - 4);
+    ctx.fillText(res.vr > 0 ? `${t('canvas.riverCurrent')} (v_r = ${fmtSpeedRaw(res.vr)})` : t('canvas.noCurrent'), (startArrowX + endArrowX)/2 - 50, arrowY - 4);
     ctx.restore();
 
     /* --- Static Dashed Heading Direction Line --- */
@@ -2567,7 +2886,7 @@ function drawRiverSection(res, yOffset, sectionHeight, caseLabel, boatColor, ani
         if (animProgress > 0.02 && animProgress < 0.98) {
             ctx.fillStyle = isLight ? 'rgba(15, 23, 42, 0.65)' : 'rgba(255, 255, 255, 0.55)';
             ctx.font = '8px Outfit, sans-serif';
-            ctx.fillText('Heading direction (water frame)', headingEnd.x + 8, headingEnd.y + 14);
+            ctx.fillText(t('canvas.headingDirection'), headingEnd.x + 8, headingEnd.y + 14);
         }
     }
 
@@ -2650,8 +2969,8 @@ function drawRiverSection(res, yOffset, sectionHeight, caseLabel, boatColor, ani
         ctx.fillStyle = boatColor;
         ctx.font      = `600 ${Math.max(8, Math.min(10, canvas.width / 95))}px JetBrains Mono, monospace`;
         const isZeroDrift = Math.abs(drift) < 0.1;
-        const driftText = isZeroDrift ? 'Zero Drift' : `Drift: ${fmtDist(drift)}`;
-        ctx.fillText(driftText, land.x + 10, land.y - 8);
+        const driftText = isZeroDrift ? t('canvas.zeroDrift') : `${t('canvas.drift')}: ${fmtDist(drift)}`;
+        ctx.fillText(driftText, land.x + 10, land.y + 20);
 
         // 0-drift reference marker
         if (!isZeroDrift) {
@@ -2664,7 +2983,7 @@ function drawRiverSection(res, yOffset, sectionHeight, caseLabel, boatColor, ani
             ctx.fill(); ctx.stroke();
             ctx.fillStyle = isLight ? 'rgba(15, 23, 42, 0.45)' : 'rgba(255,255,255,0.25)';
             ctx.font      = '8px sans-serif';
-            ctx.fillText('0-drift ref', ref0.x - 18, ref0.y - 8);
+            ctx.fillText(t('canvas.zeroDriftRef'), ref0.x - 18, ref0.y + 20);
         }
     }
 
@@ -2672,14 +2991,14 @@ function drawRiverSection(res, yOffset, sectionHeight, caseLabel, boatColor, ani
     ctx.save();
     let badgeText = '';
     let badgeColor = '';
-    if (res.impossibleCaseB || (res.thetaDeg === Math.asin(res.vb/res.vr)*180/Math.PI && res.vb < res.vr)) {
-        badgeText = `⚠️ MINIMUM DRIFT — current wins`;
+    if (res.impossibleCaseB) {
+        badgeText = `⚠️ ${t('canvas.badgeImpossible')}`;
         badgeColor = isLight ? '#c2410c' : '#ff9f1c';
     } else if (Math.abs(drift) < 0.1) {
-        badgeText = `✅ ZERO DRIFT — straight path`;
+        badgeText = `✅ ${t('canvas.badgeZeroDrift')}`;
         badgeColor = isLight ? '#047857' : '#10b981';
     } else {
-        badgeText = `ℹ️ CROSSING COMPLETED`;
+        badgeText = `ℹ️ ${t('canvas.badgeCompleted')}`;
         badgeColor = isLight ? '#0369a1' : '#38bdf8';
     }
     if (isCompare) {
@@ -2705,7 +3024,7 @@ function drawRiverSection(res, yOffset, sectionHeight, caseLabel, boatColor, ani
             ctx.save();
             ctx.fillStyle = isLight ? 'rgba(4, 120, 87, 0.9)' : 'rgba(16, 185, 129, 0.8)';
             ctx.font = '8px Outfit, sans-serif';
-            ctx.fillText('Heading = Actual path (no drift)', px(0, d/2).x + 8, px(0, d/2).y);
+            ctx.fillText(t('canvas.headingEqualsPath'), px(0, d/2).x + 8, px(0, d/2).y);
             ctx.restore();
         }
     }
@@ -2719,13 +3038,14 @@ function drawRiverSection(res, yOffset, sectionHeight, caseLabel, boatColor, ani
     ctx.stroke();
 
     /* --- BOAT ANIMATION --- */
-    if (res.crossingTime !== Infinity) {
-        const t      = animProgress * res.crossingTime;
+    {
+        // Stays put at the start bank when crossing is impossible/infinite (nothing to animate)
+        const t      = res.crossingTime === Infinity ? 0 : animProgress * res.crossingTime;
         const curX   = res.vx * t;
         const curY   = res.vy * t;
         const boatP  = px(curX, curY);
 
-        const boatScale = 2.0;
+        const boatScale = Math.max(0.85, Math.min(2.0, canvas.width / 450));
 
         ctx.save();
         ctx.translate(boatP.x, boatP.y);
@@ -2904,13 +3224,12 @@ function drawFrame() {
         
         // Case A (Min Time) top split
         const resA = solvePhysicsForCase('A');
-        drawRiverSection(resA, 0, height, 'Case A (Min Time)', 'var(--color-accent)', state.compareAnimProgressA, state.compareWakePtsA, true);
+        drawRiverSection(resA, 0, height, t('caseLabelA'), 'var(--color-accent)', state.compareAnimProgressA, state.compareWakePtsA, true);
 
-        // Case B/C bottom split
-        const caseBCode = state.vb >= state.vr ? 'B' : 'C';
-        const resB = solvePhysicsForCase(caseBCode);
-        const boatColorB = caseBCode === 'B' ? 'rgba(34, 197, 94, 1)' : 'var(--color-vr)';
-        drawRiverSection(resB, height, height, `Case ${caseBCode}`, boatColorB, state.compareAnimProgressB, state.compareWakePtsB, true);
+        // Case B bottom split
+        const resB = solvePhysicsForCase('B');
+        const boatColorB = resB.impossibleCaseB ? 'var(--color-vr)' : 'rgba(34, 197, 94, 1)';
+        drawRiverSection(resB, height, height, t('caseLabelB'), boatColorB, state.compareAnimProgressB, state.compareWakePtsB, true);
 
         // Draw split line divider
         ctx.strokeStyle = 'rgba(255, 255, 255, 0.15)';
@@ -2924,8 +3243,8 @@ function drawFrame() {
         // Single Case Simulation
         const res = solvePhysics();
         let pathColor = 'var(--color-vR)';
-        if (state.activeCase === 'B') pathColor = 'rgba(34, 197, 94, 1)'; // green
-        if (state.activeCase === 'C' || res.impossibleCaseB) pathColor = 'var(--color-vr)'; // orange/amber
+        if (state.activeCase === 'B' && !res.impossibleCaseB) pathColor = 'rgba(34, 197, 94, 1)'; // green
+        if (res.impossibleCaseB) pathColor = 'var(--color-vr)'; // orange/amber
         if (state.activeCase === 'A') pathColor = 'var(--color-accent)'; // emerald
         
         drawRiverSection(res, 0, canvas.height, `Case ${state.activeCase}`, pathColor, state.animProgress, state.wakePts, false);
@@ -2999,22 +3318,12 @@ function runPhysicsSelfTests() {
         assert(Math.abs(r.drift) < 1e-5,                 'B: drift = 0 m');
         assert(!r.impossibleCaseB,                        'B: impossibleCaseB = false when vb > vr');
 
-        // ── Case B→C fallback — boat slower than current ─────────
+        // ── Case B — impossible when boat is slower than current ─
         Object.assign(state, { vb:3, vr:5, d:100, activeCase:'B' });
         r = solvePhysics();
-        assert(r.impossibleCaseB === true,               'B→C: impossibleCaseB flag set');
-        assert(Math.abs(r.thetaDeg - Math.asin(3/5)*180/Math.PI) < 1e-5,
-                                                          'B→C: θ falls back to arcsin(vb/vr)');
-
-        // ── Case C — Minimum Drift (vb < vr) ─────────────────────
-        Object.assign(state, { vb:3, vr:5, d:100, activeCase:'C' });
-        r = solvePhysics();
-        const thetaC = Math.asin(3/5) * 180 / Math.PI;
-        const phiC = 90 + thetaC;
-        const expectedDriftC = (100 * Math.sqrt(25 - 9)) / 3; // d*sqrt(vr²-vb²)/vb
-        assert(Math.abs(r.thetaDeg - thetaC) < 1e-5,    'C: θ = arcsin(vb/vr)');
-        assert(Math.abs(r.phiDeg - phiC) < 1e-5,        'C: φ = 90° + θ (Convention B)');
-        assert(Math.abs(r.drift - expectedDriftC) < 1e-3,'C: drift = d√(vr²-vb²)/vb');
+        assert(r.impossibleCaseB === true,               'B: impossibleCaseB flag set when vb < vr');
+        assert(r.crossingTime === Infinity,              'B: crossingTime = ∞ when impossible');
+        assert(r.drift === Infinity,                     'B: drift = ∞ when impossible');
 
         // ── Case E — 120° Spotlight (vb = 2·vr) ──────────────────
         // vb=6, vr=3 → θ=30°, φ=120°, zero drift
@@ -3054,6 +3363,115 @@ function runPhysicsSelfTests() {
     } finally {
         Object.assign(state, saved);
     }
+}
+
+/* =============================================================
+   GUIDED TUTORIAL
+   ============================================================= */
+const TUTORIAL_STEPS = [
+    { target: '.case-selector',     titleKey: 'tutorial.step1.title',  bodyKey: 'tutorial.step1.body'  },
+    { target: '#group-vb',          titleKey: 'tutorial.step2.title',  bodyKey: 'tutorial.step2.body'  },
+    { target: '#group-vr',          titleKey: 'tutorial.step3.title',  bodyKey: 'tutorial.step3.body'  },
+    { target: '#group-d',           titleKey: 'tutorial.step4.title',  bodyKey: 'tutorial.step4.body'  },
+    { target: '.vector-container',  titleKey: 'tutorial.step5.title',  bodyKey: 'tutorial.step5.body'  },
+    { target: '.canvas-container',  titleKey: 'tutorial.step6.title',  bodyKey: 'tutorial.step6.body'  },
+    { target: '.playback-controls', titleKey: 'tutorial.step7.title',  bodyKey: 'tutorial.step7.body'  },
+    { target: '.readouts-grid',     titleKey: 'tutorial.step8.title',  bodyKey: 'tutorial.step8.body'  },
+    { target: '.math-panel',        titleKey: 'tutorial.step9.title',  bodyKey: 'tutorial.step9.body'  },
+    { target: '.header-right',      titleKey: 'tutorial.step10.title', bodyKey: 'tutorial.step10.body' },
+];
+
+let tutorialIndex = 0;
+let tutorialActive = false;
+let tutorialTarget = null;
+
+function startTutorial() {
+    tutorialActive = true;
+    document.getElementById('tutorial-backdrop').classList.add('active');
+    document.getElementById('tutorial-tooltip').classList.add('active');
+    window.addEventListener('resize', onTutorialResize);
+    document.addEventListener('keydown', onTutorialKeydown);
+    showTutorialStep(0);
+}
+
+function onTutorialResize() {
+    if (tutorialTarget) positionTutorialTooltip(tutorialTarget);
+}
+
+function onTutorialKeydown(e) {
+    if (!tutorialActive) return;
+    if (e.key === 'Escape') endTutorial();
+    else if (e.key === 'ArrowRight') nextTutorialStep();
+    else if (e.key === 'ArrowLeft') prevTutorialStep();
+}
+
+function showTutorialStep(i) {
+    if (tutorialTarget) tutorialTarget.classList.remove('tutorial-spotlight');
+
+    tutorialIndex = i;
+    const step = TUTORIAL_STEPS[i];
+    const target = document.querySelector(step.target);
+    tutorialTarget = target;
+
+    if (target) {
+        target.classList.add('tutorial-spotlight');
+        target.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+
+    renderTutorialContent();
+    setTimeout(() => { if (target) positionTutorialTooltip(target); }, 400);
+}
+
+function renderTutorialContent() {
+    const i = tutorialIndex;
+    const step = TUTORIAL_STEPS[i];
+    document.getElementById('tutorial-counter').textContent = (i + 1) + '/' + TUTORIAL_STEPS.length;
+    document.getElementById('tutorial-title').textContent = t(step.titleKey);
+    document.getElementById('tutorial-body').textContent = t(step.bodyKey);
+    document.getElementById('tutorial-dots').innerHTML = TUTORIAL_STEPS.map((_, idx) =>
+        `<span class="tutorial-dot${idx === i ? ' active' : ''}"></span>`
+    ).join('');
+    document.getElementById('tutorial-back').style.display = i === 0 ? 'none' : 'flex';
+    document.getElementById('tutorial-next-label').textContent =
+        (i === TUTORIAL_STEPS.length - 1) ? t('tutorial.finish') : t('tutorial.next');
+}
+
+function positionTutorialTooltip(target) {
+    const tip = document.getElementById('tutorial-tooltip');
+    const margin = 14;
+    const rect = target.getBoundingClientRect();
+    const tw = tip.offsetWidth, th = tip.offsetHeight;
+
+    let top = rect.bottom + margin;
+    if (top + th > window.innerHeight - margin) {
+        top = rect.top - th - margin;
+    }
+    top = Math.max(margin, Math.min(window.innerHeight - th - margin, top));
+
+    let left = rect.left + rect.width / 2 - tw / 2;
+    left = Math.max(margin, Math.min(window.innerWidth - tw - margin, left));
+
+    tip.style.top = top + 'px';
+    tip.style.left = left + 'px';
+}
+
+function nextTutorialStep() {
+    if (tutorialIndex < TUTORIAL_STEPS.length - 1) showTutorialStep(tutorialIndex + 1);
+    else endTutorial();
+}
+
+function prevTutorialStep() {
+    if (tutorialIndex > 0) showTutorialStep(tutorialIndex - 1);
+}
+
+function endTutorial() {
+    tutorialActive = false;
+    if (tutorialTarget) tutorialTarget.classList.remove('tutorial-spotlight');
+    tutorialTarget = null;
+    document.getElementById('tutorial-backdrop').classList.remove('active');
+    document.getElementById('tutorial-tooltip').classList.remove('active');
+    window.removeEventListener('resize', onTutorialResize);
+    document.removeEventListener('keydown', onTutorialKeydown);
 }
 </script>
 </body>
