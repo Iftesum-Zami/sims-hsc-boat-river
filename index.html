@@ -7,7 +7,7 @@
     <meta name="description" content="Interactive HSC Physics tool for mastering relative velocity and boat-river crossing problems. Covers minimum time, shortest path, minimum drift, and custom angle cases.">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Hind+Siliguri:wght@300;400;500;600;700&family=Noto+Sans+Bengali:wght@400;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Hind+Siliguri:wght@300;400;500;600;700&family=Noto+Sans+Bengali:wght@400;500;600;700&display=swap" rel="stylesheet">
     <!-- KaTeX for math rendering -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css" crossorigin="anonymous">
     <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js" crossorigin="anonymous"></script>
@@ -85,9 +85,16 @@
             --fg-on-brand: #FFFFFF;
             --fg-link: #274FE3;    /* --info */
 
-            /* ---------- Typography ---------- */
-            --font-sans:    'Inter', 'Hind Siliguri', 'Noto Sans Bengali', system-ui, -apple-system, sans-serif;
-            --font-bangla:  'Hind Siliguri', 'Noto Sans Bengali', 'Inter', sans-serif;
+            /* ---------- Typography ----------
+               Noto Sans Bengali leads the Bangla stack, not Hind Siliguri:
+               Hind Siliguri's Bengali digit glyphs (esp. "১") render
+               ambiguously at small UI sizes -- confirmed side-by-side at
+               the case-tab's actual size/weight -- which matters a lot
+               here since every readout (time, distance, angle, ratio) is
+               a Bengali numeral in bn mode. Noto Sans Bengali is Google's
+               UI-oriented Bengali face and stays crisp at the same sizes. */
+            --font-sans:    'Inter', 'Noto Sans Bengali', 'Hind Siliguri', system-ui, -apple-system, sans-serif;
+            --font-bangla:  'Noto Sans Bengali', 'Hind Siliguri', 'Inter', sans-serif;
             --font-display: 'Inter', 'Hind Siliguri', sans-serif;
             --font-mono:    ui-monospace, SFMono-Regular, Menlo, monospace;
 

@@ -18,7 +18,7 @@ When starting any new 10MS surface:
 4. **Follow the layout rules in §6** (393px mobile, 1440px web, 16px gutters).
 5. **Run the checklist in §15** before shipping.
 
-Default fonts: **Inter** for English, **Hind Siliguri / Noto Sans Bengali** for Bangla.
+Default fonts: **Inter** for English, **Noto Sans Bengali / Hind Siliguri** for Bangla.
 Default action color: **green `#1CAB55`**, not red. Red is brand, not action.
 
 ---
@@ -145,7 +145,7 @@ Drop this `:root` block into any new project (it's a normalized version of `samp
   --fg-link: var(--info);
 
   /* ---------- Typography ---------- */
-  --font-sans:    'Inter', 'Hind Siliguri', 'Noto Sans Bengali', system-ui, -apple-system, sans-serif;
+  --font-sans:    'Inter', 'Noto Sans Bengali', 'Hind Siliguri', system-ui, -apple-system, sans-serif;
   --font-bangla:  'Noto Sans Bengali', 'Hind Siliguri', 'Anek Bangla', 'Inter', sans-serif;
   --font-display: 'Inter', 'Hind Siliguri', sans-serif;
   --font-mono:    ui-monospace, SFMono-Regular, Menlo, monospace;
@@ -241,12 +241,14 @@ Rule of thumb: **blue for input, orange for opposition, green for the answer, re
 | Role | Font | Weights |
 |---|---|---|
 | English UI | Inter | 400 / 500 / 600 / 700 |
-| Bangla UI | Hind Siliguri | 300 / 400 / 500 / 600 / 700 |
-| Bangla brand-supplied | Noto Sans Bengali (self-hosted) | 400 / 700 |
+| Bangla UI | Noto Sans Bengali | 400 / 500 / 600 / 700 |
+| Bangla editorial / marketing | Hind Siliguri | 300 / 400 / 500 / 600 / 700 |
 | Display moments | Inter Bold (substitute for licensed *Li Ador Noirrit* / *Beatrice Trial*) | 700 |
 | Marketing display only | Bebas Neue (countdowns, retro hero numerals) | 400 |
 
-Stack always falls back: `Inter → Hind Siliguri → Noto Sans Bengali → system-ui`.
+Stack always falls back: `Inter → Noto Sans Bengali → Hind Siliguri → system-ui`.
+
+**Noto Sans Bengali leads the Bangla stack, not Hind Siliguri.** Confirmed side by side at UI sizes (12–14px, weights 500–700): Hind Siliguri's Bengali digit glyphs — "১" in particular — render ambiguously at that size, which matters anywhere numerals carry meaning (times, distances, angles, ratios — i.e. most of a data-dense Bangla UI). Noto Sans Bengali is Google's UI-oriented Bengali face and stays crisp at the same sizes/weights. Load both weight ranges so the primary face never falls back to synthesized (fake) bold: `family=Noto+Sans+Bengali:wght@400;500;600;700`. Hind Siliguri still has a place — long editorial copy and marketing headlines, where its warmer letterforms outweigh the numeral issue — just not as the default UI face.
 
 ### Scale
 
@@ -852,7 +854,7 @@ Prefix shared primitives with `Ten`: `<TenCard>`, `<TenButton variant="primary"/
 
 - Use **borders, not shadows**, for elevation.
 - Default to **green** for the primary action.
-- Lead Bangla headlines with **Hind Siliguri 700**, English with **Inter 700**, both with `letter-spacing: -0.2px` at 16px+.
+- Lead Bangla headlines with **Noto Sans Bengali 700**, English with **Inter 700**, both with `letter-spacing: -0.2px` at 16px+.
 - Use pastel tints for category cards, never saturated.
 - Keep dark surfaces to video, Premium, and marketing heroes only.
 - Write `তুমি` for students.
