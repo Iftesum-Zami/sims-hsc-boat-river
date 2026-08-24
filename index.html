@@ -508,6 +508,10 @@
             /* Selecting a case re-renders the whole simulation, so the tab
                state flips instantly rather than cross-fading behind it. */
         }
+        /* --lh-snug (1.25) crowds Bangla conjuncts/numerals — e.g. "১২০°"
+           read as blurry rather than tight. Bangla content elsewhere in the
+           app uses --lh-normal (1.5); this component just never opted in. */
+        html[lang="bn"] .case-tab { line-height: var(--lh-normal); }
 
         .case-tab small {
             display: block;
@@ -1285,7 +1289,9 @@
                pass is visible density, and 30-34px is still comfortably
                tappable while giving back real space on a phone screen. */
             .case-tab { font-size: var(--fs-caption); min-height: 38px; padding: 5px var(--s-2); }
-            .case-tab small { font-size: var(--fs-micro); }
+            /* Keep the subtitle at fs-caption rather than shrinking it
+               further to fs-micro — that was the smallest text in the app,
+               and Bangla numerals/conjuncts (e.g. "১২০°") blur below ~12px. */
             .case-desc { padding: 5px var(--s-2); }
             .info-box, .warning-box { padding: 6px var(--s-2); }
             .ratio-row { padding-top: 0; }
@@ -1551,8 +1557,8 @@
                 <div class="case-selector" role="group" aria-labelledby="case-desc">
                     <button id="case-a" class="case-tab active" onclick="setCase('A')" data-i18n-tooltip="case.a.tooltip" data-tooltip="Case A: The boat heads straight across for minimum crossing time. (সবচেয়ে কম সময়ে পারাপার)"><span data-i18n="case.a.title">Case A</span><small data-i18n="case.a.sub">Minimum Time</small></button>
                     <button id="case-b" class="case-tab" onclick="setCase('B')" data-i18n-tooltip="case.b.tooltip" data-tooltip="Case B: The boat fights the current to go perfectly straight. (ন্যূনতম দূরত্বে সোজাসুজি পারাপার)"><span data-i18n="case.b.title">Case B</span><span id="case-b-warn" class="case-warn-flag"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg></span><small data-i18n="case.b.sub">Shortest Path</small></button>
-                    <button id="case-d" class="case-tab" onclick="setCase('D')" data-i18n-tooltip="case.d.tooltip" data-tooltip="Case D: Set any boat heading angle from the perpendicular or current direction. (যেকোনো কোণ)"><span data-i18n="case.d.title">Case D</span><small data-i18n="case.d.sub">Custom Angle</small></button>
-                    <button id="case-e" class="case-tab" onclick="setCase('E')" data-i18n-tooltip="case.e.tooltip" data-tooltip="Case E: Locks boat speed to 2x current speed and heading to 120° from current. (HSC স্পেশাল ১২০° কেস)"><span data-i18n="case.e.title">Case E</span><small data-i18n="case.e.sub">120° Spotlight</small></button>
+                    <button id="case-d" class="case-tab" onclick="setCase('D')" data-i18n-tooltip="case.d.tooltip" data-tooltip="Case C: Set any boat heading angle from the perpendicular or current direction. (যেকোনো কোণ)"><span data-i18n="case.d.title">Case C</span><small data-i18n="case.d.sub">Custom Angle</small></button>
+                    <button id="case-e" class="case-tab" onclick="setCase('E')" data-i18n-tooltip="case.e.tooltip" data-tooltip="Case D: Locks boat speed to 2x current speed and heading to 120° from current. (HSC স্পেশাল ১২০° কেস)"><span data-i18n="case.e.title">Case D</span><small data-i18n="case.e.sub">120° Spotlight</small></button>
                 </div>
                 <!-- Always-visible description of the selected case (touch devices cannot hover) -->
                 <p id="case-desc" class="case-desc" aria-live="polite"></p>
@@ -1772,12 +1778,12 @@ const I18N = {
         'case.b.title': 'Case B',
         'case.b.sub': 'Shortest Path',
         'case.b.tooltip': 'Case B: The boat fights the current to go perfectly straight.',
-        'case.d.title': 'Case D',
+        'case.d.title': 'Case C',
         'case.d.sub': 'Custom Angle',
-        'case.d.tooltip': 'Case D: Set any boat heading angle from the perpendicular or current direction.',
-        'case.e.title': 'Case E',
+        'case.d.tooltip': 'Case C: Set any boat heading angle from the perpendicular or current direction.',
+        'case.e.title': 'Case D',
         'case.e.sub': '120° Spotlight',
-        'case.e.tooltip': 'Case E: Locks boat speed to 2x current speed and heading to 120° from current.',
+        'case.e.tooltip': 'Case D: Locks boat speed to 2x current speed and heading to 120° from current.',
         'banner.impossible': '<strong>Impossible Case B:</strong> Boat speed v<sub>b</sub> is less than river speed v<sub>r</sub>. Zero drift cannot be achieved — increase v<sub>b</sub> or decrease v<sub>r</sub>.',
         'banner.spotlightTitle': '120° Spotlight Case',
         'banner.spotlightBody': 'In Bangladeshi HSC problems, this 120° case is very commonly asked. The angle is measured from the direction the river is flowing (φ = 120°). Boat speed is locked to 2 × current speed (v<sub>b</sub> = 2v<sub>r</sub>). Zero drift is guaranteed. Formula: φ = cos⁻¹(−u/v).',
@@ -1840,13 +1846,13 @@ const I18N = {
         'impossibleB.title': 'Case B — Impossible',
         'impossibleB.note': 'no real solution — zero drift cannot be achieved',
 
-        'caseD.title': 'Case D — Custom Angle',
+        'caseD.title': 'Case C — Custom Angle',
         'caseD.acrossLabel': 'Across-river component:',
         'caseD.timeLabel': 'Crossing time:',
         'caseD.driftLabel': 'Downstream drift:',
         'caseD.lengthLabel': 'Actual path length:',
 
-        'caseE.title': 'Case E — The 120° Spotlight Special Case (v_b = 2v_r locked)',
+        'caseE.title': 'Case D — The 120° Spotlight Special Case (v_b = 2v_r locked)',
         'caseE.deriveLabel': 'Deriving the 120° angle formula (φ = cos⁻¹(−u/v)):',
         'caseE.zeroDriftLabel': 'This heading produces ZERO DRIFT. The boat crosses straight across.',
         'caseE.timeLabel': 'Crossing time formula (t = d / (v_b cos 30°)):',
@@ -1913,12 +1919,12 @@ const I18N = {
         'case.b.title': 'কেস B',
         'case.b.sub': 'সংক্ষিপ্ত পথ',
         'case.b.tooltip': 'কেস B: স্রোতের বিপরীতে গিয়ে নৌকা একদম সোজা পারাপার করে।',
-        'case.d.title': 'কেস D',
+        'case.d.title': 'কেস C',
         'case.d.sub': 'কাস্টম কোণ',
-        'case.d.tooltip': 'কেস D: লম্ব বা স্রোতের দিক থেকে যেকোনো কোণে নৌকা চালান।',
-        'case.e.title': 'কেস E',
+        'case.d.tooltip': 'কেস C: লম্ব বা স্রোতের দিক থেকে যেকোনো কোণে নৌকা চালান।',
+        'case.e.title': 'কেস D',
         'case.e.sub': '১২০° স্পটলাইট',
-        'case.e.tooltip': 'কেস E: নৌকার গতি স্রোতের ২ গুণ এবং কোণ স্রোত থেকে ১২০° নির্ধারিত থাকে।',
+        'case.e.tooltip': 'কেস D: নৌকার গতি স্রোতের ২ গুণ এবং কোণ স্রোত থেকে ১২০° নির্ধারিত থাকে।',
         'banner.impossible': '<strong>অসম্ভব কেস B:</strong> নৌকার গতি v<sub>b</sub>, স্রোতের গতি v<sub>r</sub> অপেক্ষা কম। শূন্য সরণ অর্জন করা সম্ভব নয় — v<sub>b</sub> বাড়ান অথবা v<sub>r</sub> কমান।',
         'banner.spotlightTitle': '১২০° স্পটলাইট কেস',
         'banner.spotlightBody': 'বাংলাদেশের এইচএসসি প্রশ্নে এই ১২০° কেসটি খুবই সাধারণ। কোণটি নদীর স্রোতের দিক থেকে পরিমাপ করা হয় (φ = ১২০°)। নৌকার গতি স্রোতের গতির ২ গুণে নির্ধারিত থাকে (v<sub>b</sub> = 2v<sub>r</sub>)। শূন্য সরণ নিশ্চিত। সূত্র: φ = cos⁻¹(−u/v)।',
@@ -1981,13 +1987,13 @@ const I18N = {
         'impossibleB.title': 'কেস B — অসম্ভব',
         'impossibleB.note': 'বাস্তব সমাধান নেই — শূন্য সরণ অর্জন করা সম্ভব নয়',
 
-        'caseD.title': 'কেস D — কাস্টম কোণ',
+        'caseD.title': 'কেস C — কাস্টম কোণ',
         'caseD.acrossLabel': 'আড়াআড়ি উপাংশ:',
         'caseD.timeLabel': 'পারাপারের সময়:',
         'caseD.driftLabel': 'স্রোতজনিত সরণ:',
         'caseD.lengthLabel': 'প্রকৃত পথের দৈর্ঘ্য:',
 
-        'caseE.title': 'কেস E — ১২০° স্পটলাইট বিশেষ ক্ষেত্র (v_b = 2v_r নির্ধারিত)',
+        'caseE.title': 'কেস D — ১২০° স্পটলাইট বিশেষ ক্ষেত্র (v_b = 2v_r নির্ধারিত)',
         'caseE.deriveLabel': '১২০° কোণের সূত্র নির্ণয় (φ = cos⁻¹(−u/v)):',
         'caseE.zeroDriftLabel': 'এই দিকে নৌকা চালালে শূন্য সরণ হয়। নৌকা সরাসরি ওপারে যায়।',
         'caseE.timeLabel': 'পারাপারের সময়ের সূত্র (t = d / (v_b cos 30°)):',
@@ -2409,9 +2415,14 @@ function updateUI() {
     infAlert.style.display = (res.crossingTime === Infinity && !res.impossibleCaseB) ? 'flex' : 'none';
 
     // case badge on canvas
+    // Internal case codes (A/B/D/E) are a stable identifier used throughout
+    // the physics engine and the ?case= URL param; the letter shown to the
+    // user is a display-only relabeling (Case D -> "Case C", E -> "Case D")
+    // so the removed old Case C is no longer a gap in the sequence.
     const caseName = { A: t('caseName.A'), B: t('caseName.B'), D: t('caseName.D'), E: t('caseName.E') };
+    const caseDisplayLetter = { A: 'A', B: 'B', D: 'C', E: 'D' };
     const cb = document.getElementById('case-badge');
-    cb.textContent = state.compareMode ? t('comparisonMode') : `${t('caseWord')} ${state.activeCase} — ${caseName[state.activeCase]}`;
+    cb.textContent = state.compareMode ? t('comparisonMode') : `${t('caseWord')} ${caseDisplayLetter[state.activeCase]} — ${caseName[state.activeCase]}`;
 
     // Update custom angle hints
     if (state.activeCase === 'D') {
