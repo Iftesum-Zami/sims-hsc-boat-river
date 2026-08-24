@@ -2837,8 +2837,18 @@ function renderCaseE(res) {
    ============================================================= */
 function resizeCanvas() {
     const rect = canvas.parentElement.getBoundingClientRect();
-    canvas.width  = rect.width;
-    canvas.height = rect.height;
+    // Match the backing store to the physical pixel density, or every line
+    // and glyph gets upscaled by the browser from a lower-res bitmap — the
+    // blur reported against a HiDPI phone/laptop screen. Drawing code keeps
+    // using CSS-pixel coordinates (state.canvasW/H); the transform below
+    // maps those onto the higher-resolution backing store transparently.
+    const dpr = window.devicePixelRatio || 1;
+    canvas.width  = Math.round(rect.width  * dpr);
+    canvas.height = Math.round(rect.height * dpr);
+    canvas.style.width  = rect.width  + 'px';
+    canvas.style.height = rect.height + 'px';
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+
     state.canvasW = rect.width;
     state.canvasH = rect.height;
     drawFrame();
@@ -3009,14 +3019,14 @@ function drawRiverSection(res, yOffset, sectionHeight, caseLabel, boatColor, ani
     else             xL = Math.min(xL, driftA - physA.d * 0.28);
     const yB = -d * 0.12, yT = d * 1.12;
 
-    const scX = canvas.width  / (xR - xL);
+    const scX = state.canvasW / (xR - xL);
     const scY = sectionHeight / (yT - yB);
     const scale = Math.min(scX, scY) * 0.92;
     const xMid  = (xL + xR) / 2;
     const yMid  = (yB + yT) / 2;
 
     const px = (X, Y) => ({
-        x: canvas.width  / 2 + (X - xMid) * scale,
+        x: state.canvasW / 2 + (X - xMid) * scale,
         y: yOffset + sectionHeight / 2 - (Y - yMid) * scale,
     });
 
@@ -3061,7 +3071,7 @@ function drawRiverSection(res, yOffset, sectionHeight, caseLabel, boatColor, ani
         }
     }
     ctx.fillStyle = waterGrad;
-    ctx.fillRect(0, waterTop, canvas.width, waterH);
+    ctx.fillRect(0, waterTop, state.canvasW, waterH);
 
     /* --- Animated wave layers --- */
     const waveCount = 3;
@@ -3123,7 +3133,7 @@ function drawRiverSection(res, yOffset, sectionHeight, caseLabel, boatColor, ani
         bankGradBot.addColorStop(1, '#081008');
     }
     ctx.fillStyle = bankGradBot;
-    ctx.fillRect(0, waterBot, canvas.width, (yOffset + sectionHeight) - waterBot);
+    ctx.fillRect(0, waterBot, state.canvasW, (yOffset + sectionHeight) - waterBot);
 
     // Far bank
     const bankGradTop = ctx.createLinearGradient(0, yOffset, 0, waterTop);
@@ -3135,7 +3145,7 @@ function drawRiverSection(res, yOffset, sectionHeight, caseLabel, boatColor, ani
         bankGradTop.addColorStop(1, '#122012');
     }
     ctx.fillStyle = bankGradTop;
-    ctx.fillRect(0, yOffset, canvas.width, waterTop - yOffset);
+    ctx.fillRect(0, yOffset, state.canvasW, waterTop - yOffset);
 
     // Bank edge lines
     [[waterTop, '#1CAB55', 0.8], [waterBot, '#1CAB55', 0.8]].forEach(([y, col, op]) => {
@@ -3144,7 +3154,7 @@ function drawRiverSection(res, yOffset, sectionHeight, caseLabel, boatColor, ani
         ctx.lineWidth   = 1.5;
         ctx.beginPath();
         ctx.moveTo(0, y);
-        ctx.lineTo(canvas.width, y);
+        ctx.lineTo(state.canvasW, y);
         ctx.stroke();
         ctx.globalAlpha = 1;
     });
@@ -3153,10 +3163,10 @@ function drawRiverSection(res, yOffset, sectionHeight, caseLabel, boatColor, ani
     // status badge, and clamped so a short bank strip never clips them.
     ctx.save();
     ctx.fillStyle = isLight ? 'rgba(75, 85, 99, 0.85)' : 'rgba(183, 192, 204, 0.75)';
-    ctx.font      = `500 ${Math.max(9, Math.min(11, canvas.width / 95))}px Inter, "Hind Siliguri", sans-serif`;
+    ctx.font      = `500 ${Math.max(9, Math.min(11, state.canvasW / 95))}px Inter, "Hind Siliguri", sans-serif`;
     ctx.textAlign = 'right';
-    ctx.fillText(t('canvas.oppositeBank'), canvas.width - 10, Math.max(yOffset + 12, waterTop - 7));
-    ctx.fillText(t('canvas.start'),        canvas.width - 10, Math.min(yOffset + sectionHeight - 6, waterBot + 14));
+    ctx.fillText(t('canvas.oppositeBank'), state.canvasW - 10, Math.max(yOffset + 12, waterTop - 7));
+    ctx.fillText(t('canvas.start'),        state.canvasW - 10, Math.min(yOffset + sectionHeight - 6, waterBot + 14));
     ctx.restore();
 
     // River Current Static Indicator
@@ -3281,7 +3291,7 @@ function drawRiverSection(res, yOffset, sectionHeight, caseLabel, boatColor, ani
 
         // Landing and drift annotations
         ctx.fillStyle = boatColor;
-        ctx.font      = `600 ${Math.max(8, Math.min(10, canvas.width / 95))}px Inter, "Hind Siliguri", sans-serif`;
+        ctx.font      = `600 ${Math.max(8, Math.min(10, state.canvasW / 95))}px Inter, "Hind Siliguri", sans-serif`;
         const isZeroDrift = Math.abs(drift) < 0.1;
         const driftText = isZeroDrift ? t('canvas.zeroDrift') : `${t('canvas.drift')}: ${fmtDist(drift)}`;
         ctx.fillText(driftText, land.x + 10, land.y + 20);
@@ -3362,7 +3372,7 @@ function drawRiverSection(res, yOffset, sectionHeight, caseLabel, boatColor, ani
         const curY   = res.vy * t;
         const boatP  = px(curX, curY);
 
-        const boatScale = Math.max(0.85, Math.min(2.0, canvas.width / 450));
+        const boatScale = Math.max(0.85, Math.min(2.0, state.canvasW / 450));
 
         ctx.save();
         ctx.translate(boatP.x, boatP.y);
@@ -3529,15 +3539,15 @@ function drawRiverSection(res, yOffset, sectionHeight, caseLabel, boatColor, ani
 function drawFrame() {
     if (!canvas.width || !canvas.height) return;
 
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    ctx.clearRect(0, 0, state.canvasW, state.canvasH);
 
     /* --- General Canvas Background --- */
     ctx.fillStyle = isLightTheme() ? '#F3F4F6' : '#0B1117';
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    ctx.fillRect(0, 0, state.canvasW, state.canvasH);
 
     if (state.compareMode) {
         // Compare A vs B mode
-        const height = canvas.height / 2;
+        const height = state.canvasH / 2;
         
         // Case A (Min Time) top split
         const resA = solvePhysicsForCase('A');
@@ -3553,7 +3563,7 @@ function drawFrame() {
         ctx.lineWidth = 2;
         ctx.beginPath();
         ctx.moveTo(0, height);
-        ctx.lineTo(canvas.width, height);
+        ctx.lineTo(state.canvasW, height);
         ctx.stroke();
 
     } else {
@@ -3564,7 +3574,7 @@ function drawFrame() {
         if (res.impossibleCaseB) pathColor = cssColor('--color-warning', '#E8001D');
         if (state.activeCase === 'A') pathColor = cssColor('--color-accent', '#1CAB55');
         
-        drawRiverSection(res, 0, canvas.height, `Case ${state.activeCase}`, pathColor, state.animProgress, state.wakePts, false);
+        drawRiverSection(res, 0, state.canvasH, `Case ${state.activeCase}`, pathColor, state.animProgress, state.wakePts, false);
     }
 }
 
