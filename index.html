@@ -1463,7 +1463,7 @@
             </div>
 
             <!-- Readouts -->
-            <div class="readouts-grid">
+            <div class="readouts-grid" id="readouts-grid">
                 <div class="readout-box hl-acc">
                     <span class="readout-label" data-i18n="readout.time">Crossing Time</span>
                     <span class="readout-value" id="val-time">—</span>
@@ -2121,6 +2121,10 @@ window.addEventListener('DOMContentLoaded', () => {
     window.addEventListener('resize', resizeCanvas);
     window.addEventListener('orientationchange', resizeCanvas);
     resizeCanvas();
+
+    layoutReadoutsForViewport();
+    stackedMQ.addEventListener('change', layoutReadoutsForViewport);
+
     requestAnimationFrame(animationLoop);
 });
 
@@ -2869,6 +2873,23 @@ function resizeCanvas() {
     state.canvasW = rect.width;
     state.canvasH = rect.height;
     drawFrame();
+}
+
+/* Below the 1100px breakpoint (.dashboard-grid's own stacking point — see
+   its CSS) the two cards stack into one column, and the readouts should
+   read as the last thing in that column (after Parameters & Case), not
+   buried mid-page inside the simulation card. CSS `order`/grid-area can
+   only reorder direct siblings, and the readouts are nested two cards
+   deep, so there is no pure-CSS way to do this — the node is physically
+   moved between the two cards' DOM, not just re-styled. */
+const stackedMQ = window.matchMedia('(max-width: 1100px)');
+function layoutReadoutsForViewport() {
+    const readouts = document.getElementById('readouts-grid');
+    const simCard = document.querySelector('.simulation-card');
+    const paramsCard = document.querySelector('.params-card');
+    if (!readouts || !simCard || !paramsCard) return;
+    const target = stackedMQ.matches ? paramsCard : simCard;
+    if (readouts.parentElement !== target) target.appendChild(readouts);
 }
 
 /* =============================================================
