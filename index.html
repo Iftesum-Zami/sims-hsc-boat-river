@@ -320,30 +320,14 @@
 
         .header-left { display: flex; align-items: center; gap: var(--s-3); min-width: 0; }
 
-        /* "Powered by" attribution mark, set off from the product title by a
-           thin divider. The source SVG is monochrome black, so dark theme
-           inverts it to white rather than needing a second asset. */
-        .brand-logo {
-            height: 20px;
+        /* Primary brand mark. The source SVG is monochrome black, so dark
+           theme inverts it to white rather than needing a second asset. */
+        .header-logo {
+            height: 34px;
             width: auto;
             flex-shrink: 0;
-            margin-left: var(--s-1);
-            padding-left: var(--s-3);
-            border-left: 1px solid var(--border);
-            opacity: 0.75;
         }
-        html.dark-theme .brand-logo { filter: invert(1); opacity: 0.8; }
-
-        .header-icon {
-            width: 36px; height: 36px;
-            flex-shrink: 0;
-            background: var(--tint-red);
-            border: 1px solid rgba(232, 0, 29, 0.25);
-            border-radius: var(--r-md);
-            display: flex; align-items: center; justify-content: center;
-            color: var(--ten-red);
-        }
-        .header-icon .icon-lg { width: 20px; height: 20px; }
+        html.dark-theme .header-logo { filter: invert(1); }
 
         .header-title h1 {
             font-size: var(--fs-h2);
@@ -447,11 +431,11 @@
            ============================================================= */
         .dashboard-grid {
             display: grid;
-            grid-template-columns: 384px 1fr;
+            grid-template-columns: 1fr 384px;
             gap: var(--s-4);
             /* Stretch (not start) so both columns share one row height — the
-               left column usually has more controls and is naturally taller;
-               the shorter right card is pulled down to match instead of
+               right column usually has more controls and is naturally taller;
+               the shorter left card is pulled down to match instead of
                leaving a gap under it. */
             align-items: stretch;
         }
@@ -775,6 +759,12 @@
             gap: var(--s-3);
         }
 
+        .params-card {
+            display: flex;
+            flex-direction: column;
+            gap: 0.85rem;
+        }
+
         .canvas-container {
             position: relative;
             background: var(--bg-muted);
@@ -911,10 +901,10 @@
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(168px, 1fr));
             gap: var(--s-2);
-            /* .simulation-card is stretched to match the taller left column
-               (see .dashboard-grid); this is the one section allowed to grow,
-               so any leftover height becomes breathing room right above the
-               results instead of dead space below the card. */
+            /* .simulation-card is stretched to match the taller Parameters
+               column (see .dashboard-grid); this is the one section allowed
+               to grow, so any leftover height becomes breathing room right
+               above the results instead of dead space below the card. */
             margin-top: auto;
         }
 
@@ -1261,18 +1251,17 @@
            Mobile is the primary target (implementation-guide.md §4.2.1)
            ============================================================= */
         @media (max-width: 640px) {
-            body { padding: var(--s-4); }
-            .container { gap: var(--s-4); }
+            body { padding: var(--s-3); }
+            .container { gap: var(--s-3); }
 
             header {
-                padding: var(--s-4);
-                border-radius: var(--r-lg);
-                gap: var(--s-3);
+                padding: var(--s-2) var(--s-3);
+                border-radius: var(--r-md);
+                gap: var(--s-2);
             }
-            .header-title h1 { font-size: var(--fs-h3); }
+            .header-title h1 { font-size: var(--fs-body); }
             .header-title p { display: none; }
-            .header-icon { width: 40px; height: 40px; }
-            .brand-logo { display: none; }
+            .header-logo { height: 24px; }
             .header-right { width: 100%; gap: var(--s-2); }
             .header-right .unit-toggle { flex: 1 1 100%; }
             .header-right .unit-toggle .unit-btn { flex: 1 1 0; min-width: 0; }
@@ -1281,49 +1270,55 @@
             #tutorial-btn { flex: 1 1 auto; }
 
             .card, .math-panel {
-                padding: var(--s-4);
-                border-radius: var(--r-lg);
+                padding: var(--s-3);
+                border-radius: var(--r-md);
             }
             /* Hover lift is meaningless on touch and causes jitter */
             .card:hover { transform: none; box-shadow: none; border-color: var(--border); }
 
-            .dashboard-grid { gap: var(--s-4); }
+            .params-card { gap: 0.5rem; }
+            .dashboard-grid { gap: var(--s-3); }
+            .input-group { gap: 6px; }
 
-            .case-tab { font-size: var(--fs-caption); min-height: 60px; }
+            /* Every control clears a real WCAG 2.5.8 touch minimum (24px),
+               but not the roomier 44px used at desktop — the point of this
+               pass is visible density, and 30-34px is still comfortably
+               tappable while giving back real space on a phone screen. */
+            .case-tab { font-size: var(--fs-caption); min-height: 38px; padding: 5px var(--s-2); }
             .case-tab small { font-size: var(--fs-micro); }
+            .case-desc { padding: 5px var(--s-2); }
+            .info-box, .warning-box { padding: 6px var(--s-2); }
+            .ratio-row { padding-top: 0; }
 
             .input-header { flex-direction: column; align-items: stretch; }
             .input-value-wrapper { width: 100%; }
             .input-value-wrapper .number-input { flex: 1 1 auto; width: auto; min-width: 0; }
 
-            .vector-container { height: 200px; }
+            .vector-container { height: 160px; }
 
-            /* Every control clears 44x44 on touch (design.md §12) — the base
-               rules above are tightened for desktop/mouse use, where WCAG's
-               24px minimum (not the 44px touch guideline) applies. */
-            .unit-btn, .speed-btn { min-height: 44px; padding: 10px var(--s-3); }
-            .toggle-btn { min-height: 40px; }
+            .unit-btn, .speed-btn { min-height: 34px; padding: 6px var(--s-2); }
+            .toggle-btn { min-height: 30px; }
             .lang-toggle .unit-btn { min-width: 52px; }
-            .number-input { min-height: 44px; padding: 10px var(--s-3); }
-            .range-slider { height: 44px; }
+            .number-input { min-height: 34px; padding: 6px var(--s-2); }
+            .range-slider { height: 30px; }
 
-            .playback-controls { padding: var(--s-2); gap: var(--s-2); }
+            .playback-controls { padding: 6px var(--s-2); gap: 6px; }
             .btn-group { width: 100%; }
             .btn-group .btn { flex: 1 1 calc(50% - var(--s-2)); }
-            .btn { min-height: 44px; padding: 10px var(--s-3); }
-            .btn-icon { width: 44px; min-height: 44px; }
+            .btn { min-height: 34px; padding: 6px var(--s-2); }
+            .btn-icon { width: 34px; min-height: 34px; }
             .btn-compare-label { display: none; }
             .speed-multiplier { width: 100%; }
             .speed-btn { flex: 1 1 0; }
             .infinite-warning { width: 100%; }
 
             .readouts-grid { grid-template-columns: 1fr 1fr; gap: var(--s-2); }
-            .readout-box { padding: var(--s-3); }
-            .readout-value { font-size: var(--fs-h3); }
+            .readout-box { padding: 8px 10px; }
+            .readout-value { font-size: var(--fs-body); }
 
             .math-panel-header { flex-direction: column; gap: var(--s-2); }
 
-            .tutorial-tooltip { padding: var(--s-3) var(--s-4); }
+            .tutorial-tooltip { padding: var(--s-3); }
         }
 
         @media (max-width: 330px) {
@@ -1369,16 +1364,13 @@
     <!-- ========== HEADER ========== -->
     <header>
         <div class="header-left">
-            <div class="header-icon" aria-hidden="true">
-                <svg class="icon icon-lg" viewBox="0 0 24 24"><path d="M22 18H2a4 4 0 0 0 4 4h12a4 4 0 0 0 4-4Z"/><path d="M21 14 10 2 3 14h18Z"/><path d="M10 2v16"/></svg>
-            </div>
+            <img class="header-logo" src="https://cdn.10minuteschool.com/images/svg/Origin%20Labs%20Black.svg" alt="Origin Labs" loading="lazy">
             <div class="header-title">
                 <h1><span data-i18n="header.title">River Crossing Simulator</span>
                     <span class="hsc-badge" data-i18n="header.badge">HSC Physics</span>
                 </h1>
                 <p data-i18n="header.subtitle">Interactive relative-velocity tool &mdash; Chapter 2: Vectors</p>
             </div>
-            <img class="brand-logo" src="https://cdn.10minuteschool.com/images/svg/Origin%20Labs%20Black.svg" alt="Origin Labs" loading="lazy">
         </div>
         <div class="header-right">
             <button id="tutorial-btn" class="btn" onclick="startTutorial()">
@@ -1403,134 +1395,7 @@
     <!-- ========== MAIN DASHBOARD ========== -->
     <div class="dashboard-grid">
 
-        <!-- LEFT: Controls & Vector Diagram -->
-        <div class="card" style="display:flex;flex-direction:column;gap:0.85rem;">
-
-            <div class="card-title">
-                <span data-i18n="card.paramsTitle">Parameters &amp; Case</span>
-                <div class="card-title-icon" aria-hidden="true">
-                    <svg class="icon" viewBox="0 0 24 24"><line x1="21" x2="14" y1="4" y2="4"/><line x1="10" x2="3" y1="4" y2="4"/><line x1="21" x2="12" y1="12" y2="12"/><line x1="8" x2="3" y1="12" y2="12"/><line x1="21" x2="16" y1="20" y2="20"/><line x1="12" x2="3" y1="20" y2="20"/><line x1="14" x2="14" y1="2" y2="6"/><line x1="8" x2="8" y1="10" y2="14"/><line x1="16" x2="16" y1="18" y2="22"/></svg>
-                </div>
-            </div>
-
-            <!-- Case Selector -->
-            <div class="input-group">
-                <span class="field-legend" data-i18n="selectCase">Select Problem Case</span>
-                <div class="case-selector" role="group" aria-labelledby="case-desc">
-                    <button id="case-a" class="case-tab active" onclick="setCase('A')" data-i18n-tooltip="case.a.tooltip" data-tooltip="Case A: The boat heads straight across for minimum crossing time. (সবচেয়ে কম সময়ে পারাপার)"><span data-i18n="case.a.title">Case A</span><small data-i18n="case.a.sub">Minimum Time</small></button>
-                    <button id="case-b" class="case-tab" onclick="setCase('B')" data-i18n-tooltip="case.b.tooltip" data-tooltip="Case B: The boat fights the current to go perfectly straight. (ন্যূনতম দূরত্বে সোজাসুজি পারাপার)"><span data-i18n="case.b.title">Case B</span><span id="case-b-warn" class="case-warn-flag"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg></span><small data-i18n="case.b.sub">Shortest Path</small></button>
-                    <button id="case-d" class="case-tab" onclick="setCase('D')" data-i18n-tooltip="case.d.tooltip" data-tooltip="Case D: Set any boat heading angle from the perpendicular or current direction. (যেকোনো কোণ)"><span data-i18n="case.d.title">Case D</span><small data-i18n="case.d.sub">Custom Angle</small></button>
-                    <button id="case-e" class="case-tab" onclick="setCase('E')" data-i18n-tooltip="case.e.tooltip" data-tooltip="Case E: Locks boat speed to 2x current speed and heading to 120° from current. (HSC স্পেশাল ১২০° কেস)"><span data-i18n="case.e.title">Case E</span><small data-i18n="case.e.sub">120° Spotlight</small></button>
-                </div>
-                <!-- Always-visible description of the selected case (touch devices cannot hover) -->
-                <p id="case-desc" class="case-desc" aria-live="polite"></p>
-            </div>
-
-            <!-- Impossible Case B banner -->
-            <div id="impossible-banner" class="warning-box" role="alert">
-                <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg>
-                <span data-i18n="banner.impossible"><strong>Impossible Case B:</strong> Boat speed v<sub>b</sub> is less than river speed v<sub>r</sub>. Zero drift cannot be achieved — increase v<sub>b</sub> or decrease v<sub>r</sub>.</span>
-            </div>
-
-            <!-- Case E Spotlight Banner -->
-            <div id="spotlight-banner" class="info-box" style="display: none;">
-                <div class="info-box-title">
-                    <svg class="icon icon-sm icon-fill" viewBox="0 0 24 24" aria-hidden="true"><path d="M11.5 2.3a.5.5 0 0 1 1 0l2.3 4.7a2 2 0 0 0 1.6 1.1l5.2.8a.5.5 0 0 1 .3.9l-3.8 3.6a2 2 0 0 0-.6 1.9l.9 5.1a.5.5 0 0 1-.8.6l-4.6-2.4a2 2 0 0 0-2 0L6.4 21a.5.5 0 0 1-.8-.6l.9-5.1a2 2 0 0 0-.6-1.9L2.2 9.8a.5.5 0 0 1 .3-.9l5.2-.8a2 2 0 0 0 1.6-1.1z"/></svg>
-                    <span data-i18n="banner.spotlightTitle">120° Spotlight Case</span>
-                </div>
-                <div style="font-size: var(--fs-caption);" data-i18n="banner.spotlightBody">
-                    In Bangladeshi HSC problems, this 120° case is very commonly asked.
-                    The angle is measured from the direction the river is flowing (φ = 120°).
-                    Boat speed is locked to 2 × current speed (v<sub>b</sub> = 2v<sub>r</sub>).
-                    Zero drift is guaranteed. Formula: φ = cos⁻¹(−u/v).
-                </div>
-            </div>
-
-            <!-- vb slider -->
-            <div class="input-group" id="group-vb">
-                <div class="input-header">
-                    <label class="input-label" for="num-vb">
-                        <span class="color-swatch swatch-vb"></span>
-                        <span data-i18n="input.vb">Boat Speed (v<sub>b</sub>)</span>
-                    </label>
-                    <div class="input-value-wrapper">
-                        <input type="number" id="num-vb" class="number-input" step="0.1" inputmode="decimal" onchange="updateFromNum('vb',this.value)">
-                        <span class="unit-label text-vb-unit">m/s</span>
-                    </div>
-                </div>
-                <input type="range" id="slider-vb" class="range-slider" aria-label="Boat speed" oninput="updateFromSlider('vb',this.value)">
-            </div>
-
-            <!-- vr slider -->
-            <div class="input-group" id="group-vr">
-                <div class="input-header">
-                    <label class="input-label" for="num-vr">
-                        <span class="color-swatch swatch-vr"></span>
-                        <span data-i18n="input.vr">River Current Speed (v<sub>r</sub>)</span>
-                    </label>
-                    <div class="input-value-wrapper">
-                        <input type="number" id="num-vr" class="number-input" step="0.1" inputmode="decimal" onchange="updateFromNum('vr',this.value)">
-                        <span class="unit-label text-vr-unit">m/s</span>
-                    </div>
-                </div>
-                <input type="range" id="slider-vr" class="range-slider" aria-label="River current speed" oninput="updateFromSlider('vr',this.value)">
-            </div>
-
-            <!-- Speed Ratio Indicator -->
-            <div id="ratio-badge-container" class="ratio-row">
-                <span class="input-label" data-i18n="ratio.label">Speed Ratio:</span>
-                <span id="speed-ratio-badge" class="hsc-badge">v<sub>b</sub> / v<sub>r</sub> = 1.33</span>
-            </div>
-
-            <!-- d slider -->
-            <div class="input-group" id="group-d">
-                <div class="input-header">
-                    <label class="input-label" for="num-d">
-                        <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M2 6c.6.5 1.2 1 2.5 1C7 7 7 5 9.5 5c2.6 0 2.4 2 5 2 2.5 0 2.5-2 5-2 1.3 0 1.9.5 2.5 1"/><path d="M2 12c.6.5 1.2 1 2.5 1 2.5 0 2.5-2 5-2 2.6 0 2.4 2 5 2 2.5 0 2.5-2 5-2 1.3 0 1.9.5 2.5 1"/><path d="M2 18c.6.5 1.2 1 2.5 1 2.5 0 2.5-2 5-2 2.6 0 2.4 2 5 2 2.5 0 2.5-2 5-2 1.3 0 1.9.5 2.5 1"/></svg>
-                        <span data-i18n="input.d">River Width (d)</span>
-                    </label>
-                    <div class="input-value-wrapper">
-                        <input type="number" id="num-d" class="number-input" step="1" inputmode="decimal" onchange="updateFromNum('d',this.value)">
-                        <span class="unit-label text-d-unit">m</span>
-                    </div>
-                </div>
-                <input type="range" id="slider-d" class="range-slider" aria-label="River width" oninput="updateFromSlider('d',this.value)">
-            </div>
-
-            <!-- custom angle control (Case D only) -->
-            <div class="input-group" id="custom-angle-control">
-                <div class="input-header">
-                    <label class="input-label" for="num-theta">
-                        <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M21.3 15.3a2.4 2.4 0 0 1 0 3.4l-2.6 2.6a2.4 2.4 0 0 1-3.4 0L2.7 8.7a2.4 2.4 0 0 1 0-3.4l2.6-2.6a2.4 2.4 0 0 1 3.4 0Z"/><path d="m14.5 12.5 2-2"/><path d="m11.5 9.5 2-2"/><path d="m8.5 6.5 2-2"/><path d="m17.5 15.5 2-2"/></svg>
-                        <span data-i18n="input.theta">Heading Angle</span>
-                    </label>
-                    <div class="angle-convention-toggle">
-                        <button id="toggle-angle-perp" class="toggle-btn active" onclick="setAngleConvention('perpendicular')" data-i18n="toggle.perp">θ (Perp)</button>
-                        <button id="toggle-angle-curr" class="toggle-btn" onclick="setAngleConvention('current')" data-i18n="toggle.curr">φ (Current)</button>
-                    </div>
-                    <div class="input-value-wrapper">
-                        <input type="number" id="num-theta" class="number-input" step="1" inputmode="numeric" onchange="updateFromNum('theta',this.value)">
-                        <span class="unit-label">&deg;</span>
-                    </div>
-                </div>
-                <input type="range" id="slider-theta" class="range-slider" aria-label="Heading angle" oninput="updateFromSlider('theta',this.value)">
-                <div class="angle-hint">
-                    <span id="angle-hint-perp">θ (perp): 0°</span>
-                    <span id="angle-hint-curr">φ (curr): 90°</span>
-                </div>
-            </div>
-
-            <!-- Vector Diagram -->
-            <div class="input-group">
-                <span class="field-legend" data-i18n="vectorDiagram">Relative Velocity Vector Diagram</span>
-                <div class="vector-container">
-                    <svg id="vector-svg" class="vector-svg" viewBox="0 0 260 164" role="img" aria-label="Relative velocity vector diagram"></svg>
-                </div>
-            </div>
-
-        </div><!-- /left card -->
-
-        <!-- RIGHT: Simulation + Readouts -->
+        <!-- LEFT: Simulation + Readouts -->
         <div class="card simulation-card">
 
             <div class="card-title">
@@ -1606,6 +1471,133 @@
                 <div class="readout-box">
                     <span class="readout-label" data-i18n="readout.L">Path Length (L)</span>
                     <span class="readout-value" id="val-L">—</span>
+                </div>
+            </div>
+
+        </div><!-- /left card -->
+
+        <!-- RIGHT: Controls & Vector Diagram -->
+        <div class="card params-card">
+
+            <div class="card-title">
+                <span data-i18n="card.paramsTitle">Parameters &amp; Case</span>
+                <div class="card-title-icon" aria-hidden="true">
+                    <svg class="icon" viewBox="0 0 24 24"><line x1="21" x2="14" y1="4" y2="4"/><line x1="10" x2="3" y1="4" y2="4"/><line x1="21" x2="12" y1="12" y2="12"/><line x1="8" x2="3" y1="12" y2="12"/><line x1="21" x2="16" y1="20" y2="20"/><line x1="12" x2="3" y1="20" y2="20"/><line x1="14" x2="14" y1="2" y2="6"/><line x1="8" x2="8" y1="10" y2="14"/><line x1="16" x2="16" y1="18" y2="22"/></svg>
+                </div>
+            </div>
+
+            <!-- vb slider -->
+            <div class="input-group" id="group-vb">
+                <div class="input-header">
+                    <label class="input-label" for="num-vb">
+                        <span class="color-swatch swatch-vb"></span>
+                        <span data-i18n="input.vb">Boat Speed (v<sub>b</sub>)</span>
+                    </label>
+                    <div class="input-value-wrapper">
+                        <input type="number" id="num-vb" class="number-input" step="0.1" inputmode="decimal" onchange="updateFromNum('vb',this.value)">
+                        <span class="unit-label text-vb-unit">m/s</span>
+                    </div>
+                </div>
+                <input type="range" id="slider-vb" class="range-slider" aria-label="Boat speed" oninput="updateFromSlider('vb',this.value)">
+            </div>
+
+            <!-- vr slider -->
+            <div class="input-group" id="group-vr">
+                <div class="input-header">
+                    <label class="input-label" for="num-vr">
+                        <span class="color-swatch swatch-vr"></span>
+                        <span data-i18n="input.vr">River Current Speed (v<sub>r</sub>)</span>
+                    </label>
+                    <div class="input-value-wrapper">
+                        <input type="number" id="num-vr" class="number-input" step="0.1" inputmode="decimal" onchange="updateFromNum('vr',this.value)">
+                        <span class="unit-label text-vr-unit">m/s</span>
+                    </div>
+                </div>
+                <input type="range" id="slider-vr" class="range-slider" aria-label="River current speed" oninput="updateFromSlider('vr',this.value)">
+            </div>
+
+            <!-- Speed Ratio Indicator -->
+            <div id="ratio-badge-container" class="ratio-row">
+                <span class="input-label" data-i18n="ratio.label">Speed Ratio:</span>
+                <span id="speed-ratio-badge" class="hsc-badge">v<sub>b</sub> / v<sub>r</sub> = 1.33</span>
+            </div>
+
+            <!-- d slider -->
+            <div class="input-group" id="group-d">
+                <div class="input-header">
+                    <label class="input-label" for="num-d">
+                        <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M2 6c.6.5 1.2 1 2.5 1C7 7 7 5 9.5 5c2.6 0 2.4 2 5 2 2.5 0 2.5-2 5-2 1.3 0 1.9.5 2.5 1"/><path d="M2 12c.6.5 1.2 1 2.5 1 2.5 0 2.5-2 5-2 2.6 0 2.4 2 5 2 2.5 0 2.5-2 5-2 1.3 0 1.9.5 2.5 1"/><path d="M2 18c.6.5 1.2 1 2.5 1 2.5 0 2.5-2 5-2 2.6 0 2.4 2 5 2 2.5 0 2.5-2 5-2 1.3 0 1.9.5 2.5 1"/></svg>
+                        <span data-i18n="input.d">River Width (d)</span>
+                    </label>
+                    <div class="input-value-wrapper">
+                        <input type="number" id="num-d" class="number-input" step="1" inputmode="decimal" onchange="updateFromNum('d',this.value)">
+                        <span class="unit-label text-d-unit">m</span>
+                    </div>
+                </div>
+                <input type="range" id="slider-d" class="range-slider" aria-label="River width" oninput="updateFromSlider('d',this.value)">
+            </div>
+
+            <!-- Vector Diagram -->
+            <div class="input-group">
+                <span class="field-legend" data-i18n="vectorDiagram">Relative Velocity Vector Diagram</span>
+                <div class="vector-container">
+                    <svg id="vector-svg" class="vector-svg" viewBox="0 0 260 164" role="img" aria-label="Relative velocity vector diagram"></svg>
+                </div>
+            </div>
+
+            <!-- Case Selector -->
+            <div class="input-group">
+                <span class="field-legend" data-i18n="selectCase">Select Problem Case</span>
+                <div class="case-selector" role="group" aria-labelledby="case-desc">
+                    <button id="case-a" class="case-tab active" onclick="setCase('A')" data-i18n-tooltip="case.a.tooltip" data-tooltip="Case A: The boat heads straight across for minimum crossing time. (সবচেয়ে কম সময়ে পারাপার)"><span data-i18n="case.a.title">Case A</span><small data-i18n="case.a.sub">Minimum Time</small></button>
+                    <button id="case-b" class="case-tab" onclick="setCase('B')" data-i18n-tooltip="case.b.tooltip" data-tooltip="Case B: The boat fights the current to go perfectly straight. (ন্যূনতম দূরত্বে সোজাসুজি পারাপার)"><span data-i18n="case.b.title">Case B</span><span id="case-b-warn" class="case-warn-flag"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg></span><small data-i18n="case.b.sub">Shortest Path</small></button>
+                    <button id="case-d" class="case-tab" onclick="setCase('D')" data-i18n-tooltip="case.d.tooltip" data-tooltip="Case D: Set any boat heading angle from the perpendicular or current direction. (যেকোনো কোণ)"><span data-i18n="case.d.title">Case D</span><small data-i18n="case.d.sub">Custom Angle</small></button>
+                    <button id="case-e" class="case-tab" onclick="setCase('E')" data-i18n-tooltip="case.e.tooltip" data-tooltip="Case E: Locks boat speed to 2x current speed and heading to 120° from current. (HSC স্পেশাল ১২০° কেস)"><span data-i18n="case.e.title">Case E</span><small data-i18n="case.e.sub">120° Spotlight</small></button>
+                </div>
+                <!-- Always-visible description of the selected case (touch devices cannot hover) -->
+                <p id="case-desc" class="case-desc" aria-live="polite"></p>
+            </div>
+
+            <!-- Impossible Case B banner -->
+            <div id="impossible-banner" class="warning-box" role="alert">
+                <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg>
+                <span data-i18n="banner.impossible"><strong>Impossible Case B:</strong> Boat speed v<sub>b</sub> is less than river speed v<sub>r</sub>. Zero drift cannot be achieved — increase v<sub>b</sub> or decrease v<sub>r</sub>.</span>
+            </div>
+
+            <!-- Case E Spotlight Banner -->
+            <div id="spotlight-banner" class="info-box" style="display: none;">
+                <div class="info-box-title">
+                    <svg class="icon icon-sm icon-fill" viewBox="0 0 24 24" aria-hidden="true"><path d="M11.5 2.3a.5.5 0 0 1 1 0l2.3 4.7a2 2 0 0 0 1.6 1.1l5.2.8a.5.5 0 0 1 .3.9l-3.8 3.6a2 2 0 0 0-.6 1.9l.9 5.1a.5.5 0 0 1-.8.6l-4.6-2.4a2 2 0 0 0-2 0L6.4 21a.5.5 0 0 1-.8-.6l.9-5.1a2 2 0 0 0-.6-1.9L2.2 9.8a.5.5 0 0 1 .3-.9l5.2-.8a2 2 0 0 0 1.6-1.1z"/></svg>
+                    <span data-i18n="banner.spotlightTitle">120° Spotlight Case</span>
+                </div>
+                <div style="font-size: var(--fs-caption);" data-i18n="banner.spotlightBody">
+                    In Bangladeshi HSC problems, this 120° case is very commonly asked.
+                    The angle is measured from the direction the river is flowing (φ = 120°).
+                    Boat speed is locked to 2 × current speed (v<sub>b</sub> = 2v<sub>r</sub>).
+                    Zero drift is guaranteed. Formula: φ = cos⁻¹(−u/v).
+                </div>
+            </div>
+
+            <!-- custom angle control (Case D only) -->
+            <div class="input-group" id="custom-angle-control">
+                <div class="input-header">
+                    <label class="input-label" for="num-theta">
+                        <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M21.3 15.3a2.4 2.4 0 0 1 0 3.4l-2.6 2.6a2.4 2.4 0 0 1-3.4 0L2.7 8.7a2.4 2.4 0 0 1 0-3.4l2.6-2.6a2.4 2.4 0 0 1 3.4 0Z"/><path d="m14.5 12.5 2-2"/><path d="m11.5 9.5 2-2"/><path d="m8.5 6.5 2-2"/><path d="m17.5 15.5 2-2"/></svg>
+                        <span data-i18n="input.theta">Heading Angle</span>
+                    </label>
+                    <div class="angle-convention-toggle">
+                        <button id="toggle-angle-perp" class="toggle-btn active" onclick="setAngleConvention('perpendicular')" data-i18n="toggle.perp">θ (Perp)</button>
+                        <button id="toggle-angle-curr" class="toggle-btn" onclick="setAngleConvention('current')" data-i18n="toggle.curr">φ (Current)</button>
+                    </div>
+                    <div class="input-value-wrapper">
+                        <input type="number" id="num-theta" class="number-input" step="1" inputmode="numeric" onchange="updateFromNum('theta',this.value)">
+                        <span class="unit-label">&deg;</span>
+                    </div>
+                </div>
+                <input type="range" id="slider-theta" class="range-slider" aria-label="Heading angle" oninput="updateFromSlider('theta',this.value)">
+                <div class="angle-hint">
+                    <span id="angle-hint-perp">θ (perp): 0°</span>
+                    <span id="angle-hint-curr">φ (curr): 90°</span>
                 </div>
             </div>
 
