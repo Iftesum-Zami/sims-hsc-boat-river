@@ -440,11 +440,15 @@
             display: grid;
             grid-template-columns: 1fr 384px;
             gap: var(--s-4);
-            /* Stretch (not start) so both columns share one row height — the
-               right column usually has more controls and is naturally taller;
-               the shorter left card is pulled down to match instead of
-               leaving a gap under it. */
-            align-items: stretch;
+            /* Not stretch: forcing both columns to one row height meant
+               injecting blank space into whichever card was naturally
+               shorter. Parameters & Case is now trimmed tight enough that
+               in the common case (no banner, no extra angle control) the
+               two columns are within ~10px of each other anyway; letting
+               each size to its own content avoids a manufactured gap for
+               the less common cases where Parameters genuinely has more
+               to show (a warning banner, the custom-angle control, etc). */
+            align-items: start;
         }
         .dashboard-grid > * { min-width: 0; }
 
@@ -500,8 +504,8 @@
 
         .case-tab {
             min-width: 0;
-            min-height: 44px;
-            padding: 8px var(--s-2);
+            min-height: 40px;
+            padding: 6px var(--s-2);
             border: 1px solid var(--border);
             background: var(--surface-card);
             border-radius: 10px;
@@ -547,7 +551,7 @@
             background: var(--bg-muted);
             border: 1px solid var(--border);
             border-radius: var(--r-md);
-            padding: 8px var(--s-3);
+            padding: 6px var(--s-3);
             font-size: var(--fs-body-sm);
             color: var(--fg-2);
             line-height: var(--lh-normal);
@@ -560,10 +564,10 @@
             background: var(--surface-info);
             border: 1px solid var(--info-soft);
             border-radius: var(--r-md);
-            padding: 10px var(--s-3);
+            padding: 8px var(--s-3);
             color: var(--gray-800);
             font-size: var(--fs-body-sm);
-            line-height: var(--lh-normal);
+            line-height: 1.4;
             display: flex;
             flex-direction: column;
             gap: var(--s-1);
@@ -585,10 +589,10 @@
             background: #FFF5F6;
             border: 1px solid rgba(232, 0, 29, 0.35);
             border-radius: var(--r-md);
-            padding: 10px var(--s-3);
+            padding: 8px var(--s-3);
             color: var(--ten-red-dark);
             font-size: var(--fs-body-sm);
-            line-height: var(--lh-normal);
+            line-height: 1.4;
         }
         .warning-box.active { display: flex; }
         .warning-box strong { color: var(--ten-red); }
@@ -753,7 +757,7 @@
             border: 1px solid var(--border);
             border-radius: var(--r-md);
             padding: var(--s-2);
-            height: 210px;
+            height: 180px;
             display: flex;
             justify-content: center;
             align-items: center;
@@ -773,7 +777,7 @@
         .params-card {
             display: flex;
             flex-direction: column;
-            gap: 0.85rem;
+            gap: 0.45rem;
         }
 
         .canvas-container {
@@ -832,10 +836,6 @@
             border: 1px solid var(--border);
             border-radius: var(--r-md);
             padding: var(--s-2);
-            /* Shares the leftover-height gap with .readouts-grid below (see
-               its comment) — splitting one large gap into two smaller ones
-               reads as intentional spacing rather than a blank void. */
-            margin-top: auto;
         }
 
         .btn-group { display: flex; gap: var(--s-2); flex-wrap: wrap; }
@@ -916,12 +916,6 @@
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(168px, 1fr));
             gap: var(--s-2);
-            /* .simulation-card is stretched to match the taller Parameters
-               column (see .dashboard-grid). Flexbox splits leftover height
-               evenly between every auto margin in the column — this one and
-               .playback-controls' — so it becomes two modest gaps instead
-               of one large one, while the card bottoms still line up. */
-            margin-top: auto;
         }
 
         .readout-box {
