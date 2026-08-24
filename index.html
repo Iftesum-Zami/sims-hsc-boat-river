@@ -1863,10 +1863,6 @@ const I18N = {
         'canvas.badgeZeroDrift': 'ZERO DRIFT — straight path',
         'canvas.badgeCompleted': 'CROSSING COMPLETED',
         'canvas.headingEqualsPath': 'Heading = Actual path (no drift)',
-        'canvas.legendTitle': 'Current Speed Key',
-        'canvas.legendStatic': 'Static',
-        'canvas.legendSlow': 'Slow',
-        'canvas.legendFast': 'Fast',
 
         'caseWord': 'Case',
         'caseName.A': 'Min Time',
@@ -2008,10 +2004,6 @@ const I18N = {
         'canvas.badgeZeroDrift': 'শূন্য সরণ — সরাসরি পথ',
         'canvas.badgeCompleted': 'পারাপার সম্পন্ন',
         'canvas.headingEqualsPath': 'দিক = প্রকৃত পথ (সরণ নেই)',
-        'canvas.legendTitle': 'স্রোতের গতি চাবি',
-        'canvas.legendStatic': 'স্থির',
-        'canvas.legendSlow': 'ধীর',
-        'canvas.legendFast': 'দ্রুত',
 
         'caseWord': 'কেস',
         'caseName.A': 'সর্বনিম্ন সময়',
@@ -3002,41 +2994,6 @@ function animationLoop(ts) {
 /* =============================================================
    CANVAS RENDERING
    ============================================================= */
-function drawSpeedLegend(ctx, x, y) {
-    const isLight = isLightTheme();
-
-    ctx.save();
-    ctx.fillStyle = isLight ? 'rgba(255, 255, 255, 0.92)' : 'rgba(11, 17, 23, 0.88)';
-    ctx.strokeStyle = isLight ? '#E5E7EB' : 'rgba(255, 255, 255, 0.14)';
-    ctx.lineWidth = 1;
-    ctx.beginPath();
-    ctx.roundRect(x, y, 140, 58, 6);
-    ctx.fill();
-    ctx.stroke();
-
-    ctx.fillStyle = isLight ? '#111827' : '#F3F4F6';
-    ctx.font = 'bold 9px Inter, "Hind Siliguri", sans-serif';
-    ctx.fillText(t('canvas.legendTitle'), x + 10, y + 14);
-
-    const levels = [
-        { label: '0%', val: '0', speedText: t('canvas.legendStatic'), color: '#6B7280' },
-        { label: '50%', val: '5', speedText: t('canvas.legendSlow'), color: 'rgba(234, 88, 12, 0.55)' },
-        { label: '100%', val: '10', speedText: t('canvas.legendFast'), color: '#EA580C' }
-    ];
-
-    levels.forEach((lvl, idx) => {
-        const lx = x + 10 + idx * 42;
-        const ly = y + 25;
-        ctx.fillStyle = lvl.color;
-        ctx.fillRect(lx, ly, 15, 3);
-        
-        ctx.font = '8px Inter, "Hind Siliguri", sans-serif';
-        ctx.fillStyle = '#6B7280';
-        ctx.fillText(lvl.label, lx, ly + 12);
-        ctx.fillText(lvl.speedText, lx, ly + 21);
-    });
-    ctx.restore();
-}
 
 function drawRiverSection(res, yOffset, sectionHeight, caseLabel, boatColor, animProgress, wakePts, isCompare = false) {
     const d = res.d;
@@ -3608,13 +3565,6 @@ function drawFrame() {
         if (state.activeCase === 'A') pathColor = cssColor('--color-accent', '#1CAB55');
         
         drawRiverSection(res, 0, canvas.height, `Case ${state.activeCase}`, pathColor, state.animProgress, state.wakePts, false);
-    }
-
-    // Draw Speed Legend once at the bottom right corner.
-    // It is a fixed 140x58 box, so it is dropped on narrow (phone) canvases
-    // rather than covering a third of the river.
-    if (canvas.width >= 460) {
-        drawSpeedLegend(ctx, canvas.width - 150, canvas.height - 65);
     }
 }
 
