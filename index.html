@@ -317,12 +317,12 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            gap: var(--s-3);
+            gap: var(--s-2);
             flex-wrap: wrap;
             background: var(--surface-card);
             border: 1px solid var(--border);
             border-radius: var(--r-xl);
-            padding: var(--s-3) var(--s-4);
+            padding: var(--s-2) var(--s-3);
         }
 
         .header-left { display: flex; align-items: center; gap: var(--s-3); min-width: 0; }
@@ -352,7 +352,7 @@
             margin-top: 2px;
         }
 
-        .header-right { display: flex; align-items: center; flex-wrap: wrap; gap: var(--s-2); }
+        .header-right { display: flex; align-items: center; flex-wrap: wrap; gap: var(--s-1); }
 
         /* Eyebrow pill — red on translucent red (design.md §8.5) */
         .hsc-badge {
@@ -383,6 +383,14 @@
         html.dark-theme .icon-theme-light { display: none; }
         html.dark-theme .icon-theme-dark { display: block; }
 
+        /* Same "switch to" convention for the text label the button carries
+           into the mobile menu drawer — hidden entirely while the button
+           sits in the compact icon-only header. */
+        .theme-toggle-text { display: none; }
+        .mobile-menu-section .theme-toggle-text-light { display: inline; }
+        html.dark-theme .mobile-menu-section .theme-toggle-text-light { display: none; }
+        html.dark-theme .mobile-menu-section .theme-toggle-text-dark { display: inline; }
+
         /* =============================================================
            SEGMENTED CONTROLS (unit / language / angle / speed)
            Capsule tabs — design.md §8.6
@@ -392,7 +400,7 @@
         .speed-multiplier {
             display: flex;
             background: var(--bg-muted);
-            padding: 3px;
+            padding: 2px;
             border-radius: var(--r-pill);
             border: 1px solid var(--border);
             gap: 2px;
@@ -412,9 +420,9 @@
             transition: background var(--dur-base) var(--ease-out),
                         color      var(--dur-base) var(--ease-out);
         }
-        .unit-btn  { font-size: var(--fs-body-sm); padding: 8px 14px; min-height: 36px; }
-        .toggle-btn { font-size: var(--fs-caption); padding: 6px 12px; min-height: 32px; }
-        .speed-btn { font-size: var(--fs-body-sm); padding: 8px 14px; min-height: 36px;
+        .unit-btn  { font-size: var(--fs-body-sm); padding: 5px 10px; min-height: 30px; }
+        .toggle-btn { font-size: var(--fs-caption); padding: 4px 10px; min-height: 28px; }
+        .speed-btn { font-size: var(--fs-body-sm); padding: 5px 10px; min-height: 30px;
                      font-variant-numeric: tabular-nums; }
 
         .unit-btn.active,
@@ -558,6 +566,92 @@
         }
 
         /* =============================================================
+           MOBILE MENU DRAWER — houses lang/unit toggles + case selector
+           on narrow screens (design.md §6 mobile density pass)
+           ============================================================= */
+        #menu-toggle { display: none; }
+
+        .mobile-menu-backdrop {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(17, 24, 39, 0.55);
+            z-index: 9500;
+            opacity: 0;
+            transition: opacity var(--dur-base) var(--ease-out);
+        }
+        .mobile-menu-backdrop.open { display: block; opacity: 1; }
+
+        .mobile-menu-drawer {
+            display: flex;
+            flex-direction: column;
+            gap: var(--s-4);
+            position: fixed;
+            top: 0;
+            right: 0;
+            height: 100%;
+            width: min(300px, 85vw);
+            background: var(--surface-card);
+            border-left: 1px solid var(--border);
+            box-shadow: -8px 0 24px rgba(0, 0, 0, 0.18);
+            z-index: 9501;
+            padding: var(--s-4);
+            overflow-y: auto;
+            transform: translateX(100%);
+            transition: transform var(--dur-base) var(--ease-out);
+        }
+        .mobile-menu-drawer.open { transform: translateX(0); }
+
+        .mobile-menu-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding-bottom: var(--s-3);
+            border-bottom: 1px solid var(--border);
+        }
+        .mobile-menu-header h2 {
+            font-size: var(--fs-body);
+            font-weight: 700;
+            color: var(--fg-1);
+        }
+        .mobile-menu-close {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 30px;
+            height: 30px;
+            border: 1px solid var(--border-strong);
+            border-radius: var(--r-sm);
+            background: var(--surface-card);
+            color: var(--fg-1);
+            cursor: pointer;
+        }
+        .mobile-menu-close .icon { width: 16px; height: 16px; }
+
+        .mobile-menu-section { display: flex; flex-direction: column; gap: var(--s-2); }
+        .mobile-menu-section .unit-toggle { width: 100%; }
+        .mobile-menu-section .unit-toggle .unit-btn { flex: 1 1 0; min-width: 0; }
+        /* A 2-up grid is too cramped at drawer width — list the four cases
+           in a single column instead. */
+        .mobile-menu-section .case-selector { grid-template-columns: 1fr; }
+
+        /* Theme toggle becomes a full-width labelled row instead of the
+           compact square icon button it is in the header. */
+        .mobile-menu-section #theme-toggle {
+            width: 100%;
+            justify-content: flex-start;
+            gap: var(--s-2);
+            padding: 8px var(--s-3);
+            min-height: 40px;
+        }
+
+        /* Only ever shown at the mobile breakpoint; keeps the drawer from
+           ever being reachable at desktop even if JS mis-times a resize. */
+        @media (min-width: 641px) {
+            .mobile-menu-backdrop, .mobile-menu-drawer { display: none !important; }
+        }
+
+        /* =============================================================
            INFO / WARNING BOXES
            ============================================================= */
         .info-box {
@@ -610,7 +704,7 @@
         .input-group {
             display: flex;
             flex-direction: column;
-            gap: var(--s-2);
+            gap: var(--s-1);
         }
 
         .input-header {
@@ -685,7 +779,7 @@
             -webkit-appearance: none;
             appearance: none;
             width: 100%;
-            height: 32px;
+            height: 26px;
             background: transparent;
             outline: none;
             cursor: pointer;
@@ -777,7 +871,7 @@
         .params-card {
             display: flex;
             flex-direction: column;
-            gap: 0.45rem;
+            gap: 0.2rem;
         }
 
         .canvas-container {
@@ -823,6 +917,48 @@
             color: var(--ten-white);
         }
 
+        /* Playback-speed gear — YouTube-style settings affordance that only
+           appears on mobile, where the inline speed row (see .speed-multiplier)
+           would otherwise eat into the already-tight playback controls row. */
+        #canvas-speed-btn {
+            display: none;
+            position: absolute;
+            top: var(--s-3); right: var(--s-3);
+            align-items: center;
+            gap: 4px;
+            background: rgba(255, 255, 255, 0.92);
+            border: 1px solid var(--border-strong);
+            border-radius: var(--r-pill);
+            padding: 4px 10px;
+            font-size: var(--fs-micro);
+            font-weight: 700;
+            color: var(--gray-700);
+            cursor: pointer;
+            font-variant-numeric: tabular-nums;
+        }
+        #canvas-speed-btn .icon { width: 14px; height: 14px; }
+        html.dark-theme #canvas-speed-btn {
+            background: rgba(11, 17, 23, 0.85);
+            border-color: rgba(255, 255, 255, 0.18);
+            color: var(--fg-2);
+        }
+        .canvas-speed-popup {
+            display: none;
+            position: absolute;
+            top: calc(var(--s-3) + 34px);
+            right: var(--s-3);
+            width: 148px;
+            background: var(--surface-card);
+            border: 1px solid var(--border-strong);
+            border-radius: var(--r-md);
+            box-shadow: var(--sh-card);
+            padding: 4px;
+            z-index: 10;
+        }
+        .canvas-speed-popup.open { display: block; }
+        .canvas-speed-popup .speed-multiplier { width: 100%; }
+        .canvas-speed-popup .speed-btn { flex: 1 1 0; }
+
         /* =============================================================
            BUTTONS (design.md §8.2) — green is the default action
            ============================================================= */
@@ -844,9 +980,9 @@
             display: inline-flex;
             align-items: center;
             justify-content: center;
-            gap: var(--s-2);
-            min-height: 36px;
-            padding: 7px var(--s-3);
+            gap: var(--s-1);
+            min-height: 30px;
+            padding: 5px var(--s-2);
             border: 1px solid var(--border-strong);
             border-radius: var(--r-sm);
             background: var(--surface-card);
@@ -860,7 +996,7 @@
                         border-color var(--dur-base) var(--ease-out),
                         transform var(--dur-fast) var(--ease-out);
         }
-        .btn .icon { width: 18px; height: 18px; }
+        .btn .icon { width: 16px; height: 16px; }
         .btn:hover:not(:disabled) { background: var(--gray-50); border-color: var(--gray-400); }
         html.dark-theme .btn:hover:not(:disabled) { background: rgba(255, 255, 255, 0.06); }
         .btn:active:not(:disabled) { transform: scale(0.98); }
@@ -884,8 +1020,8 @@
         .btn-toggled:hover:not(:disabled) { background: rgba(232, 0, 29, 0.16); border-color: var(--ten-red); }
 
         .btn-icon {
-            width: 36px;
-            min-height: 36px;
+            width: 30px;
+            min-height: 30px;
             padding: 0;
             justify-content: center;
         }
@@ -1272,12 +1408,13 @@
             .header-title h1 { font-size: var(--fs-body); }
             .header-title p { display: none; }
             .header-logo { height: 24px; }
-            .header-right { width: 100%; gap: var(--s-2); }
-            .header-right .unit-toggle { flex: 1 1 100%; }
-            .header-right .unit-toggle .unit-btn { flex: 1 1 0; min-width: 0; }
-            .header-right .lang-toggle { flex: 0 0 auto; }
-            .header-right .lang-toggle .unit-btn { flex: 0 0 auto; min-width: 52px; }
-            #tutorial-btn { flex: 1 1 auto; }
+            /* Lang/unit toggles and the case selector live in the mobile
+               menu drawer instead (see #menu-toggle), so Tutorial no longer
+               needs to stretch to balance a second row beneath it — the
+               whole row (Tutorial + theme + hamburger) now fits on one line
+               at its natural content width. */
+            .header-right { width: 100%; gap: var(--s-2); justify-content: space-between; }
+            #menu-toggle { display: inline-flex; }
 
             .card, .math-panel {
                 padding: var(--s-3);
@@ -1289,6 +1426,10 @@
             .params-card { gap: 0.5rem; }
             .dashboard-grid { gap: var(--s-3); }
             .input-group { gap: 6px; }
+
+            /* 16:9 leaves the crossing diagram too short to read on a phone
+               — taller ratio trades some card height for legibility. */
+            .canvas-container { aspect-ratio: 1 / 1; }
 
             /* Every control clears a real WCAG 2.5.8 touch minimum (24px),
                but not the roomier 44px used at desktop — the point of this
@@ -1302,27 +1443,30 @@
             .info-box, .warning-box { padding: 6px var(--s-2); }
             .ratio-row { padding-top: 0; }
 
-            .input-header { flex-direction: column; align-items: stretch; }
-            .input-value-wrapper { width: 100%; }
-            .input-value-wrapper .number-input { flex: 1 1 auto; width: auto; min-width: 0; }
-
             .vector-container { height: 160px; }
 
             .unit-btn, .speed-btn { min-height: 34px; padding: 6px var(--s-2); }
             .toggle-btn { min-height: 30px; }
             .lang-toggle .unit-btn { min-width: 52px; }
-            .number-input { min-height: 34px; padding: 6px var(--s-2); }
+            /* Keep label and value on one row (not stacked) — a slider plus
+               its number box is one unit the eye needs to scan together
+               with the simulation above it, and each stacked row used to
+               cost a whole extra line of scroll for no legibility gain. */
+            .number-input { width: 64px; min-height: 34px; padding: 6px var(--s-2); }
             .range-slider { height: 30px; }
 
             .playback-controls { padding: 6px var(--s-2); gap: 6px; }
             .btn-group { width: 100%; }
-            .btn-group .btn { flex: 1 1 calc(50% - var(--s-2)); }
+            .btn-group .btn { flex: 1 1 0; }
             .btn { min-height: 34px; padding: 6px var(--s-2); }
             .btn-icon { width: 34px; min-height: 34px; }
             .btn-compare-label { display: none; }
-            .speed-multiplier { width: 100%; }
-            .speed-btn { flex: 1 1 0; }
             .infinite-warning { width: 100%; }
+
+            /* The inline speed row moves into the canvas gear popup on
+               mobile (see #canvas-speed-btn) instead of sitting in the
+               playback controls — JS relocates the element itself. */
+            #canvas-speed-btn { display: flex; }
 
             .readouts-grid { grid-template-columns: 1fr 1fr; gap: var(--s-2); }
             .readout-box { padding: 8px 10px; }
@@ -1392,14 +1536,19 @@
             <button id="theme-toggle" class="btn btn-icon" onclick="toggleTheme()" aria-label="Toggle light and dark theme">
                 <svg class="icon icon-theme-light" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/></svg>
                 <svg class="icon icon-theme-dark" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/></svg>
+                <span class="theme-toggle-text theme-toggle-text-light" data-i18n="menu.themeLight">Light Mode</span>
+                <span class="theme-toggle-text theme-toggle-text-dark" data-i18n="menu.themeDark">Dark Mode</span>
             </button>
-            <div class="unit-toggle lang-toggle">
+            <button id="menu-toggle" class="btn btn-icon" onclick="openMobileMenu()" aria-label="Open menu" aria-haspopup="true" aria-expanded="false">
+                <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+            </button>
+            <div id="lang-toggle-wrap" class="unit-toggle lang-toggle">
                 <button id="lang-en" class="unit-btn active" onclick="setLang('en')">EN</button>
                 <button id="lang-bn" class="unit-btn" onclick="setLang('bn')">বাং</button>
             </div>
-            <div class="unit-toggle">
-                <button id="unit-metric" class="unit-btn active" onclick="setUnit('metric')"><span data-i18n="unit.metric">Metric</span></button>
-                <button id="unit-practical" class="unit-btn" onclick="setUnit('practical')"><span data-i18n="unit.practical">Practical</span></button>
+            <div id="unit-toggle-wrap" class="unit-toggle">
+                <button id="unit-metric" class="unit-btn active" onclick="setUnit('metric')"><span data-i18n="unit.metric">m/s</span></button>
+                <button id="unit-practical" class="unit-btn" onclick="setUnit('practical')"><span data-i18n="unit.practical">km/h</span></button>
             </div>
         </div>
     </header>
@@ -1426,6 +1575,11 @@
                 <div class="canvas-overlay">
                     <div id="case-badge" class="canvas-badge"></div>
                 </div>
+                <button id="canvas-speed-btn" class="canvas-icon-btn" onclick="toggleSpeedMenu()" aria-label="Playback speed" aria-haspopup="true" aria-expanded="false">
+                    <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+                    <span id="canvas-speed-label">1×</span>
+                </button>
+                <div id="canvas-speed-popup" class="canvas-speed-popup"></div>
             </div>
 
             <!-- Playback Controls -->
@@ -1434,10 +1588,6 @@
                     <button id="btn-play" class="btn btn-primary" onclick="togglePlay()">
                         <svg class="icon icon-fill" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5v14l11-7z"/></svg>
                         <span data-i18n="playback.play">Play</span>
-                    </button>
-                    <button id="btn-pause" class="btn" onclick="pauseAnim()" disabled>
-                        <svg class="icon icon-fill" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>
-                        <span data-i18n="playback.pause">Pause</span>
                     </button>
                     <button class="btn" onclick="resetAnim()">
                         <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
@@ -1454,12 +1604,12 @@
                     <span data-i18n="infiniteWarning">Boat is parallel to bank — crossing time is &infin;</span>
                 </div>
 
-                <div class="speed-multiplier" role="group" aria-label="Playback speed">
+                <div class="speed-multiplier" id="speed-multiplier" role="group" aria-label="Playback speed">
                     <button id="speed-1"  class="speed-btn active" onclick="setSpeed(1)">1×</button>
                     <button id="speed-5"  class="speed-btn" onclick="setSpeed(5)">5×</button>
                     <button id="speed-10" class="speed-btn" onclick="setSpeed(10)">10×</button>
-                    <button id="speed-25" class="speed-btn" onclick="setSpeed(25)">25×</button>
                 </div>
+                <span id="speed-multiplier-anchor" aria-hidden="true"></span>
             </div>
 
             <!-- Readouts -->
@@ -1518,7 +1668,7 @@
                 <div class="input-header">
                     <label class="input-label" for="num-vr">
                         <span class="color-swatch swatch-vr"></span>
-                        <span data-i18n="input.vr">River Current Speed (v<sub>r</sub>)</span>
+                        <span data-i18n="input.vr">Current Speed (v<sub>r</sub>)</span>
                     </label>
                     <div class="input-value-wrapper">
                         <input type="number" id="num-vr" class="number-input" step="0.1" inputmode="decimal" onchange="updateFromNum('vr',this.value)">
@@ -1558,17 +1708,18 @@
             </div>
 
             <!-- Case Selector -->
-            <div class="input-group">
+            <div class="input-group" id="case-selector-group">
                 <span class="field-legend" data-i18n="selectCase">Select Problem Case</span>
                 <div class="case-selector" role="group" aria-labelledby="case-desc">
-                    <button id="case-a" class="case-tab active" onclick="setCase('A')" data-i18n-tooltip="case.a.tooltip" data-tooltip="Case A: The boat heads straight across for minimum crossing time. (সবচেয়ে কম সময়ে পারাপার)"><span data-i18n="case.a.title">Case A</span><small data-i18n="case.a.sub">Minimum Time</small></button>
-                    <button id="case-b" class="case-tab" onclick="setCase('B')" data-i18n-tooltip="case.b.tooltip" data-tooltip="Case B: The boat fights the current to go perfectly straight. (ন্যূনতম দূরত্বে সোজাসুজি পারাপার)"><span data-i18n="case.b.title">Case B</span><span id="case-b-warn" class="case-warn-flag"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg></span><small data-i18n="case.b.sub">Shortest Path</small></button>
-                    <button id="case-d" class="case-tab" onclick="setCase('D')" data-i18n-tooltip="case.d.tooltip" data-tooltip="Case C: Set any boat heading angle from the perpendicular or current direction. (যেকোনো কোণ)"><span data-i18n="case.d.title">Case C</span><small data-i18n="case.d.sub">Custom Angle</small></button>
-                    <button id="case-e" class="case-tab" onclick="setCase('E')" data-i18n-tooltip="case.e.tooltip" data-tooltip="Case D: Locks boat speed to 2x current speed and heading to 120° from current. (HSC স্পেশাল ১২০° কেস)"><span data-i18n="case.e.title">Case D</span><small data-i18n="case.e.sub">120° Spotlight</small></button>
+                    <button id="case-a" class="case-tab active" onclick="setCase('A'); closeMobileMenu();" data-i18n-tooltip="case.a.tooltip" data-tooltip="Case A: The boat heads straight across for minimum crossing time. (সবচেয়ে কম সময়ে পারাপার)"><span data-i18n="case.a.title">Case A</span><small data-i18n="case.a.sub">Minimum Time</small></button>
+                    <button id="case-b" class="case-tab" onclick="setCase('B'); closeMobileMenu();" data-i18n-tooltip="case.b.tooltip" data-tooltip="Case B: The boat fights the current to go perfectly straight. (ন্যূনতম দূরত্বে সোজাসুজি পারাপার)"><span data-i18n="case.b.title">Case B</span><span id="case-b-warn" class="case-warn-flag"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg></span><small data-i18n="case.b.sub">Shortest Path</small></button>
+                    <button id="case-d" class="case-tab" onclick="setCase('D'); closeMobileMenu();" data-i18n-tooltip="case.d.tooltip" data-tooltip="Case C: Set any boat heading angle from the perpendicular or current direction. (যেকোনো কোণ)"><span data-i18n="case.d.title">Case C</span><small data-i18n="case.d.sub">Custom Angle</small></button>
+                    <button id="case-e" class="case-tab" onclick="setCase('E'); closeMobileMenu();" data-i18n-tooltip="case.e.tooltip" data-tooltip="Case D: Locks boat speed to 2x current speed and heading to 120° from current. (HSC স্পেশাল ১২০° কেস)"><span data-i18n="case.e.title">Case D</span><small data-i18n="case.e.sub">120° Spotlight</small></button>
                 </div>
                 <!-- Always-visible description of the selected case (touch devices cannot hover) -->
                 <p id="case-desc" class="case-desc" aria-live="polite"></p>
             </div>
+            <span id="case-selector-anchor" aria-hidden="true"></span>
 
             <!-- Impossible Case B banner -->
             <div id="impossible-banner" class="warning-box" role="alert">
@@ -1663,6 +1814,30 @@
     <footer data-i18n="footer">HSC Physics Interactive Simulator &mdash; River Crossing (নদী-নৌকার আপেক্ষিক গতি) &mdash; All physics computed in SI units internally.</footer>
 
 </div><!-- /container -->
+
+<!-- ========== MOBILE MENU DRAWER ========== -->
+<div id="mobile-menu-backdrop" class="mobile-menu-backdrop" onclick="closeMobileMenu()"></div>
+<div id="mobile-menu-drawer" class="mobile-menu-drawer" role="dialog" aria-modal="true" aria-label="Menu">
+    <div class="mobile-menu-header">
+        <h2 data-i18n="menu.title">Menu</h2>
+        <button class="mobile-menu-close" onclick="closeMobileMenu()" aria-label="Close menu">
+            <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+        </button>
+    </div>
+    <div class="mobile-menu-section">
+        <span class="field-legend" data-i18n="menu.theme">Theme</span>
+        <div id="mobile-menu-theme-slot"></div>
+    </div>
+    <div class="mobile-menu-section">
+        <span class="field-legend" data-i18n="menu.language">Language</span>
+        <div id="mobile-menu-lang-slot"></div>
+    </div>
+    <div class="mobile-menu-section">
+        <span class="field-legend" data-i18n="menu.units">Units</span>
+        <div id="mobile-menu-unit-slot"></div>
+    </div>
+    <div class="mobile-menu-section" id="mobile-menu-case-slot"></div>
+</div>
 
 <!-- ========== GUIDED TUTORIAL OVERLAY ========== -->
 <div id="tutorial-backdrop" class="tutorial-backdrop"></div>
@@ -1774,8 +1949,14 @@ const I18N = {
         'header.title': 'River Crossing Simulator',
         'header.badge': 'HSC Physics',
         'header.subtitle': 'Interactive relative-velocity tool &mdash; Chapter 2: Vectors',
-        'unit.metric': 'Metric',
-        'unit.practical': 'Practical',
+        'unit.metric': 'm/s',
+        'unit.practical': 'km/h',
+        'menu.title': 'Menu',
+        'menu.theme': 'Theme',
+        'menu.themeLight': 'Light Mode',
+        'menu.themeDark': 'Dark Mode',
+        'menu.language': 'Language',
+        'menu.units': 'Units',
         'card.paramsTitle': 'Parameters &amp; Case',
         'selectCase': 'Select Problem Case',
         'case.a.title': 'Case A',
@@ -1794,7 +1975,7 @@ const I18N = {
         'banner.spotlightTitle': '120° Spotlight Case',
         'banner.spotlightBody': 'In Bangladeshi HSC problems, this 120° case is very commonly asked. The angle is measured from the direction the river is flowing (φ = 120°). Boat speed is locked to 2 × current speed (v<sub>b</sub> = 2v<sub>r</sub>). Zero drift is guaranteed. Formula: φ = cos⁻¹(−u/v).',
         'input.vb': 'Boat Speed (v<sub>b</sub>)',
-        'input.vr': 'River Current Speed (v<sub>r</sub>)',
+        'input.vr': 'Current Speed (v<sub>r</sub>)',
         'input.d': 'River Width (d)',
         'input.theta': 'Heading Angle',
         'toggle.perp': 'θ (Perp)',
@@ -1828,7 +2009,7 @@ const I18N = {
 
         'given.d': 'River Width (d)',
         'given.vb': 'Boat Speed (v<sub>b</sub>, rel. to water)',
-        'given.vr': 'River Current Speed (v<sub>r</sub>)',
+        'given.vr': 'Current Speed (v<sub>r</sub>)',
         'given.thetaPerp': 'Heading Angle (θ from perp)',
         'given.thetaCurr': 'Heading Angle (φ from current, HSC)',
 
@@ -1894,7 +2075,7 @@ const I18N = {
         'tutorial.step1.body': 'Pick which physics scenario to explore: minimum crossing time, shortest path, a custom heading angle, or the classic 120° spotlight case.',
         'tutorial.step2.title': 'Boat Speed (v<sub>b</sub>)',
         'tutorial.step2.body': "Drag this slider to change the boat's speed relative to the water.",
-        'tutorial.step3.title': 'River Current Speed (v<sub>r</sub>)',
+        'tutorial.step3.title': 'Current Speed (v<sub>r</sub>)',
         'tutorial.step3.body': 'Drag this slider to change how fast the river current flows.',
         'tutorial.step4.title': 'River Width (d)',
         'tutorial.step4.body': 'Set how wide the river is — this affects the crossing time and drift.',
@@ -1915,8 +2096,14 @@ const I18N = {
         'header.title': 'নদী পারাপার সিমুলেটর',
         'header.badge': 'এইচএসসি পদার্থবিজ্ঞান',
         'header.subtitle': 'আপেক্ষিক বেগের ইন্টারেক্টিভ টুল &mdash; দ্বিতীয় অধ্যায়: ভেক্টর',
-        'unit.metric': 'মেট্রিক',
-        'unit.practical': 'ব্যবহারিক',
+        'unit.metric': 'm/s',
+        'unit.practical': 'km/h',
+        'menu.title': 'মেনু',
+        'menu.theme': 'থিম',
+        'menu.themeLight': 'লাইট মোড',
+        'menu.themeDark': 'ডার্ক মোড',
+        'menu.language': 'ভাষা',
+        'menu.units': 'একক',
         'card.paramsTitle': 'প্যারামিটার ও কেস',
         'selectCase': 'সমস্যার ধরন নির্বাচন করুন',
         'case.a.title': 'কেস A',
@@ -1930,19 +2117,19 @@ const I18N = {
         'case.d.tooltip': 'কেস C: লম্ব বা স্রোতের দিক থেকে যেকোনো কোণে নৌকা চালান।',
         'case.e.title': 'কেস D',
         'case.e.sub': '১২০° স্পটলাইট',
-        'case.e.tooltip': 'কেস D: নৌকার গতি স্রোতের ২ গুণ এবং কোণ স্রোত থেকে ১২০° নির্ধারিত থাকে।',
-        'banner.impossible': '<strong>অসম্ভব কেস B:</strong> নৌকার গতি v<sub>b</sub>, স্রোতের গতি v<sub>r</sub> অপেক্ষা কম। শূন্য সরণ অর্জন করা সম্ভব নয় — v<sub>b</sub> বাড়ান অথবা v<sub>r</sub> কমান।',
+        'case.e.tooltip': 'কেস D: নৌকার বেগ স্রোতের ২ গুণ এবং কোণ স্রোত থেকে ১২০° নির্ধারিত থাকে।',
+        'banner.impossible': '<strong>অসম্ভব কেস B:</strong> নৌকার বেগ v<sub>b</sub>, স্রোতের বেগ v<sub>r</sub> অপেক্ষা কম। শূন্য সরণ অর্জন করা সম্ভব নয় — v<sub>b</sub> বাড়ান অথবা v<sub>r</sub> কমান।',
         'banner.spotlightTitle': '১২০° স্পটলাইট কেস',
-        'banner.spotlightBody': 'বাংলাদেশের এইচএসসি প্রশ্নে এই ১২০° কেসটি খুবই সাধারণ। কোণটি নদীর স্রোতের দিক থেকে পরিমাপ করা হয় (φ = ১২০°)। নৌকার গতি স্রোতের গতির ২ গুণে নির্ধারিত থাকে (v<sub>b</sub> = 2v<sub>r</sub>)। শূন্য সরণ নিশ্চিত। সূত্র: φ = cos⁻¹(−u/v)।',
-        'input.vb': 'নৌকার গতি (v<sub>b</sub>)',
-        'input.vr': 'নদীর স্রোতের গতি (v<sub>r</sub>)',
+        'banner.spotlightBody': 'বাংলাদেশের এইচএসসি প্রশ্নে এই ১২০° কেসটি খুবই সাধারণ। কোণটি নদীর স্রোতের দিক থেকে পরিমাপ করা হয় (φ = ১২০°)। নৌকার বেগ স্রোতের বেগের ২ গুণে নির্ধারিত থাকে (v<sub>b</sub> = 2v<sub>r</sub>)। শূন্য সরণ নিশ্চিত। সূত্র: φ = cos⁻¹(−u/v)।',
+        'input.vb': 'নৌকার বেগ (v<sub>b</sub>)',
+        'input.vr': 'স্রোতের বেগ (v<sub>r</sub>)',
         'input.d': 'নদীর প্রস্থ (d)',
         'input.theta': 'দিক কোণ',
         'toggle.perp': 'θ (লম্ব)',
         'toggle.curr': 'φ (স্রোত)',
         'angleHint.perp': 'লম্ব',
         'angleHint.curr': 'স্রোত',
-        'ratio.label': 'গতির অনুপাত:',
+        'ratio.label': 'বেগের অনুপাত:',
         'ratio.spotlight': ' → ১২০° প্রযোজ্য!',
         'vectorDiagram': 'আপেক্ষিক বেগের ভেক্টর চিত্র',
         'simCard.title': 'রিয়েল-টাইম পারাপার সিমুলেশন',
@@ -1956,7 +2143,7 @@ const I18N = {
         'infiniteWarning': 'নৌকা তীরের সমান্তরালে — পারাপারের সময় অসীম &infin;',
         'readout.time': 'পারাপারের সময়',
         'readout.drift': 'স্রোতজনিত সরণ',
-        'readout.vR': 'লব্ধি গতি (v<sub>R</sub>)',
+        'readout.vR': 'লব্ধি বেগ (v<sub>R</sub>)',
         'readout.alpha': 'দিক (তীর থেকে &alpha;)',
         'readout.L': 'পথের দৈর্ঘ্য (L)',
         'math.title': 'পাঠ্যপুস্তক সমাধান',
@@ -1968,17 +2155,17 @@ const I18N = {
         'footer': 'এইচএসসি পদার্থবিজ্ঞান ইন্টারেক্টিভ সিমুলেটর &mdash; নদী পারাপার &mdash; সব হিসাব অভ্যন্তরীণভাবে SI এককে করা হয়।',
 
         'given.d': 'নদীর প্রস্থ (d)',
-        'given.vb': 'নৌকার গতি (v<sub>b</sub>, পানির সাপেক্ষে)',
-        'given.vr': 'নদীর স্রোতের গতি (v<sub>r</sub>)',
+        'given.vb': 'নৌকার বেগ (v<sub>b</sub>, পানির সাপেক্ষে)',
+        'given.vr': 'স্রোতের বেগ (v<sub>r</sub>)',
         'given.thetaPerp': 'দিক কোণ (লম্ব থেকে θ)',
         'given.thetaCurr': 'দিক কোণ (স্রোত থেকে φ, এইচএসসি)',
 
         'caseA.title': 'কেস A — সর্বনিম্ন সময়',
         'caseA.crossingLabel': 'পারাপারের সময়ের সূত্র:',
         'caseA.insightLabel': 'মূল ধারণা:',
-        'caseA.insightExpr': 'স্রোতের গতি যাই হোক না কেন, এটি সবসময় দ্রুততম উপায়',
+        'caseA.insightExpr': 'স্রোতের বেগ যাই হোক না কেন, এটি সবসময় দ্রুততম উপায়',
         'caseA.driftLabel': 'স্রোতজনিত সরণ:',
-        'caseA.vRLabel': 'লব্ধি মাটি-সাপেক্ষ গতি:',
+        'caseA.vRLabel': 'লব্ধি মাটি-সাপেক্ষ বেগ:',
 
         'caseB.title': 'কেস B — সংক্ষিপ্ত পথ / শূন্য সরণ',
         'caseB.thetaLabel': 'দিক কোণ (লম্ব থেকে, &theta;):',
@@ -2033,9 +2220,9 @@ const I18N = {
         'tutorial.finish': 'শেষ',
         'tutorial.step1.title': 'সমস্যার ধরন নির্বাচক',
         'tutorial.step1.body': 'কোন পদার্থবিজ্ঞান দৃশ্যকল্প দেখতে চান তা বেছে নিন: সর্বনিম্ন সময়, সংক্ষিপ্ত পথ, কাস্টম কোণ, অথবা বিখ্যাত ১২০° স্পটলাইট কেস।',
-        'tutorial.step2.title': 'নৌকার গতি (v<sub>b</sub>)',
-        'tutorial.step2.body': 'পানির সাপেক্ষে নৌকার গতি পরিবর্তন করতে এই স্লাইডারটি টানুন।',
-        'tutorial.step3.title': 'নদীর স্রোতের গতি (v<sub>r</sub>)',
+        'tutorial.step2.title': 'নৌকার বেগ (v<sub>b</sub>)',
+        'tutorial.step2.body': 'পানির সাপেক্ষে নৌকার বেগ পরিবর্তন করতে এই স্লাইডারটি টানুন।',
+        'tutorial.step3.title': 'স্রোতের বেগ (v<sub>r</sub>)',
         'tutorial.step3.body': 'নদীর স্রোত কত দ্রুত প্রবাহিত হয় তা পরিবর্তন করতে এই স্লাইডারটি টানুন।',
         'tutorial.step4.title': 'নদীর প্রস্থ (d)',
         'tutorial.step4.body': 'নদী কত চওড়া তা নির্ধারণ করুন — এটি পারাপারের সময় ও সরণকে প্রভাবিত করে।',
@@ -2046,7 +2233,7 @@ const I18N = {
         'tutorial.step7.title': 'প্লেব্যাক নিয়ন্ত্রণ',
         'tutorial.step7.body': 'অ্যানিমেশন চালান, বিরতি দিন বা রিসেট করুন, অথবা কেস A ও কেস B পাশাপাশি তুলনা করুন।',
         'tutorial.step8.title': 'ফলাফল রিডআউট',
-        'tutorial.step8.body': 'এই কার্ডগুলোতে পারাপারের সময়, সরণ, লব্ধি গতি, দিক এবং পথের দৈর্ঘ্য দেখানো হয়।',
+        'tutorial.step8.body': 'এই কার্ডগুলোতে পারাপারের সময়, সরণ, লব্ধি বেগ, দিক এবং পথের দৈর্ঘ্য দেখানো হয়।',
         'tutorial.step9.title': 'সমাধান পদ্ধতি',
         'tutorial.step9.body': 'বর্তমান কেসের জন্য সম্পূর্ণ ধাপে ধাপে পাঠ্যপুস্তক সমাধান, যা মান পরিবর্তনের সাথে সাথে আপডেট হয়।',
         'tutorial.step10.title': 'ভাষা ও একক',
@@ -2125,6 +2312,12 @@ window.addEventListener('DOMContentLoaded', () => {
     layoutReadoutsForViewport();
     stackedMQ.addEventListener('change', layoutReadoutsForViewport);
 
+    layoutMobileMenu();
+    mobileMenuMQ.addEventListener('change', layoutMobileMenu);
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && document.getElementById('mobile-menu-drawer').classList.contains('open')) closeMobileMenu();
+    });
+
     requestAnimationFrame(animationLoop);
 });
 
@@ -2200,6 +2393,82 @@ function toggleTheme() {
     prefs.set('theme', isDark ? 'dark' : 'light');
     updateUI();
     drawFrame();
+}
+
+/* =============================================================
+   MOBILE MENU DRAWER
+   Relocates the theme/lang/unit toggles, the case selector, and the
+   playback-speed control into a slide-in drawer / canvas gear popup
+   below the mobile breakpoint, and back into their normal header/card
+   slots above it — the elements themselves move, so setLang/setUnit/
+   setCase/setSpeed keep working unmodified regardless of which
+   container currently holds them.
+   ============================================================= */
+const mobileMenuMQ = window.matchMedia('(max-width: 640px)');
+
+function layoutMobileMenu() {
+    const headerRight = document.querySelector('.header-right');
+    const menuToggle = document.getElementById('menu-toggle');
+    const themeToggle = document.getElementById('theme-toggle');
+    const langWrap = document.getElementById('lang-toggle-wrap');
+    const unitWrap = document.getElementById('unit-toggle-wrap');
+    const caseGroup = document.getElementById('case-selector-group');
+    const caseAnchor = document.getElementById('case-selector-anchor');
+    const speedMultiplier = document.getElementById('speed-multiplier');
+    const speedAnchor = document.getElementById('speed-multiplier-anchor');
+
+    if (mobileMenuMQ.matches) {
+        document.getElementById('mobile-menu-theme-slot').appendChild(themeToggle);
+        document.getElementById('mobile-menu-lang-slot').appendChild(langWrap);
+        document.getElementById('mobile-menu-unit-slot').appendChild(unitWrap);
+        document.getElementById('mobile-menu-case-slot').appendChild(caseGroup);
+        document.getElementById('canvas-speed-popup').appendChild(speedMultiplier);
+    } else {
+        closeMobileMenu();
+        closeSpeedMenu();
+        headerRight.insertBefore(themeToggle, menuToggle);
+        headerRight.appendChild(langWrap);
+        headerRight.appendChild(unitWrap);
+        caseAnchor.parentElement.insertBefore(caseGroup, caseAnchor);
+        speedAnchor.parentElement.insertBefore(speedMultiplier, speedAnchor);
+    }
+}
+
+function toggleSpeedMenu() {
+    const popup = document.getElementById('canvas-speed-popup');
+    if (popup.classList.contains('open')) closeSpeedMenu();
+    else openSpeedMenu();
+}
+
+function openSpeedMenu() {
+    document.getElementById('canvas-speed-popup').classList.add('open');
+    document.getElementById('canvas-speed-btn').setAttribute('aria-expanded', 'true');
+    document.addEventListener('click', onSpeedMenuOutsideClick, true);
+}
+
+function closeSpeedMenu() {
+    document.getElementById('canvas-speed-popup').classList.remove('open');
+    document.getElementById('canvas-speed-btn').setAttribute('aria-expanded', 'false');
+    document.removeEventListener('click', onSpeedMenuOutsideClick, true);
+}
+
+function onSpeedMenuOutsideClick(e) {
+    if (e.target.closest('#canvas-speed-popup, #canvas-speed-btn')) return;
+    closeSpeedMenu();
+}
+
+function openMobileMenu() {
+    document.getElementById('mobile-menu-backdrop').classList.add('open');
+    document.getElementById('mobile-menu-drawer').classList.add('open');
+    document.getElementById('menu-toggle').setAttribute('aria-expanded', 'true');
+    document.body.style.overflow = 'hidden';
+}
+
+function closeMobileMenu() {
+    document.getElementById('mobile-menu-backdrop').classList.remove('open');
+    document.getElementById('mobile-menu-drawer').classList.remove('open');
+    document.getElementById('menu-toggle').setAttribute('aria-expanded', 'false');
+    document.body.style.overflow = '';
 }
 
 function setUnit(unit) {
@@ -2905,11 +3174,6 @@ function togglePlay() {
     refreshPlayBtn();
 }
 
-function pauseAnim() {
-    state.animating = false;
-    refreshPlayBtn();
-}
-
 function resetAnim(redraw = true) {
     state.animating    = false;
     state.animProgress = 0.0;
@@ -2930,7 +3194,6 @@ function resetAnim(redraw = true) {
 
 function refreshPlayBtn() {
     const btn = document.getElementById('btn-play');
-    const pause = document.getElementById('btn-pause');
     const cross = document.getElementById('crossing-badge');
 
     const progress = state.compareMode ? Math.max(state.compareAnimProgressA, state.compareAnimProgressB) : state.animProgress;
@@ -2939,14 +3202,12 @@ function refreshPlayBtn() {
     if (state.animating) {
         btn.innerHTML = `<svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg><span>${t('playback.pause')}</span>`;
         btn.classList.add('btn-primary');
-        pause.disabled = false;
         cross.style.display = 'inline-block';
         cross.classList.add('active');
     } else {
         const label = progress >= 1.0 ? t('playback.replay') : (progress > 0 ? t('playback.resume') : t('playback.play'));
         btn.innerHTML = `<svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg><span>${label}</span>`;
         btn.classList.add('btn-primary');
-        pause.disabled = true;
         cross.style.display  = 'none';
         cross.classList.remove('active');
     }
@@ -2956,6 +3217,8 @@ function setSpeed(m) {
     state.speedMultiplier = m;
     document.querySelectorAll('.speed-btn').forEach(b => b.classList.remove('active'));
     document.getElementById('speed-' + m).classList.add('active');
+    document.getElementById('canvas-speed-label').textContent = m + '×';
+    closeSpeedMenu();
 }
 
 /* =============================================================
