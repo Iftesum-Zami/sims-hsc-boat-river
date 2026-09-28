@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="bn">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -1387,102 +1387,126 @@
 
         /* =============================================================
            CONCEPT ONBOARDING
-           A pre-tour, concept-first walkthrough (gate question -> visual
-           explainer -> identify quiz -> prediction quiz -> two hands-on
-           slider tasks) shown once to first-time visitors, separate from
-           the feature-tour GUIDED TUTORIAL above. It never blocks input
-           to the page (the backdrop is decorative only, pointer-events:
-           none) so the two interactive steps can point at a real slider
-           and let the student actually drag it.
+           A full-screen, concept-first walkthrough (gate question -> four
+           "theory + live diagram" teaching screens covering the three
+           velocities and the three headline cases -> a four-question
+           assessment, the last one a hands-on drag task) shown once to
+           first-time visitors. Split layout: a dark stage on one side
+           renders a self-contained SVG diagram per step (never touches the
+           real simulation state), text/quiz content on the other. Separate
+           from the feature-tour GUIDED TUTORIAL above, which stays a
+           manual, on-demand walkthrough of the interface controls.
            ============================================================= */
         .concept-backdrop {
             display: none;
             position: fixed;
             inset: 0;
-            background: rgba(17, 24, 39, 0.5);
+            background: rgba(17, 24, 39, 0.6);
             z-index: 8990;
-            pointer-events: none;
         }
         .concept-backdrop.active { display: block; }
 
         .concept-shell {
             display: none;
             position: fixed;
+            inset: 18px;
             z-index: 8995;
-            left: 50%; top: 50%;
-            transform: translate(-50%, -50%);
-            width: min(420px, calc(100vw - 32px));
-            max-height: min(600px, calc(100vh - 32px));
-            overflow-y: auto;
-        }
-        .concept-shell.active { display: block; }
-        /* During the two interactive steps the shell docks to a corner
-           instead of covering the center, so it never sits on top of the
-           slider it's asking the student to touch. */
-        .concept-shell.concept-shell-corner {
-            left: auto; top: auto;
-            right: var(--s-4); bottom: var(--s-4);
-            transform: none;
-            width: min(360px, calc(100vw - 32px));
-        }
-        @media (max-width: 640px) {
-            .concept-shell.concept-shell-corner {
-                left: var(--s-3); right: var(--s-3); bottom: var(--s-3);
-                width: auto;
-            }
-        }
-
-        .concept-card {
             background: var(--surface-card);
             border: 1px solid var(--border-strong);
-            border-radius: var(--r-lg);
-            padding: var(--s-4);
+            border-radius: var(--r-xl);
             box-shadow: var(--sh-raised);
+            overflow: hidden;
+            grid-template-columns: 1.15fr 1fr;
+        }
+        .concept-shell.active { display: grid; }
+
+        .concept-close {
+            position: absolute;
+            top: var(--s-3); right: var(--s-3);
+            z-index: 2;
+            width: 34px; height: 34px;
+            display: flex; align-items: center; justify-content: center;
+            background: var(--surface-card);
+            border: 1px solid var(--border-strong);
+            border-radius: 50%;
+            color: var(--fg-2);
+            cursor: pointer;
+        }
+        .concept-close:hover { color: var(--fg-1); background: var(--gray-50); }
+        .concept-close .icon { width: 16px; height: 16px; }
+
+        .concept-stage {
             position: relative;
+            display: flex;
+            flex-direction: column;
+            padding: var(--s-5);
+            background:
+                radial-gradient(ellipse at 30% 0%, rgba(28, 171, 85, 0.10), transparent 55%),
+                linear-gradient(180deg, #0B1522 0%, #0B1117 100%);
+            overflow: hidden;
+        }
+        .concept-stage-caption {
+            font-size: var(--fs-micro);
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: var(--tracking-wide);
+            color: rgba(255, 255, 255, 0.55);
+            margin-bottom: var(--s-2);
+            min-height: 1.4em;
+        }
+        .concept-svg-wrap { flex: 1; display: flex; align-items: center; justify-content: center; min-height: 0; }
+        .concept-svg { width: 100%; height: 100%; }
+        .concept-svg text { font-family: var(--font-sans); }
+
+        .concept-panel {
+            display: flex;
+            flex-direction: column;
+            padding: var(--s-6) var(--s-5) var(--s-5);
+            overflow-y: auto;
         }
 
-        .concept-header {
-            display: flex;
-            align-items: center;
-            gap: var(--s-2);
-            margin-bottom: var(--s-3);
-        }
         .concept-eyebrow {
             display: flex;
             align-items: center;
             gap: 6px;
-            flex: 1;
-            min-width: 0;
             color: var(--ten-red);
             font-size: var(--fs-micro);
             font-weight: 800;
             text-transform: uppercase;
             letter-spacing: var(--tracking-wide);
+            margin-bottom: var(--s-3);
         }
         .concept-eyebrow .icon { width: 16px; height: 16px; flex-shrink: 0; }
-        .concept-skip {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            width: 32px; height: 32px;
-            flex-shrink: 0;
-            background: transparent;
-            border: none;
-            border-radius: var(--r-sm);
-            color: var(--fg-3);
-            cursor: pointer;
-        }
-        .concept-skip:hover { background: var(--bg-muted); color: var(--fg-1); }
 
-        .concept-question {
-            font-size: var(--fs-body);
-            font-weight: 700;
+        .concept-title {
+            font-size: var(--fs-h2);
+            font-weight: 800;
             color: var(--fg-1);
             line-height: var(--lh-snug);
             margin-bottom: var(--s-3);
         }
 
-        .concept-gate-btns { display: flex; flex-direction: column; gap: var(--s-2); }
+        .concept-body-text {
+            font-size: var(--fs-body);
+            color: var(--fg-2);
+            line-height: var(--lh-normal);
+            margin-bottom: var(--s-3);
+        }
+
+        .concept-key-fact {
+            background: var(--bg-muted);
+            border: 1px solid var(--border);
+            border-left: 3px solid var(--color-vR);
+            border-radius: var(--r-md);
+            padding: 8px var(--s-3);
+            font-size: var(--fs-body-sm);
+            color: var(--fg-1);
+            font-variant-numeric: tabular-nums;
+            margin-bottom: var(--s-3);
+        }
+        .concept-key-fact strong { color: var(--ten-red); }
+
+        .concept-gate-btns { display: flex; flex-direction: column; gap: var(--s-2); margin-top: var(--s-2); }
 
         .concept-btn {
             display: flex;
@@ -1534,8 +1558,6 @@
         .concept-gallery-name { font-size: var(--fs-body-sm); font-weight: 700; color: var(--fg-1); margin-bottom: 2px; }
         .concept-gallery-desc { font-size: var(--fs-caption); color: var(--fg-2); line-height: var(--lh-snug); }
 
-        .concept-diagram { display: flex; justify-content: center; margin-bottom: var(--s-3); }
-
         .concept-options { display: flex; flex-direction: column; gap: var(--s-2); margin-bottom: var(--s-3); }
         .concept-option {
             display: flex;
@@ -1579,10 +1601,45 @@
             border-radius: var(--r-sm);
             font-size: var(--fs-body-sm);
             font-weight: 700;
-            margin-bottom: var(--s-2);
+            margin-bottom: var(--s-3);
         }
         .concept-feedback.correct { background: rgba(28, 171, 85, 0.12); color: var(--success-text); }
         .concept-feedback.wrong { background: var(--tint-red); color: var(--ten-red); }
+
+        /* Wrong-answer "you said -> actually" comparison, before the plain-
+           language explanation paragraph. */
+        .concept-compare { display: flex; align-items: stretch; gap: var(--s-2); margin-bottom: var(--s-3); }
+        .concept-compare-you, .concept-compare-actual {
+            flex: 1;
+            min-width: 0;
+            border-radius: var(--r-md);
+            padding: var(--s-2) var(--s-3);
+            font-size: var(--fs-body-sm);
+            line-height: var(--lh-snug);
+        }
+        .concept-compare-you { background: var(--tint-red); border: 1px solid rgba(232, 0, 29, 0.3); }
+        .concept-compare-actual { background: var(--tint-vR); border: 1px solid rgba(28, 171, 85, 0.3); }
+        .concept-compare-label {
+            display: block;
+            font-size: var(--fs-micro);
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+            color: var(--fg-3);
+            margin-bottom: 3px;
+        }
+        .concept-compare-you strong { color: var(--ten-red); }
+        .concept-compare-actual strong { color: var(--success-text); }
+        .concept-compare-chevron {
+            display: flex; align-items: center; justify-content: center;
+            flex-shrink: 0;
+            color: var(--fg-3);
+        }
+        .concept-compare-chevron .icon { width: 16px; height: 16px; }
+        @media (max-width: 640px) {
+            .concept-compare { flex-direction: column; }
+            .concept-compare-chevron { display: none; }
+        }
 
         .concept-explain { margin-bottom: var(--s-3); }
 
@@ -1597,16 +1654,24 @@
             margin-bottom: var(--s-3);
         }
         .concept-live-hint strong { color: var(--ten-red); }
+        .concept-live-hint.solved { background: var(--tint-vR); border-color: rgba(28, 171, 85, 0.35); }
+        .concept-live-hint.solved strong { color: var(--success-text); }
 
-        /* Draws attention to the real control the interactive steps ask
-           the student to use, without blocking or dimming it — the
-           backdrop above is pointer-events:none, so this is purely a
-           visual cue, not a click trap. */
-        .concept-spotlight {
-            position: relative;
-            border-radius: var(--r-md);
-            box-shadow: 0 0 0 3px var(--success), 0 0 0 6px rgba(28, 171, 85, 0.25);
-            transition: box-shadow var(--dur-base) var(--ease-out);
+        .concept-angle-slider {
+            width: 100%;
+            margin: var(--s-2) 0 var(--s-3);
+        }
+
+        .concept-actions { margin-top: auto; padding-top: var(--s-3); }
+
+        @media (max-width: 860px) {
+            .concept-shell {
+                inset: 0;
+                border-radius: 0;
+                grid-template-columns: 1fr;
+                grid-template-rows: 38vh 1fr;
+            }
+            .concept-panel { padding: var(--s-4); }
         }
 
         /* =============================================================
@@ -1767,8 +1832,8 @@
                 <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
             </button>
             <div id="lang-toggle-wrap" class="unit-toggle lang-toggle">
-                <button id="lang-en" class="unit-btn active" onclick="setLang('en')">EN</button>
-                <button id="lang-bn" class="unit-btn" onclick="setLang('bn')">বাং</button>
+                <button id="lang-en" class="unit-btn" onclick="setLang('en')">EN</button>
+                <button id="lang-bn" class="unit-btn active" onclick="setLang('bn')">বাং</button>
             </div>
             <div id="unit-toggle-wrap" class="unit-toggle">
                 <button id="unit-metric" class="unit-btn active" onclick="setUnit('metric')"><span data-i18n="unit.metric">m/s</span></button>
@@ -2092,8 +2157,15 @@
 
 <!-- ========== CONCEPT ONBOARDING OVERLAY ========== -->
 <div id="concept-backdrop" class="concept-backdrop"></div>
-<div id="concept-shell" class="concept-shell" role="dialog" aria-modal="true" aria-labelledby="concept-question" tabindex="-1">
-    <div id="concept-card" class="concept-card"></div>
+<div id="concept-shell" class="concept-shell" role="dialog" aria-modal="true" aria-labelledby="concept-title" tabindex="-1">
+    <button type="button" class="concept-close" onclick="skipConceptOnboarding()" aria-label="Close">
+        <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+    </button>
+    <div class="concept-stage">
+        <div class="concept-stage-caption" id="concept-stage-caption"></div>
+        <div class="concept-svg-wrap" id="concept-svg-wrap"></div>
+    </div>
+    <div class="concept-panel" id="concept-panel"></div>
 </div>
 
 <script>
@@ -2118,7 +2190,7 @@ const prefs = {
    ============================================================= */
 const state = {
     unit: 'metric',
-    lang: prefs.get('lang') === 'bn' ? 'bn' : 'en',
+    lang: prefs.get('lang') === 'en' ? 'en' : 'bn',
     vb: 4.0,   // m/s  (always SI internally)
     vr: 3.0,   // m/s
     d: 100.0,  // m
@@ -2325,46 +2397,73 @@ const I18N = {
         'concept.skip': 'Skip',
         'concept.gate.eyebrow': 'Before we start',
         'concept.gate.question': 'Do you already know what relative velocity is, and how a boat crosses a moving river?',
-        'concept.gate.yes': 'Yes, I know',
-        'concept.gate.no': "No, I don't",
-        'concept.explain.eyebrow': 'Introduction',
-        'concept.explain.question': "Let's take a look — the 3 velocities in this problem:",
-        'concept.explain.vb.name': 'Boat Velocity (v<sub>b</sub>)',
-        'concept.explain.vb.desc': "The speed the boat's engine gives it, measured relative to the water — like your walking speed on a moving walkway.",
-        'concept.explain.vr.name': 'River Current (v<sub>r</sub>)',
-        'concept.explain.vr.desc': 'How fast the water itself is flowing downstream — like the walkway moving beneath you.',
-        'concept.explain.vR.name': 'Resultant Velocity (v<sub>R</sub>)',
-        'concept.explain.vR.desc': "What a person standing on the bank actually sees — the combined effect of both, found by vector addition.",
-        'concept.explain.start': "Got it, let's start →",
+        'concept.gate.yes': 'Yes, I know — take me to the quiz',
+        'concept.gate.no': "No, teach me first",
         'concept.step': 'Step',
+        'concept.lesson': 'Concept',
+        'concept.assess': 'Assessment',
         'concept.check': 'Check',
-        'concept.next': 'Next step →',
+        'concept.next': 'Next →',
+        'concept.continue': 'Continue →',
         'concept.finish': 'Finish →',
         'concept.correct': 'Correct!',
         'concept.wrong': 'Wrong answer',
-        'concept.identify.question': 'In this diagram, what does the GREEN arrow represent?',
-        'concept.identify.opt0': "The boat's own speed through the water (v<sub>b</sub>)",
-        'concept.identify.opt1': "The river current's speed (v<sub>r</sub>)",
-        'concept.identify.opt2': "The resultant velocity — the boat's actual path as seen from the bank (v<sub>R</sub>)",
-        'concept.identify.opt3': 'The wind speed',
-        'concept.identify.explain': 'The green arrow is the resultant velocity v<sub>R</sub> — the vector sum of v<sub>b</sub> and v<sub>r</sub>. It\'s what you\'d actually see if you watched the boat from the riverbank.',
-        'concept.predict1.q': 'If you increase the river current speed while keeping the boat speed the same, what happens to the downstream drift?',
-        'concept.predict1.opt0': 'It increases',
-        'concept.predict1.opt1': 'It decreases',
-        'concept.predict1.opt2': 'It stays the same',
-        'concept.predict1.opt3': 'The boat moves upstream instead',
-        'concept.predict1.explain': 'A stronger current sweeps the boat further downstream during the same crossing — watch the Downstream Drift number grow as the current speed rises.',
-        'concept.predict2.q': 'If the boat speed is much greater than the river current speed, what does the crossing look like?',
-        'concept.predict2.opt0': 'The boat drifts far downstream',
-        'concept.predict2.opt1': 'The boat crosses almost straight across with little drift',
-        'concept.predict2.opt2': 'The boat cannot cross at all',
-        'concept.predict2.opt3': 'The crossing time doubles',
-        'concept.predict2.explain': "When the boat is much faster than the current, the current barely has time to push it sideways — the resultant path stays close to straight across.",
-        'concept.watch': "Watch the simulation — here's what's really happening:",
-        'concept.interact1.instruction': 'Now it\'s your turn — drag the River Current Speed slider yourself and watch the Downstream Drift change below.',
-        'concept.interact1.live': 'River current: {vr} → Downstream drift: {drift}',
-        'concept.interact2.instruction': "Now drag the Boat Speed slider until it's clearly faster than the current — watch the Resultant Speed and Direction change.",
-        'concept.interact2.live': 'Boat: {vb} vs current: {vr} → Resultant speed: {vR}, direction: {angle}',
+        'concept.youSaid': 'You said',
+        'concept.actually': 'Actually',
+
+        'concept.teach.velocities.title': 'Three Velocities',
+        'concept.teach.velocities.vb.name': 'Boat Velocity (v<sub>b</sub>)',
+        'concept.teach.velocities.vb.desc': "The speed the boat's engine gives it, measured relative to the water — like your walking speed on a moving walkway.",
+        'concept.teach.velocities.vr.name': 'Current Velocity (v<sub>r</sub>)',
+        'concept.teach.velocities.vr.desc': 'How fast the water itself flows downstream — like the walkway moving beneath you.',
+        'concept.teach.velocities.vR.name': 'Resultant Velocity (v<sub>R</sub>)',
+        'concept.teach.velocities.vR.desc': 'What a person standing on the bank actually sees — the vector sum of v<sub>b</sub> and v<sub>r</sub>.',
+
+        'concept.teach.caseA.eyebrow': 'Case A',
+        'concept.teach.caseA.title': 'Minimum Time',
+        'concept.teach.caseA.body': 'Point the boat straight across the river (perpendicular to the bank). This gets you to the other side in the least possible time — but the current sweeps you downstream the whole way, so you land away from the point directly opposite where you started.',
+        'concept.teach.caseA.fact': 'Crossing time = d / v<sub>b</sub> · Downstream drift = v<sub>r</sub> × time',
+
+        'concept.teach.caseB.eyebrow': 'Case B',
+        'concept.teach.caseB.title': 'Shortest Path (Zero Drift)',
+        'concept.teach.caseB.body': 'Angle the boat upstream, into the current, just enough that the current\'s push exactly cancels the boat\'s sideways drift. The resultant path is a straight line straight across — the shortest possible path, though not the fastest.',
+        'concept.teach.caseB.fact': 'Only possible when <strong>v<sub>b</sub> &gt; v<sub>r</sub></strong> — a slower boat can never fully cancel the current.',
+
+        'concept.teach.caseE.eyebrow': 'Case E — HSC Special Case',
+        'concept.teach.caseE.title': 'The 120° Spotlight',
+        'concept.teach.caseE.body': 'A famous exam case: when the boat speed is exactly twice the current speed, the zero-drift angle measured from the current\'s direction always works out to exactly 120° — no matter what the actual speeds are. You\'ll get to find this angle yourself in a moment.',
+        'concept.teach.caseE.fact': '<strong>v<sub>b</sub> = 2v<sub>r</sub></strong>  →  zero-drift angle from current = <strong>120°</strong>',
+
+        'concept.mcq.identify.q': 'In this diagram, what does the GREEN arrow represent?',
+        'concept.mcq.identify.opt0': "The boat's own speed through the water (v<sub>b</sub>)",
+        'concept.mcq.identify.opt1': "The current's speed (v<sub>r</sub>)",
+        'concept.mcq.identify.opt2': "The resultant velocity — the boat's actual path as seen from the bank (v<sub>R</sub>)",
+        'concept.mcq.identify.opt3': 'The wind speed',
+        'concept.mcq.identify.explain': 'The green arrow is the resultant velocity v<sub>R</sub> — the vector sum of v<sub>b</sub> and v<sub>r</sub>. It\'s what you\'d actually see watching the boat from the riverbank.',
+
+        'concept.mcq.cases.q': 'Which statement correctly compares Case A and Case B?',
+        'concept.mcq.cases.opt0': 'Case A crosses in the least time; Case B has zero drift but takes longer',
+        'concept.mcq.cases.opt1': 'Case A has zero drift; Case B is the fastest',
+        'concept.mcq.cases.opt2': 'Both cases always take exactly the same time',
+        'concept.mcq.cases.opt3': 'Case B works even when the boat is slower than the current',
+        'concept.mcq.cases.explain': 'Case A (straight across) always wins on time, since none of the boat\'s speed is "wasted" fighting the current. Case B trades that speed for a straight path — and it only works at all when v<sub>b</sub> &gt; v<sub>r</sub>.',
+
+        'concept.mcq.predict.q': 'If you increase the current speed while keeping the boat speed the same, what happens to the downstream drift in Case A?',
+        'concept.mcq.predict.opt0': 'It increases',
+        'concept.mcq.predict.opt1': 'It decreases',
+        'concept.mcq.predict.opt2': 'It stays the same',
+        'concept.mcq.predict.opt3': 'The boat moves upstream instead',
+        'concept.mcq.predict.explain': 'A stronger current sweeps the boat further downstream during the same crossing time — drift = v<sub>r</sub> × time, so a bigger v<sub>r</sub> directly means more drift.',
+
+        'concept.interactive.eyebrow': 'Hands-on',
+        'concept.interactive.title': 'Find the zero-drift angle',
+        'concept.interactive.instruction': 'The current is fixed, and the boat speed is locked at exactly twice the current speed. Drag the slider to angle the boat until the resultant velocity (green) points straight across — perpendicular to the current — with zero drift.',
+        'concept.interactive.angleLabel': 'Angle from current direction (&phi;)',
+        'concept.interactive.hintOver': 'φ = {angle}° — resultant still tilts <strong>upstream</strong>. Try a smaller angle.',
+        'concept.interactive.hintUnder': 'φ = {angle}° — resultant still tilts <strong>downstream</strong>. Try a larger angle.',
+        'concept.interactive.hintSolved': 'φ = {angle}° — <strong>zero drift!</strong> The resultant is perpendicular to the current.',
+        'concept.interactive.success': '🎯 Exactly 120° — this is the Case E Spotlight condition.',
+
         'concept.done.title': 'You understand relative velocity!',
         'concept.done.body': 'Explore Case A–D on your own, or open Tutorial anytime to learn about the interface controls.',
         'concept.done.start': 'Start exploring',
@@ -2519,46 +2618,73 @@ const I18N = {
         'concept.skip': 'বাদ দিন',
         'concept.gate.eyebrow': 'শুরু করার আগে',
         'concept.gate.question': 'আপেক্ষিক বেগ কী, এবং চলন্ত নদীতে নৌকা কীভাবে পার হয় — এটা কি তুমি আগে থেকেই জানো?',
-        'concept.gate.yes': 'হ্যাঁ, জানি',
-        'concept.gate.no': 'না, জানি না',
-        'concept.explain.eyebrow': 'পরিচিতি',
-        'concept.explain.question': 'চলো দেখে নিই — এই সমস্যার ৩টি বেগ:',
-        'concept.explain.vb.name': 'নৌকার গতি (v<sub>b</sub>)',
-        'concept.explain.vb.desc': 'পানির সাপেক্ষে নৌকার ইঞ্জিন যে গতি দেয় — যেমন চলন্ত ওয়াকওয়েতে তোমার হাঁটার গতি।',
-        'concept.explain.vr.name': 'নদীর স্রোতের গতি (v<sub>r</sub>)',
-        'concept.explain.vr.desc': 'পানি নিজে কত দ্রুত স্রোতের দিকে প্রবাহিত হয় — যেমন তোমার পায়ের নিচে চলন্ত ওয়াকওয়ে।',
-        'concept.explain.vR.name': 'লব্ধি বেগ (v<sub>R</sub>)',
-        'concept.explain.vR.desc': 'নদীর তীরে দাঁড়ানো একজন মানুষ আসলে যা দেখে — দুটির ভেক্টর যোগফল।',
-        'concept.explain.start': 'বুঝেছি, শুরু করি →',
+        'concept.gate.yes': 'হ্যাঁ, জানি — সরাসরি কুইজে যাই',
+        'concept.gate.no': 'না, আগে শিখতে চাই',
         'concept.step': 'ধাপ',
+        'concept.lesson': 'ধারণা',
+        'concept.assess': 'মূল্যায়ন',
         'concept.check': 'চেক করো',
-        'concept.next': 'পরবর্তী ধাপ →',
+        'concept.next': 'পরবর্তী →',
+        'concept.continue': 'চালিয়ে যাও →',
         'concept.finish': 'শেষ →',
         'concept.correct': 'সঠিক!',
         'concept.wrong': 'ভুল উত্তর',
-        'concept.identify.question': 'এই চিত্রে, সবুজ তীরচিহ্নটি কী বোঝায়?',
-        'concept.identify.opt0': 'পানির সাপেক্ষে নৌকার নিজের গতি (v<sub>b</sub>)',
-        'concept.identify.opt1': 'নদীর স্রোতের গতি (v<sub>r</sub>)',
-        'concept.identify.opt2': 'লব্ধি বেগ — তীর থেকে দেখা নৌকার প্রকৃত পথ (v<sub>R</sub>)',
-        'concept.identify.opt3': 'বাতাসের গতি',
-        'concept.identify.explain': 'সবুজ তীরচিহ্নটি লব্ধি বেগ v<sub>R</sub> — v<sub>b</sub> এবং v<sub>r</sub>-এর ভেক্টর যোগফল। নদীর তীর থেকে দেখলে নৌকাকে আসলে এই পথেই যেতে দেখা যাবে।',
-        'concept.predict1.q': 'নৌকার গতি একই রেখে যদি নদীর স্রোতের গতি বাড়াও, তাহলে ভাটির দিকে সরণের কী হবে?',
-        'concept.predict1.opt0': 'বেড়ে যাবে',
-        'concept.predict1.opt1': 'কমে যাবে',
-        'concept.predict1.opt2': 'একই থাকবে',
-        'concept.predict1.opt3': 'নৌকা উজানের দিকে চলে যাবে',
-        'concept.predict1.explain': 'স্রোত যত শক্তিশালী হয়, একই পারাপারে নৌকা তত বেশি ভাটির দিকে সরে যায় — স্রোতের গতি বাড়ার সাথে সাথে সরণের মান বাড়তে দেখো।',
-        'concept.predict2.q': 'নৌকার গতি যদি নদীর স্রোতের চেয়ে অনেক বেশি হয়, তাহলে পারাপার কেমন দেখাবে?',
-        'concept.predict2.opt0': 'নৌকা অনেক দূর ভাটিতে সরে যাবে',
-        'concept.predict2.opt1': 'নৌকা প্রায় সোজা ওপারে পৌঁছাবে, সরণ সামান্য',
-        'concept.predict2.opt2': 'নৌকা মোটেও পার হতে পারবে না',
-        'concept.predict2.opt3': 'পারাপারের সময় দ্বিগুণ হয়ে যাবে',
-        'concept.predict2.explain': 'নৌকা স্রোতের চেয়ে অনেক দ্রুত হলে, স্রোত একে পাশে ঠেলে দেওয়ার সময়ই পায় না — লব্ধি পথ প্রায় সোজা ওপারে থেকে যায়।',
-        'concept.watch': 'সিমুলেশনে দেখো — আসলে কী হচ্ছে:',
-        'concept.interact1.instruction': 'এবার তোমার পালা — নিজে নদীর স্রোতের গতির স্লাইডারটি টেনে দেখো, নিচে ভাটির সরণ কীভাবে বদলায়।',
-        'concept.interact1.live': 'নদীর স্রোত: {vr} → ভাটির সরণ: {drift}',
-        'concept.interact2.instruction': 'এবার নৌকার গতির স্লাইডারটি টেনে স্রোতের চেয়ে স্পষ্ট বেশি করো — লব্ধি গতি ও দিক কীভাবে বদলায় দেখো।',
-        'concept.interact2.live': 'নৌকা: {vb} বনাম স্রোত: {vr} → লব্ধি গতি: {vR}, দিক: {angle}',
+        'concept.youSaid': 'তুমি বলেছো',
+        'concept.actually': 'আসলে এটা',
+
+        'concept.teach.velocities.title': 'তিনটি বেগ',
+        'concept.teach.velocities.vb.name': 'নৌকার বেগ (v<sub>b</sub>)',
+        'concept.teach.velocities.vb.desc': 'পানির সাপেক্ষে নৌকার ইঞ্জিন যে বেগ দেয় — যেমন চলন্ত ওয়াকওয়েতে তোমার হাঁটার গতি।',
+        'concept.teach.velocities.vr.name': 'স্রোতের বেগ (v<sub>r</sub>)',
+        'concept.teach.velocities.vr.desc': 'পানি নিজে কত দ্রুত ভাটির দিকে প্রবাহিত হয় — যেমন তোমার পায়ের নিচে চলন্ত ওয়াকওয়ে।',
+        'concept.teach.velocities.vR.name': 'লব্ধি বেগ (v<sub>R</sub>)',
+        'concept.teach.velocities.vR.desc': 'নদীর তীরে দাঁড়ানো একজন মানুষ আসলে যা দেখে — v<sub>b</sub> ও v<sub>r</sub>-এর ভেক্টর যোগফল।',
+
+        'concept.teach.caseA.eyebrow': 'কেস A',
+        'concept.teach.caseA.title': 'সর্বনিম্ন সময়',
+        'concept.teach.caseA.body': 'নৌকাকে একদম সোজা ওপার বরাবর (তীরের সাথে লম্বভাবে) চালাও। এতে সবচেয়ে কম সময়ে ওপারে পৌঁছানো যায় — কিন্তু পুরো পথে স্রোত নৌকাকে ভাটির দিকে ঠেলে দেয়, তাই তুমি ঠিক বিপরীত বিন্দুতে না নেমে কিছুটা দূরে নামবে।',
+        'concept.teach.caseA.fact': 'পারাপারের সময় = d / v<sub>b</sub> · ভাটির সরণ = v<sub>r</sub> × সময়',
+
+        'concept.teach.caseB.eyebrow': 'কেস B',
+        'concept.teach.caseB.title': 'সংক্ষিপ্ততম পথ (শূন্য সরণ)',
+        'concept.teach.caseB.body': 'নৌকাকে স্রোতের বিপরীতে এমনভাবে কোণ করে চালাও, যাতে স্রোতের ধাক্কা নৌকার পার্শ্ব-সরণকে ঠিক বাতিল করে দেয়। ফলে লব্ধি পথ হয় একদম সোজা রেখা — সংক্ষিপ্ততম পথ, যদিও দ্রুততম নয়।',
+        'concept.teach.caseB.fact': 'কেবল তখনই সম্ভব যখন <strong>v<sub>b</sub> &gt; v<sub>r</sub></strong> — ধীরগতির নৌকা কখনোই স্রোত পুরোপুরি বাতিল করতে পারে না।',
+
+        'concept.teach.caseE.eyebrow': 'কেস D — এইচএসসি স্পেশাল কেস',
+        'concept.teach.caseE.title': '১২০° স্পটলাইট',
+        'concept.teach.caseE.body': 'নৌকার বেগ স্রোতের বেগের দ্বিগুণ হলে, শুধু সোজাসুজি নদী পার হওয়ার জন্য নৌকাকে স্রোতের দিক থেকে ১২০° কোণে রওনা দিতে হয় — বাস্তব বেগ যত-ই হোক না কেন, এই অনুপাত ঠিক থাকলে কোণটা সবসময় ১২০°-ই থাকে। এটি এইচএসসি পরীক্ষার একটি বিখ্যাত কেস। একটু পরেই তুমি নিজে এই কোণটি খুঁজে বের করবে।',
+        'concept.teach.caseE.fact': '<strong>v<sub>b</sub> = 2v<sub>r</sub></strong>  →  স্রোত থেকে শূন্য-সরণ কোণ = <strong>১২০°</strong>',
+
+        'concept.mcq.identify.q': 'এই চিত্রে, সবুজ তীরচিহ্নটি কী বোঝায়?',
+        'concept.mcq.identify.opt0': 'পানির সাপেক্ষে নৌকার নিজের বেগ (v<sub>b</sub>)',
+        'concept.mcq.identify.opt1': 'স্রোতের বেগ (v<sub>r</sub>)',
+        'concept.mcq.identify.opt2': 'লব্ধি বেগ — তীর থেকে দেখা নৌকার প্রকৃত পথ (v<sub>R</sub>)',
+        'concept.mcq.identify.opt3': 'বাতাসের বেগ',
+        'concept.mcq.identify.explain': 'সবুজ তীরচিহ্নটি লব্ধি বেগ v<sub>R</sub> — v<sub>b</sub> এবং v<sub>r</sub>-এর ভেক্টর যোগফল। নদীর তীর থেকে দেখলে নৌকাকে আসলে এই পথেই যেতে দেখা যাবে।',
+
+        'concept.mcq.cases.q': 'কেস A ও কেস B নিয়ে কোন বাক্যটি সঠিক?',
+        'concept.mcq.cases.opt0': 'কেস A সবচেয়ে কম সময়ে পার হয়; কেস B-তে সরণ শূন্য কিন্তু বেশি সময় লাগে',
+        'concept.mcq.cases.opt1': 'কেস A-তে সরণ শূন্য; কেস B সবচেয়ে দ্রুত',
+        'concept.mcq.cases.opt2': 'দুটি কেসেই সবসময় ঠিক একই সময় লাগে',
+        'concept.mcq.cases.opt3': 'নৌকা স্রোতের চেয়ে ধীর হলেও কেস B কাজ করে',
+        'concept.mcq.cases.explain': 'কেস A (সোজা ওপার) সময়ের দিক থেকে সবসময় সেরা, কারণ নৌকার কোনো বেগ স্রোতের সাথে লড়াইয়ে "নষ্ট" হয় না। কেস B সেই বেগের বিনিময়ে সোজা পথ পায় — আর এটি কাজ করে কেবল তখনই যখন v<sub>b</sub> &gt; v<sub>r</sub>।',
+
+        'concept.mcq.predict.q': 'নৌকার বেগ একই রেখে যদি স্রোতের বেগ বাড়াও, তাহলে কেস A-তে ভাটির দিকে সরণের কী হবে?',
+        'concept.mcq.predict.opt0': 'বেড়ে যাবে',
+        'concept.mcq.predict.opt1': 'কমে যাবে',
+        'concept.mcq.predict.opt2': 'একই থাকবে',
+        'concept.mcq.predict.opt3': 'নৌকা উজানের দিকে চলে যাবে',
+        'concept.mcq.predict.explain': 'স্রোত যত শক্তিশালী হয়, একই পারাপারের সময়ে নৌকা তত বেশি ভাটির দিকে সরে যায় — সরণ = v<sub>r</sub> × সময়, তাই বড় v<sub>r</sub> মানেই সরাসরি বেশি সরণ।',
+
+        'concept.interactive.eyebrow': 'নিজে করো',
+        'concept.interactive.title': 'শূন্য-সরণ কোণ খুঁজে বের করো',
+        'concept.interactive.instruction': 'স্রোতের বেগ স্থির, এবং নৌকার বেগ স্রোতের বেগের ঠিক দ্বিগুণে আটকানো আছে। স্লাইডারটি টেনে নৌকার কোণ এমনভাবে ঠিক করো যাতে লব্ধি বেগ (সবুজ) সোজা ওপার বরাবর — স্রোতের সাথে লম্বভাবে — নির্দেশ করে, শূন্য সরণসহ।',
+        'concept.interactive.angleLabel': 'স্রোতের দিক থেকে কোণ (φ)',
+        'concept.interactive.hintOver': 'φ = {angle}° — লব্ধি এখনও <strong>উজানের</strong> দিকে হেলে আছে। ছোট কোণ চেষ্টা করো।',
+        'concept.interactive.hintUnder': 'φ = {angle}° — লব্ধি এখনও <strong>ভাটির</strong> দিকে হেলে আছে। বড় কোণ চেষ্টা করো।',
+        'concept.interactive.hintSolved': 'φ = {angle}° — <strong>শূন্য সরণ!</strong> লব্ধি বেগ স্রোতের সাথে লম্ব হয়ে গেছে।',
+        'concept.interactive.success': '🎯 ঠিক ১২০° — এটাই কেস D স্পটলাইটের শর্ত।',
+
         'concept.done.title': 'তুমি আপেক্ষিক বেগ বুঝে গেছো!',
         'concept.done.body': 'নিজে থেকে কেস A–D ঘুরে দেখো, অথবা ইন্টারফেসের নিয়ন্ত্রণগুলো শিখতে যেকোনো সময় টিউটোরিয়াল খোলো।',
         'concept.done.start': 'শুরু করি',
@@ -4517,70 +4643,94 @@ function endTutorial() {
 
 /* =============================================================
    CONCEPT ONBOARDING
-   A pre-tour, concept-first walkthrough shown once to first-time
-   visitors: a gate question, then (if needed) a 3-card explainer for
-   v_b/v_r/v_R, then a 4-step quiz — identify the resultant-velocity
-   arrow, predict what a stronger current does (checked against a short
-   live demo), then two hands-on steps where the student drags the real
-   River Current / Boat Speed sliders themselves. Deliberately "soft":
-   Next is never blocked on the interactive steps, and the backdrop is
-   pointer-events:none, so it only ever guides — never traps input.
+   A full-screen, concept-first walkthrough shown once to first-time
+   visitors: a gate question, then (if needed) four teaching screens
+   covering the three velocities and the three headline cases (A, B,
+   the 120 deg spotlight), then a four-question assessment — three MCQs
+   and a hands-on drag task where the student finds the zero-drift
+   angle themselves. Every diagram here is a small self-contained SVG
+   scene (see CONCEPT_* helpers below) with its own fixed made-up
+   numbers; it never reads or writes the real simulation state, so the
+   walkthrough can't leave the page in a surprising configuration.
    Separate from the feature-tour GUIDED TUTORIAL above, which stays a
    manual, on-demand walkthrough of the interface controls.
    ============================================================= */
-const CONCEPT_IDENTIFY_OPT_KEYS = ['concept.identify.opt0', 'concept.identify.opt1', 'concept.identify.opt2', 'concept.identify.opt3'];
-const CONCEPT_IDENTIFY_CORRECT_IDX = 2; // "the resultant velocity"
+const CONCEPT_VB = '#7CA0FF';
+const CONCEPT_VR = '#FB923C';
+const CONCEPT_VRES = '#4ADE80';
+const CONCEPT_O = { x: 180, y: 215 };
+const CONCEPT_VR_LEN = 90;
+const CONCEPT_FAR_BANK_Y = 25;
+const CONCEPT_VIEWBOX = '0 0 380 260';
+const CONCEPT_GC_ICON = '<svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M21.42 10.92a1 1 0 0 0-.02-1.84L12.83 5.18a2 2 0 0 0-1.66 0L2.6 9.08a1 1 0 0 0 0 1.83l8.57 3.91a2 2 0 0 0 1.66 0Z"/><path d="M22 10v6"/><path d="M6 12.5V16a6 3 0 0 0 12 0v-3.5"/></svg>';
 
-// Picked at random on entering step 1, so returning students don't always
-// see the same prediction question. Each drives a different slider for the
-// post-answer live demo (demoFrac = fraction of that slider's full range to
-// move toward, robust to whichever unit system — metric or practical — is
-// currently selected).
-const CONCEPT_MCQ_POOL = [
+const CONCEPT_TEACH = ['velocities', 'caseA', 'caseB', 'caseE'];
+
+const CONCEPT_ASSESS = [
     {
-        qKey: 'concept.predict1.q',
-        optKeys: ['concept.predict1.opt0', 'concept.predict1.opt1', 'concept.predict1.opt2', 'concept.predict1.opt3'],
-        correctIdx: 0,
-        explainKey: 'concept.predict1.explain',
-        demoParam: 'vr',
-        demoFrac: 0.45,
+        type: 'mcq', scene: 'identifyQuiz',
+        qKey: 'concept.mcq.identify.q',
+        optKeys: ['concept.mcq.identify.opt0', 'concept.mcq.identify.opt1', 'concept.mcq.identify.opt2', 'concept.mcq.identify.opt3'],
+        correctIdx: 2, explainKey: 'concept.mcq.identify.explain',
     },
     {
-        qKey: 'concept.predict2.q',
-        optKeys: ['concept.predict2.opt0', 'concept.predict2.opt1', 'concept.predict2.opt2', 'concept.predict2.opt3'],
-        correctIdx: 1,
-        explainKey: 'concept.predict2.explain',
-        demoParam: 'vb',
-        demoFrac: 0.6,
+        type: 'mcq', scene: 'caseCompare',
+        qKey: 'concept.mcq.cases.q',
+        optKeys: ['concept.mcq.cases.opt0', 'concept.mcq.cases.opt1', 'concept.mcq.cases.opt2', 'concept.mcq.cases.opt3'],
+        correctIdx: 0, explainKey: 'concept.mcq.cases.explain',
     },
+    {
+        type: 'mcq', scene: 'caseA',
+        qKey: 'concept.mcq.predict.q',
+        optKeys: ['concept.mcq.predict.opt0', 'concept.mcq.predict.opt1', 'concept.mcq.predict.opt2', 'concept.mcq.predict.opt3'],
+        correctIdx: 0, explainKey: 'concept.mcq.predict.explain',
+    },
+    { type: 'interactive' },
 ];
 
 let conceptActive = false;
-let conceptGate = 'pending';   // 'pending' | 'explain' | 'quiz'
-let conceptStep = 0;           // 0 identify, 1 predict, 2 interact-vr, 3 interact-vb, 4 done
+let conceptGate = 'pending';    // 'pending' | 'teach' | 'assess' | 'done'
+let conceptTeachIdx = 0;        // 0..CONCEPT_TEACH.length-1
+let conceptAssessIdx = 0;       // 0..CONCEPT_ASSESS.length-1
 let conceptChecked = false;
 let conceptSelectedIdx = null;
-let conceptMcq = null;
-let conceptSpotlightEl = null;
-let conceptLivePoll = null;
+let conceptAngle = 90;          // interactive step's live slider angle (deg from current direction)
 let conceptReturnFocusEl = null;
 
 function startConceptOnboarding() {
     conceptActive = true;
     conceptGate = 'pending';
-    conceptStep = 0;
+    conceptTeachIdx = 0;
+    conceptAssessIdx = 0;
     conceptChecked = false;
     conceptSelectedIdx = null;
-    conceptMcq = null;
+    conceptAngle = 90;
     conceptReturnFocusEl = document.activeElement;
     document.getElementById('concept-backdrop').classList.add('active');
-    document.getElementById('concept-shell').classList.add('active');
+    const shell = document.getElementById('concept-shell');
+    shell.classList.add('active');
+    shell.focus();
+    document.addEventListener('keydown', onConceptKeydown);
     renderConceptOnboarding();
+}
+
+function onConceptKeydown(e) {
+    if (e.key === 'Escape') skipConceptOnboarding();
 }
 
 function setConceptGate(g) {
     conceptGate = g;
-    if (g === 'quiz') { conceptStep = 0; conceptChecked = false; conceptSelectedIdx = null; }
+    if (g === 'teach') conceptTeachIdx = 0;
+    if (g === 'assess') { conceptAssessIdx = 0; conceptChecked = false; conceptSelectedIdx = null; }
+    renderConceptOnboarding();
+}
+
+function nextTeachSlide() {
+    conceptTeachIdx += 1;
+    if (conceptTeachIdx >= CONCEPT_TEACH.length) {
+        conceptGate = 'assess';
+        conceptAssessIdx = 0;
+    }
     renderConceptOnboarding();
 }
 
@@ -4594,31 +4744,26 @@ function checkConceptAnswer() {
     if (conceptSelectedIdx === null) return;
     conceptChecked = true;
     renderConceptOnboarding();
-    if (conceptStep === 1 && conceptMcq) {
-        animateConceptSliderDemo(conceptMcq.demoParam, conceptMcq.demoFrac);
-    }
 }
 
-function nextConceptStep() {
-    stopConceptLivePoll();
-    clearConceptSpotlight();
-    conceptStep += 1;
+function nextAssessStep() {
+    conceptAssessIdx += 1;
     conceptChecked = false;
     conceptSelectedIdx = null;
-    if (conceptStep === 1) {
-        conceptMcq = CONCEPT_MCQ_POOL[Math.floor(Math.random() * CONCEPT_MCQ_POOL.length)];
+    if (CONCEPT_ASSESS[conceptAssessIdx] && CONCEPT_ASSESS[conceptAssessIdx].type === 'interactive') {
+        conceptAngle = 90;
+    }
+    if (conceptAssessIdx >= CONCEPT_ASSESS.length) {
+        conceptGate = 'done';
     }
     renderConceptOnboarding();
 }
 
 function finishConceptOnboarding() {
-    stopConceptLivePoll();
-    clearConceptSpotlight();
     conceptActive = false;
+    document.removeEventListener('keydown', onConceptKeydown);
     document.getElementById('concept-backdrop').classList.remove('active');
-    const shell = document.getElementById('concept-shell');
-    shell.classList.remove('active');
-    shell.classList.remove('concept-shell-corner');
+    document.getElementById('concept-shell').classList.remove('active');
     prefs.set('concept_onboarding_done_v1', '1');
     if (conceptReturnFocusEl && document.contains(conceptReturnFocusEl)) conceptReturnFocusEl.focus();
     conceptReturnFocusEl = null;
@@ -4626,75 +4771,174 @@ function finishConceptOnboarding() {
 
 function skipConceptOnboarding() { finishConceptOnboarding(); }
 
-function clearConceptSpotlight() {
-    if (conceptSpotlightEl) conceptSpotlightEl.classList.remove('concept-spotlight');
-    conceptSpotlightEl = null;
+/* Angle (deg) is measured from the current's own direction — the same
+   convention the app's own φ heading control uses. Screen y is flipped
+   (up = negative) since "across the river" means "toward the top" here. */
+function conceptVec(magnitude, phiDeg) {
+    const rad = phiDeg * Math.PI / 180;
+    return { dx: magnitude * Math.cos(rad), dy: -magnitude * Math.sin(rad) };
 }
 
-function applyConceptSpotlight(selector) {
-    clearConceptSpotlight();
-    const el = document.querySelector(selector);
-    if (!el) return;
-    el.classList.add('concept-spotlight');
-    el.scrollIntoView({ behavior: 'smooth', block: 'center' });
-    conceptSpotlightEl = el;
+function conceptVSub(sub) { return `v<tspan baseline-shift="sub" font-size="0.65em">${sub}</tspan>`; }
+
+function conceptLabel(x, y, html, color, anchor) {
+    return `<text x="${x.toFixed(1)}" y="${y.toFixed(1)}" fill="${color}" font-size="15" font-weight="700" text-anchor="${anchor || 'start'}">${html}</text>`;
 }
 
-function stopConceptLivePoll() {
-    if (conceptLivePoll) { clearInterval(conceptLivePoll); conceptLivePoll = null; }
+function conceptArrow(x1, y1, x2, y2, color, opts) {
+    opts = opts || {};
+    const sw = opts.strokeWidth || 5;
+    const headLen = 14, headW = 8;
+    const ang = Math.atan2(y2 - y1, x2 - x1);
+    const hx = x2 - headLen * Math.cos(ang), hy = y2 - headLen * Math.sin(ang);
+    const lx = hx + headW * Math.cos(ang + Math.PI / 2), ly = hy + headW * Math.sin(ang + Math.PI / 2);
+    const rx = hx + headW * Math.cos(ang - Math.PI / 2), ry = hy + headW * Math.sin(ang - Math.PI / 2);
+    return `<line x1="${x1.toFixed(1)}" y1="${y1.toFixed(1)}" x2="${hx.toFixed(1)}" y2="${hy.toFixed(1)}" stroke="${color}" stroke-width="${sw}" stroke-linecap="round"/>
+        <polygon points="${lx.toFixed(1)},${ly.toFixed(1)} ${x2.toFixed(1)},${y2.toFixed(1)} ${rx.toFixed(1)},${ry.toFixed(1)}" fill="${color}"/>`;
 }
 
-function startConceptLivePoll(renderFn) {
-    stopConceptLivePoll();
-    renderFn();
-    conceptLivePoll = window.setInterval(renderFn, 300);
-}
-
-/* Eases a slider from its current value toward current + delta over ~1s,
-   through the real updateFromSlider path, so every dependent readout/label
-   updates exactly as if the student had dragged it themselves. Used for the
-   "watch it happen" moment right after a prediction MCQ is checked. */
-function animateConceptSliderDemo(param, frac) {
-    const slider = document.getElementById('slider-' + param);
-    if (!slider) return;
-    const min = parseFloat(slider.min), max = parseFloat(slider.max);
-    const startVal = parseFloat(slider.value);
-    const endVal = Math.max(min, Math.min(max, startVal + (max - min) * frac));
-    // setTimeout stepping, not requestAnimationFrame: this tween has to keep
-    // advancing even if the tab loses focus mid-onboarding (rAF throttles/
-    // pauses in a background tab, which would leave the demo visibly stuck).
-    const stepMs = 30;
-    const totalSteps = Math.round(1100 / stepMs);
-    let i = 0;
-    function tick() {
-        i++;
-        const p = Math.min(1, i / totalSteps);
-        const eased = 1 - Math.pow(1 - p, 2);
-        slider.value = (startVal + (endVal - startVal) * eased).toFixed(2);
-        updateFromSlider(param, slider.value);
-        if (p < 1) setTimeout(tick, stepMs);
+/* Short polyline arc (not an SVG arc command, to sidestep sweep-flag sign
+   mistakes) tracing the angle between the current direction and the boat's
+   heading, with an optional label at its midpoint. */
+function conceptArc(cx, cy, r, fromDeg, toDeg, color, label) {
+    const steps = 16;
+    let d = '';
+    for (let i = 0; i <= steps; i++) {
+        const a = (fromDeg + (toDeg - fromDeg) * i / steps) * Math.PI / 180;
+        d += (i === 0 ? 'M' : 'L') + (cx + r * Math.cos(a)).toFixed(1) + ',' + (cy + r * Math.sin(a)).toFixed(1) + ' ';
     }
-    setTimeout(tick, stepMs);
+    const midA = (fromDeg + toDeg) / 2 * Math.PI / 180;
+    const lx = cx + (r + 20) * Math.cos(midA), ly = cy + (r + 20) * Math.sin(midA);
+    return `<path d="${d}" fill="none" stroke="#FDE68A" stroke-width="2"/>` + (label ? conceptLabel(lx, ly, label, '#FDE68A', 'middle') : '');
 }
 
-function conceptArrowIcon(colorVar, angleDeg, size) {
+function conceptArrowIcon(color, angleDeg, size) {
     size = size || 36;
     return `<svg width="${size}" height="${size}" viewBox="0 0 36 36" style="transform:rotate(${angleDeg}deg)" aria-hidden="true">
-        <line x1="4" y1="18" x2="26" y2="18" stroke="${colorVar}" stroke-width="3.5" stroke-linecap="round"/>
-        <polygon points="24,10.5 34,18 24,25.5" fill="${colorVar}"/>
+        <line x1="4" y1="18" x2="26" y2="18" stroke="${color}" stroke-width="3.5" stroke-linecap="round"/>
+        <polygon points="24,10.5 34,18 24,25.5" fill="${color}"/>
     </svg>`;
 }
 
-function conceptDiagramSvg() {
-    return `<svg width="150" height="110" viewBox="0 0 150 110" aria-hidden="true">
-        <line x1="20" y1="94" x2="20" y2="18" stroke="var(--color-vb)" stroke-width="3.5" stroke-linecap="round"/>
-        <polygon points="12,26 20,14 28,26" fill="var(--color-vb)"/>
-        <line x1="20" y1="94" x2="128" y2="94" stroke="var(--color-vr)" stroke-width="3.5" stroke-linecap="round"/>
-        <polygon points="116,86 132,94 116,102" fill="var(--color-vr)"/>
-        <line x1="20" y1="94" x2="115" y2="22" stroke="var(--color-accent)" stroke-width="3.5" stroke-linecap="round"/>
-        <polygon points="101,26 118,15 109,32" fill="var(--color-accent)"/>
-        <circle cx="20" cy="94" r="3.5" fill="var(--fg-2)"/>
-    </svg>`;
+function conceptSvgOpen() { return `<svg class="concept-svg" viewBox="${CONCEPT_VIEWBOX}" preserveAspectRatio="xMidYMid meet" aria-hidden="true">`; }
+
+function conceptBanksMarkup() {
+    return `<line x1="0" y1="${CONCEPT_FAR_BANK_Y}" x2="380" y2="${CONCEPT_FAR_BANK_Y}" stroke="rgba(255,255,255,0.28)" stroke-width="2" stroke-dasharray="6 6"/>
+        <line x1="0" y1="${CONCEPT_O.y}" x2="380" y2="${CONCEPT_O.y}" stroke="rgba(255,255,255,0.28)" stroke-width="2" stroke-dasharray="6 6"/>
+        <circle cx="${CONCEPT_O.x}" cy="${CONCEPT_O.y}" r="4" fill="rgba(255,255,255,0.8)"/>`;
+}
+
+/* Generic vb/vr/vR scene. vbMag + phiDeg (from the current's direction)
+   fully determine the boat vector; vr is always the same fixed reference
+   vector so every teaching scene reads on the same visual scale. */
+function conceptVectorScene(vbMag, phiDeg, opts) {
+    opts = opts || {};
+    const O = CONCEPT_O;
+    const vr = { dx: CONCEPT_VR_LEN, dy: 0 };
+    const vb = conceptVec(vbMag, phiDeg);
+    const vbTip = { x: O.x + vb.dx, y: O.y + vb.dy };
+    const vrTip = { x: O.x + vr.dx, y: O.y + vr.dy };
+    const vRTip = { x: O.x + vb.dx + vr.dx, y: O.y + vb.dy + vr.dy };
+
+    let extra = '';
+    if (opts.showParallelogram) {
+        extra += `<line x1="${vbTip.x.toFixed(1)}" y1="${vbTip.y.toFixed(1)}" x2="${vRTip.x.toFixed(1)}" y2="${vRTip.y.toFixed(1)}" stroke="rgba(255,255,255,0.25)" stroke-width="1.5" stroke-dasharray="3 4"/>
+            <line x1="${vrTip.x.toFixed(1)}" y1="${vrTip.y.toFixed(1)}" x2="${vRTip.x.toFixed(1)}" y2="${vRTip.y.toFixed(1)}" stroke="rgba(255,255,255,0.25)" stroke-width="1.5" stroke-dasharray="3 4"/>`;
+    }
+    if (opts.angleArc) {
+        const a1 = Math.atan2(vr.dy, vr.dx) * 180 / Math.PI;
+        const a2 = Math.atan2(vb.dy, vb.dx) * 180 / Math.PI;
+        extra += conceptArc(O.x, O.y, 42, a1, a2, null, opts.angleLabel);
+    }
+    if (opts.pathToFarBank) {
+        const dy = vRTip.y - O.y;
+        const tt = dy !== 0 ? (CONCEPT_FAR_BANK_Y - O.y) / dy : 0;
+        const landX = O.x + (vRTip.x - O.x) * tt;
+        extra += `<line x1="${O.x}" y1="${O.y}" x2="${landX.toFixed(1)}" y2="${CONCEPT_FAR_BANK_Y}" stroke="${CONCEPT_VRES}" stroke-width="2.5"${opts.pathDashed === false ? '' : ' stroke-dasharray="2 5"'}/>
+            <circle cx="${landX.toFixed(1)}" cy="${CONCEPT_FAR_BANK_Y}" r="5" fill="${CONCEPT_VRES}"/>`;
+        if (opts.driftBracket) {
+            const y = CONCEPT_FAR_BANK_Y + 23;
+            extra += `<line x1="${O.x}" y1="${y}" x2="${landX.toFixed(1)}" y2="${y}" stroke="#F87171" stroke-width="2"/>
+                <line x1="${O.x}" y1="${y - 4}" x2="${O.x}" y2="${y + 4}" stroke="#F87171" stroke-width="2"/>
+                <line x1="${landX.toFixed(1)}" y1="${y - 4}" x2="${landX.toFixed(1)}" y2="${y + 4}" stroke="#F87171" stroke-width="2"/>
+                ${conceptLabel((O.x + landX) / 2, y - 8, opts.driftLabel, '#F87171', 'middle')}`;
+        }
+    }
+
+    let arrows = conceptArrow(O.x, O.y, vrTip.x, vrTip.y, CONCEPT_VR);
+    arrows += conceptArrow(O.x, O.y, vbTip.x, vbTip.y, CONCEPT_VB);
+    arrows += conceptArrow(O.x, O.y, vRTip.x, vRTip.y, CONCEPT_VRES, { strokeWidth: 5.5 });
+
+    let labels = '';
+    if (opts.showLabels !== false) {
+        labels += conceptLabel(vrTip.x + 8, vrTip.y + 4, conceptVSub('r'), CONCEPT_VR, 'start');
+        labels += conceptLabel(vbTip.x, vbTip.y - 10, conceptVSub('b'), CONCEPT_VB, 'middle');
+        labels += conceptLabel(vRTip.x + 8, vRTip.y - 6, conceptVSub('R'), CONCEPT_VRES, 'start');
+    }
+
+    return conceptSvgOpen() + conceptBanksMarkup() + extra + arrows + labels + `</svg>`;
+}
+
+/* Overlays Case A's drifted landing point against Case B's straight-across
+   landing point, both starting from the same O, for the A-vs-B MCQ. */
+function conceptCompareScene() {
+    const O = CONCEPT_O;
+    const vbA = conceptVec(130, 90);
+    const vRA = { x: O.x + vbA.dx + CONCEPT_VR_LEN, y: O.y + vbA.dy };
+    const tt = (CONCEPT_FAR_BANK_Y - O.y) / (vRA.y - O.y);
+    const landA = { x: O.x + (vRA.x - O.x) * tt, y: CONCEPT_FAR_BANK_Y };
+    const landB = { x: O.x, y: CONCEPT_FAR_BANK_Y };
+
+    return conceptSvgOpen() + conceptBanksMarkup() +
+        `<line x1="${O.x}" y1="${O.y}" x2="${landA.x.toFixed(1)}" y2="${landA.y}" stroke="${CONCEPT_VR}" stroke-width="3" stroke-dasharray="2 6"/>
+        <circle cx="${landA.x.toFixed(1)}" cy="${landA.y}" r="7" fill="${CONCEPT_VR}"/>
+        ${conceptLabel(landA.x + 12, landA.y + 5, 'A', CONCEPT_VR, 'start')}
+        <line x1="${O.x}" y1="${O.y}" x2="${landB.x}" y2="${landB.y}" stroke="${CONCEPT_VRES}" stroke-width="3"/>
+        <circle cx="${landB.x}" cy="${landB.y}" r="7" fill="${CONCEPT_VRES}"/>
+        ${conceptLabel(landB.x - 12, landB.y + 5, 'B', CONCEPT_VRES, 'end')}
+        </svg>`;
+}
+
+/* Boat speed is locked to 2x the current speed (the Case E condition); only
+   the heading angle is live, driven by the assessment step's slider. */
+function conceptInteractiveScene(phiDeg) {
+    const O = CONCEPT_O;
+    const vbMag = CONCEPT_VR_LEN * 2;
+    const vr = { dx: CONCEPT_VR_LEN, dy: 0 };
+    const vb = conceptVec(vbMag, phiDeg);
+    const vbTip = { x: O.x + vb.dx, y: O.y + vb.dy };
+    const vRTip = { x: O.x + vb.dx + vr.dx, y: O.y + vb.dy + vr.dy };
+    const solved = Math.abs(phiDeg - 120) <= 2;
+    const pathColor = solved ? CONCEPT_VRES : '#FBBF24';
+
+    const dy = vRTip.y - O.y;
+    const tt = dy !== 0 ? (CONCEPT_FAR_BANK_Y - O.y) / dy : 0;
+    const landX = O.x + (vRTip.x - O.x) * tt;
+    const vbAngle = Math.atan2(vb.dy, vb.dx) * 180 / Math.PI;
+
+    return conceptSvgOpen() + conceptBanksMarkup() +
+        `<circle cx="${O.x}" cy="${CONCEPT_FAR_BANK_Y}" r="9" fill="none" stroke="rgba(74,222,128,0.55)" stroke-width="2" stroke-dasharray="3 3"/>` +
+        conceptArc(O.x, O.y, 42, 0, vbAngle, null, null) +
+        `<line x1="${O.x}" y1="${O.y}" x2="${landX.toFixed(1)}" y2="${CONCEPT_FAR_BANK_Y}" stroke="${pathColor}" stroke-width="2.5" stroke-dasharray="2 5"/>
+        <circle cx="${landX.toFixed(1)}" cy="${CONCEPT_FAR_BANK_Y}" r="5" fill="${pathColor}"/>` +
+        conceptArrow(O.x, O.y, O.x + vr.dx, O.y + vr.dy, CONCEPT_VR) +
+        conceptArrow(O.x, O.y, vbTip.x, vbTip.y, CONCEPT_VB) +
+        conceptArrow(O.x, O.y, vRTip.x, vRTip.y, pathColor, { strokeWidth: 5.5 }) +
+        `</svg>`;
+}
+
+function conceptSceneFor(name) {
+    if (name === 'velocities') return conceptVectorScene(130, 90, { showParallelogram: true });
+    if (name === 'caseA') return conceptVectorScene(130, 90, { pathToFarBank: true, driftBracket: true, driftLabel: t('canvas.drift') });
+    if (name === 'caseB') {
+        const phi = Math.acos(-CONCEPT_VR_LEN / 150) * 180 / Math.PI;
+        return conceptVectorScene(150, phi, { pathToFarBank: true, pathDashed: false });
+    }
+    if (name === 'caseE') return conceptVectorScene(180, 120, { pathToFarBank: true, pathDashed: false, angleArc: true, angleLabel: '120°' });
+    if (name === 'identifyQuiz') return conceptVectorScene(130, 90, { showLabels: false });
+    if (name === 'caseCompare') return conceptCompareScene();
+    if (name === 'interactive') return conceptInteractiveScene(conceptAngle);
+    return '';
 }
 
 function conceptOptionsHtml(optKeys) {
@@ -4703,128 +4947,135 @@ function conceptOptionsHtml(optKeys) {
             <span class="concept-opt-letter">${String.fromCharCode(65 + i)}</span>
             <span>${t(key)}</span>
         </button>`).join('') + `</div>
-        <button type="button" class="concept-btn" ${conceptSelectedIdx === null ? 'disabled' : ''} onclick="checkConceptAnswer()">${t('concept.check')}</button>`;
+        <div class="concept-actions"><button type="button" class="concept-btn" ${conceptSelectedIdx === null ? 'disabled' : ''} onclick="checkConceptAnswer()">${t('concept.check')}</button></div>`;
 }
 
-/* The body/header go inside their own single block element each, never as
-   bare mixed text+tag content directly inside .info-box — that class is
-   display:flex/flex-direction:column, so raw children (a text run, then an
-   inline tag like <sub>, then more text) each become their own flex item
-   and stack on separate lines instead of flowing as one line of text. */
-function conceptFeedbackHtml(correct, bodyHtml, headerHtml) {
-    return `<div class="concept-feedback ${correct ? 'correct' : 'wrong'}">${t(correct ? 'concept.correct' : 'concept.wrong')}</div>
-        <div class="info-box concept-explain">
-            ${headerHtml ? `<div class="info-box-title">${headerHtml}</div>` : ''}
-            <div>${bodyHtml}</div>
-        </div>`;
+function conceptFeedbackHtml(correct, explainHtml, youSaidText, actualText) {
+    if (correct) {
+        return `<div class="concept-feedback correct">${t('concept.correct')}</div>
+            <p class="concept-body-text">${explainHtml}</p>`;
+    }
+    return `<div class="concept-feedback wrong">${t('concept.wrong')}</div>
+        <div class="concept-compare">
+            <div class="concept-compare-you"><span class="concept-compare-label">${t('concept.youSaid')}</span><strong>${youSaidText}</strong></div>
+            <div class="concept-compare-chevron"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg></div>
+            <div class="concept-compare-actual"><span class="concept-compare-label">${t('concept.actually')}</span><strong>${actualText}</strong></div>
+        </div>
+        <p class="concept-body-text">${explainHtml}</p>`;
+}
+
+function conceptAngleHintHtml(angle, solved) {
+    const a = Math.round(angle);
+    if (solved) return t('concept.interactive.hintSolved').replace('{angle}', a);
+    return t(angle < 120 ? 'concept.interactive.hintUnder' : 'concept.interactive.hintOver').replace('{angle}', a);
+}
+
+function onConceptAngleInput(val) {
+    conceptAngle = parseFloat(val);
+    const solved = Math.abs(conceptAngle - 120) <= 2;
+    const svgWrap = document.getElementById('concept-svg-wrap');
+    if (svgWrap) svgWrap.innerHTML = conceptInteractiveScene(conceptAngle);
+    const hint = document.getElementById('concept-angle-hint');
+    if (hint) { hint.innerHTML = conceptAngleHintHtml(conceptAngle, solved); hint.classList.toggle('solved', solved); }
+    const success = document.getElementById('concept-angle-success');
+    if (success) success.style.display = solved ? '' : 'none';
+    const btn = document.getElementById('concept-interactive-continue');
+    if (btn) btn.disabled = !solved;
 }
 
 function renderConceptOnboarding() {
-    const card = document.getElementById('concept-card');
-    const shell = document.getElementById('concept-shell');
-    const gcIcon = '<svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M21.42 10.92a1 1 0 0 0-.02-1.84L12.83 5.18a2 2 0 0 0-1.66 0L2.6 9.08a1 1 0 0 0 0 1.83l8.57 3.91a2 2 0 0 0 1.66 0Z"/><path d="M22 10v6"/><path d="M6 12.5V16a6 3 0 0 0 12 0v-3.5"/></svg>';
-    const skipBtn = `<button type="button" class="concept-skip" onclick="skipConceptOnboarding()" aria-label="${t('concept.skip')}" title="${t('concept.skip')}">
-        <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
-    </button>`;
+    const caption = document.getElementById('concept-stage-caption');
+    const svgWrap = document.getElementById('concept-svg-wrap');
+    const panel = document.getElementById('concept-panel');
 
-    const isInteractiveStep = conceptGate === 'quiz' && (conceptStep === 2 || conceptStep === 3);
-    shell.classList.toggle('concept-shell-corner', isInteractiveStep);
-
-    let eyebrow, body;
+    let stageHtml = '', captionText = '', panelHtml = '';
 
     if (conceptGate === 'pending') {
-        eyebrow = t('concept.gate.eyebrow');
-        body = `
-            <div class="concept-question" id="concept-question">${t('concept.gate.question')}</div>
+        stageHtml = conceptSceneFor('velocities');
+        panelHtml = `<div class="concept-eyebrow">${CONCEPT_GC_ICON}<span>${t('concept.gate.eyebrow')}</span></div>
+            <h2 class="concept-title" id="concept-title">${t('concept.gate.question')}</h2>
             <div class="concept-gate-btns">
-                <button type="button" class="concept-btn" onclick="setConceptGate('quiz')">${t('concept.gate.yes')}</button>
-                <button type="button" class="concept-btn concept-btn-secondary" onclick="setConceptGate('explain')">${t('concept.gate.no')}</button>
+                <button type="button" class="concept-btn" onclick="setConceptGate('assess')">${t('concept.gate.yes')}</button>
+                <button type="button" class="concept-btn concept-btn-secondary" onclick="setConceptGate('teach')">${t('concept.gate.no')}</button>
             </div>`;
-    } else if (conceptGate === 'explain') {
-        eyebrow = t('concept.explain.eyebrow');
-        const items = [
-            ['var(--color-vb)', -90, 'concept.explain.vb.name', 'concept.explain.vb.desc'],
-            ['var(--color-vr)', 0,   'concept.explain.vr.name', 'concept.explain.vr.desc'],
-            ['var(--color-accent)', -45, 'concept.explain.vR.name', 'concept.explain.vR.desc'],
-        ];
-        body = `
-            <div class="concept-question" id="concept-question">${t('concept.explain.question')}</div>
-            <div class="concept-gallery">${items.map(([color, angle, nameKey, descKey]) => `
-                <div class="concept-gallery-item">
-                    ${conceptArrowIcon(color, angle)}
-                    <div>
-                        <div class="concept-gallery-name">${t(nameKey)}</div>
-                        <div class="concept-gallery-desc">${t(descKey)}</div>
-                    </div>
-                </div>`).join('')}</div>
-            <button type="button" class="concept-btn" onclick="setConceptGate('quiz')">${t('concept.explain.start')}</button>`;
-    } else {
-        // conceptGate === 'quiz'
-        eyebrow = conceptStep < 4 ? `${t('concept.step')} ${conceptStep + 1}/4` : '';
+    } else if (conceptGate === 'teach') {
+        const idx = conceptTeachIdx;
+        const id = CONCEPT_TEACH[idx];
+        let eyebrowText = `${t('concept.lesson')} ${idx + 1}/${CONCEPT_TEACH.length}`;
+        let titleHtml, bodyHtml;
 
-        if (conceptStep === 0) {
-            if (!conceptChecked) {
-                body = `<div class="concept-diagram">${conceptDiagramSvg()}</div>
-                    <div class="concept-question" id="concept-question">${t('concept.identify.question')}</div>
-                    ${conceptOptionsHtml(CONCEPT_IDENTIFY_OPT_KEYS)}`;
-            } else {
-                const correct = conceptSelectedIdx === CONCEPT_IDENTIFY_CORRECT_IDX;
-                body = `<div class="concept-diagram">${conceptDiagramSvg()}</div>
-                    ${conceptFeedbackHtml(correct, t('concept.identify.explain'))}
-                    <button type="button" class="concept-btn" onclick="nextConceptStep()">${t('concept.next')}</button>`;
-            }
-        } else if (conceptStep === 1) {
-            if (!conceptMcq) conceptMcq = CONCEPT_MCQ_POOL[Math.floor(Math.random() * CONCEPT_MCQ_POOL.length)];
-            if (!conceptChecked) {
-                body = `<div class="concept-question" id="concept-question">${t(conceptMcq.qKey)}</div>
-                    ${conceptOptionsHtml(conceptMcq.optKeys)}`;
-            } else {
-                const correct = conceptSelectedIdx === conceptMcq.correctIdx;
-                body = conceptFeedbackHtml(correct, t(conceptMcq.explainKey), t('concept.watch')) +
-                    `<button type="button" class="concept-btn" onclick="nextConceptStep()">${t('concept.next')}</button>`;
-            }
-        } else if (conceptStep === 2) {
-            applyConceptSpotlight('#group-vr');
-            body = `<div class="concept-question" id="concept-question">${t('concept.interact1.instruction')}</div>
-                <div class="concept-live-hint" id="concept-live-hint"></div>
-                <button type="button" class="concept-btn" onclick="nextConceptStep()">${t('concept.next')}</button>`;
-            startConceptLivePoll(() => {
-                const el = document.getElementById('concept-live-hint');
-                if (!el) return;
-                const res = solvePhysics();
-                el.innerHTML = t('concept.interact1.live')
-                    .replace('{vr}', `<strong>${fmtSpeed(state.vr)}</strong>`)
-                    .replace('{drift}', `<strong>${isFinite(res.drift) ? fmtDist(res.drift) : '∞'}</strong>`);
-            });
-        } else if (conceptStep === 3) {
-            applyConceptSpotlight('#group-vb');
-            body = `<div class="concept-question" id="concept-question">${t('concept.interact2.instruction')}</div>
-                <div class="concept-live-hint" id="concept-live-hint"></div>
-                <button type="button" class="concept-btn" onclick="nextConceptStep()">${t('concept.finish')}</button>`;
-            startConceptLivePoll(() => {
-                const el = document.getElementById('concept-live-hint');
-                if (!el) return;
-                const res = solvePhysics();
-                el.innerHTML = t('concept.interact2.live')
-                    .replace('{vb}', `<strong>${fmtSpeed(state.vb)}</strong>`)
-                    .replace('{vr}', `<strong>${fmtSpeed(state.vr)}</strong>`)
-                    .replace('{vR}', `<strong>${fmtSpeed(res.vR)}</strong>`)
-                    .replace('{angle}', `<strong>${res.alphaDeg.toFixed(1)}°</strong>`);
-            });
+        if (id === 'velocities') {
+            stageHtml = conceptSceneFor('velocities');
+            titleHtml = t('concept.teach.velocities.title');
+            bodyHtml = `<div class="concept-gallery">
+                <div class="concept-gallery-item">${conceptArrowIcon(CONCEPT_VB, -90)}<div><div class="concept-gallery-name">${t('concept.teach.velocities.vb.name')}</div><div class="concept-gallery-desc">${t('concept.teach.velocities.vb.desc')}</div></div></div>
+                <div class="concept-gallery-item">${conceptArrowIcon(CONCEPT_VR, 0)}<div><div class="concept-gallery-name">${t('concept.teach.velocities.vr.name')}</div><div class="concept-gallery-desc">${t('concept.teach.velocities.vr.desc')}</div></div></div>
+                <div class="concept-gallery-item">${conceptArrowIcon(CONCEPT_VRES, -55)}<div><div class="concept-gallery-name">${t('concept.teach.velocities.vR.name')}</div><div class="concept-gallery-desc">${t('concept.teach.velocities.vR.desc')}</div></div></div>
+            </div>`;
+        } else if (id === 'caseA') {
+            eyebrowText += ` · ${t('concept.teach.caseA.eyebrow')}`;
+            stageHtml = conceptSceneFor('caseA');
+            titleHtml = t('concept.teach.caseA.title');
+            bodyHtml = `<p class="concept-body-text">${t('concept.teach.caseA.body')}</p><div class="concept-key-fact">${t('concept.teach.caseA.fact')}</div>`;
+        } else if (id === 'caseB') {
+            eyebrowText += ` · ${t('concept.teach.caseB.eyebrow')}`;
+            stageHtml = conceptSceneFor('caseB');
+            titleHtml = t('concept.teach.caseB.title');
+            bodyHtml = `<p class="concept-body-text">${t('concept.teach.caseB.body')}</p><div class="concept-key-fact">${t('concept.teach.caseB.fact')}</div>`;
         } else {
-            // Done
-            body = `<div class="concept-question" id="concept-question">🎓 ${t('concept.done.title')}</div>
-                <div class="info-box concept-explain"><div>${t('concept.done.body')}</div></div>
-                <button type="button" class="concept-btn" onclick="finishConceptOnboarding()">${t('concept.done.start')}</button>`;
+            eyebrowText += ` · ${t('concept.teach.caseE.eyebrow')}`;
+            stageHtml = conceptSceneFor('caseE');
+            titleHtml = t('concept.teach.caseE.title');
+            bodyHtml = `<p class="concept-body-text">${t('concept.teach.caseE.body')}</p><div class="concept-key-fact">${t('concept.teach.caseE.fact')}</div>`;
         }
+
+        captionText = eyebrowText;
+        panelHtml = `<div class="concept-eyebrow">${CONCEPT_GC_ICON}<span>${eyebrowText}</span></div>
+            <h2 class="concept-title" id="concept-title">${titleHtml}</h2>
+            ${bodyHtml}
+            <div class="concept-actions"><button type="button" class="concept-btn" onclick="nextTeachSlide()">${t('concept.next')}</button></div>`;
+    } else if (conceptGate === 'assess') {
+        const item = CONCEPT_ASSESS[conceptAssessIdx];
+        const eyebrowText = `${t('concept.assess')} ${conceptAssessIdx + 1}/${CONCEPT_ASSESS.length}`;
+        captionText = eyebrowText;
+
+        if (item.type === 'mcq') {
+            stageHtml = conceptSceneFor(item.scene);
+            if (!conceptChecked) {
+                panelHtml = `<div class="concept-eyebrow">${CONCEPT_GC_ICON}<span>${eyebrowText}</span></div>
+                    <h2 class="concept-title" id="concept-title">${t(item.qKey)}</h2>
+                    ${conceptOptionsHtml(item.optKeys)}`;
+            } else {
+                const correct = conceptSelectedIdx === item.correctIdx;
+                panelHtml = `<div class="concept-eyebrow">${CONCEPT_GC_ICON}<span>${eyebrowText}</span></div>
+                    <h2 class="concept-title" id="concept-title">${t(item.qKey)}</h2>
+                    ${conceptFeedbackHtml(correct, t(item.explainKey), correct ? '' : t(item.optKeys[conceptSelectedIdx]), correct ? '' : t(item.optKeys[item.correctIdx]))}
+                    <div class="concept-actions"><button type="button" class="concept-btn" onclick="nextAssessStep()">${t('concept.next')}</button></div>`;
+            }
+        } else {
+            const solved = Math.abs(conceptAngle - 120) <= 2;
+            stageHtml = conceptSceneFor('interactive');
+            panelHtml = `<div class="concept-eyebrow">${CONCEPT_GC_ICON}<span>${eyebrowText} · ${t('concept.interactive.eyebrow')}</span></div>
+                <h2 class="concept-title" id="concept-title">${t('concept.interactive.title')}</h2>
+                <p class="concept-body-text">${t('concept.interactive.instruction')}</p>
+                <label class="concept-compare-label" for="concept-angle-slider">${t('concept.interactive.angleLabel')}</label>
+                <input type="range" id="concept-angle-slider" class="concept-angle-slider range-slider" min="80" max="160" step="1" value="${conceptAngle}" oninput="onConceptAngleInput(this.value)">
+                <div class="concept-live-hint${solved ? ' solved' : ''}" id="concept-angle-hint">${conceptAngleHintHtml(conceptAngle, solved)}</div>
+                <div class="concept-feedback correct" id="concept-angle-success" style="display:${solved ? '' : 'none'}">${t('concept.interactive.success')}</div>
+                <div class="concept-actions"><button type="button" class="concept-btn" id="concept-interactive-continue" ${solved ? '' : 'disabled'} onclick="nextAssessStep()">${t('concept.finish')}</button></div>`;
+        }
+    } else {
+        // done
+        stageHtml = conceptSceneFor('caseE');
+        panelHtml = `<div class="concept-eyebrow">${CONCEPT_GC_ICON}<span>${t('concept.assess')} ${CONCEPT_ASSESS.length}/${CONCEPT_ASSESS.length}</span></div>
+            <h2 class="concept-title" id="concept-title">🎓 ${t('concept.done.title')}</h2>
+            <p class="concept-body-text">${t('concept.done.body')}</p>
+            <div class="concept-actions"><button type="button" class="concept-btn" onclick="finishConceptOnboarding()">${t('concept.done.start')}</button></div>`;
     }
 
-    card.innerHTML = `
-        <div class="concept-header">
-            <span class="concept-eyebrow">${gcIcon}<span>${eyebrow}</span></span>
-            ${skipBtn}
-        </div>
-        ${body}`;
+    caption.textContent = captionText;
+    svgWrap.innerHTML = stageHtml;
+    panel.innerHTML = panelHtml;
 }
 </script>
 </body>
