@@ -4544,42 +4544,50 @@ function drawRiverSection(res, yOffset, sectionHeight, caseLabel, boatColor, ani
     drawBushes(yOffset, farH - 14, true);
     drawBushes(waterBot + 14, nearH - 14, false);
 
-    // Small coves cut into the banks at the launch point and the landing
-    // point, so the boat floats in water at both ends of the crossing
-    // instead of sitting half on the grass. Purely cosmetic: the physics
-    // origin and landing point are unchanged.
-    const coveScale = Math.max(0.85, Math.min(2.0, W / 450));
-    const coveRx = 17 * coveScale;
-    const drawCove = (cx, yEdge, dir, bankH) => {
-        const ry = Math.min(bankH - 3, 27 * coveScale);
-        if (ry < 5) return;
+    // Wooden plank platforms on the bank at the launch and landing points.
+    // They sit entirely on land (starting just past the water's edge), so
+    // the river itself stays unbroken; the exact start/landing positions
+    // are marked by the point markers drawn later. Purely cosmetic.
+    const platScale = Math.max(0.85, Math.min(2.0, W / 450));
+    const platHalfW = 15 * platScale;
+    const drawPlatform = (cx, yEdge, dir, bankH) => {
+        const depth = Math.min(bankH - 6, 24 * platScale);
+        if (depth < 8) return;
+        const x0 = cx - platHalfW, w = platHalfW * 2;
+        const yNear = yEdge + dir * 1.5;
+        const top = dir > 0 ? yNear : yNear - depth;
         ctx.save();
-        ctx.beginPath();
-        ctx.rect(0, dir > 0 ? yEdge : yEdge - bankH, W, bankH);
-        ctx.clip();
-        ctx.fillStyle = isLight ? '#D8C193' : '#584B36';
-        ctx.beginPath();
-        ctx.ellipse(cx, yEdge, coveRx + 5, ry + 5, 0, 0, Math.PI * 2);
-        ctx.fill();
-        const cg = ctx.createLinearGradient(0, yEdge, 0, yEdge + dir * ry);
-        cg.addColorStop(0, isLight ? '#6CC7DA' : '#185366');
-        cg.addColorStop(1, isLight ? '#A6E1E8' : '#23677A');
-        ctx.fillStyle = cg;
-        ctx.beginPath();
-        ctx.ellipse(cx, yEdge, coveRx, ry, 0, 0, Math.PI * 2);
-        ctx.fill();
-        wtex.setTransform(new DOMMatrix([s1, 0, 0, s1, (flow * 34) % per1, waterTop]));
-        ctx.fillStyle = wtex;
-        ctx.globalAlpha = 0.7;
-        ctx.fill();
-        ctx.globalAlpha = 1;
-        ctx.strokeStyle = isLight ? 'rgba(255,255,255,0.8)' : 'rgba(200,230,255,0.3)';
-        ctx.lineWidth = 1.5;
-        ctx.stroke();
+        ctx.fillStyle = isLight ? 'rgba(40, 25, 10, 0.25)' : 'rgba(0, 0, 0, 0.4)';
+        ctx.fillRect(x0 + 2, top + 2, w, depth);
+        const n = Math.max(3, Math.round(depth / (5 * platScale)));
+        const ph = depth / n;
+        const woods = isLight ? ['#C39360', '#B0814F'] : ['#6E5031', '#5E4429'];
+        for (let i = 0; i < n; i++) {
+            const y = top + i * ph;
+            ctx.fillStyle = woods[i % 2];
+            ctx.fillRect(x0, y, w, ph);
+            ctx.fillStyle = isLight ? 'rgba(255, 235, 200, 0.25)' : 'rgba(255, 220, 170, 0.08)';
+            ctx.fillRect(x0 + 3 + (i * 7) % 9, y + ph * 0.45, w * 0.35, 0.8);
+            if (i > 0) {
+                ctx.fillStyle = isLight ? 'rgba(80, 50, 20, 0.55)' : 'rgba(0, 0, 0, 0.5)';
+                ctx.fillRect(x0, y - 0.5, w, 1);
+            }
+        }
+        ctx.strokeStyle = isLight ? '#6E4A26' : '#3A2A18';
+        ctx.lineWidth = 1.2;
+        ctx.strokeRect(x0 + 0.6, top + 0.6, w - 1.2, depth - 1.2);
+        const postR = 2.2 * platScale;
+        ctx.fillStyle = isLight ? '#5A3B1C' : '#2E2113';
+        [[x0 + postR, top + postR], [x0 + w - postR, top + postR],
+         [x0 + postR, top + depth - postR], [x0 + w - postR, top + depth - postR]].forEach(([x, y]) => {
+            ctx.beginPath();
+            ctx.arc(x, y, postR, 0, Math.PI * 2);
+            ctx.fill();
+        });
         ctx.restore();
     };
-    drawCove(px(0, 0).x, waterBot, 1, nearH);
-    if (show.landing && res.crossingTime !== Infinity) drawCove(px(drift, d).x, waterTop, -1, farH);
+    drawPlatform(px(0, 0).x, waterBot, 1, nearH);
+    if (show.landing && res.crossingTime !== Infinity) drawPlatform(px(drift, d).x, waterTop, -1, farH);
 
     // Bank labels — right-aligned so the top-left gutter stays free for the
     // status badge, and clamped so a short bank strip never clips them.
@@ -4736,8 +4744,8 @@ function drawRiverSection(res, yOffset, sectionHeight, caseLabel, boatColor, ani
         ctx.arc(land.x, land.y, 2.4, 0, Math.PI * 2);
         ctx.fill();
         if (farH > 22) {
-            // Planted on the bank just beside the landing cove
-            const fx = land.x + coveRx + 7;
+            // Planted on the bank just beside the landing platform
+            const fx = land.x + platHalfW + 7;
             const poleBase = land.y - 3;
             const poleTop = land.y - Math.min(24, farH - 6);
             ctx.strokeStyle = isLight ? '#3F3F46' : '#D4D4D8';
@@ -4761,7 +4769,7 @@ function drawRiverSection(res, yOffset, sectionHeight, caseLabel, boatColor, ani
         const isZeroDrift = Math.abs(drift) < 0.1;
         const driftText = isZeroDrift ? t('canvas.zeroDrift') : `${t('canvas.drift')}: ${fmtDist(drift)}`;
         // Offset past the boat's oar span, so the docked boat never hides it
-        scenePill(driftText, land.x + 34 * coveScale, land.y + labelGap, boatColor === '#1CAB55' && isLight ? '#0E7B4F' : boatColor, isLight, uiFont(700, smallSize), 'left');
+        scenePill(driftText, land.x + 34 * platScale, land.y + labelGap, boatColor === '#1CAB55' && isLight ? '#0E7B4F' : boatColor, isLight, uiFont(700, smallSize), 'left');
 
         // 0-drift reference marker
         if (!isZeroDrift) {
@@ -4833,11 +4841,17 @@ function drawRiverSection(res, yOffset, sectionHeight, caseLabel, boatColor, ani
     /* --- Origin marker --- */
     const origin = px(0, 0);
     ctx.save();
-    ctx.strokeStyle = isLight ? 'rgba(255,255,255,0.9)' : 'rgba(255,255,255,0.35)';
-    ctx.lineWidth   = 1.5;
+    ctx.fillStyle   = isLight ? '#FFFFFF' : '#0B1117';
+    ctx.strokeStyle = isLight ? '#374151' : 'rgba(255,255,255,0.6)';
+    ctx.lineWidth   = 2;
     ctx.beginPath();
     ctx.arc(origin.x, origin.y, 5, 0, Math.PI * 2);
+    ctx.fill();
     ctx.stroke();
+    ctx.fillStyle = isLight ? '#374151' : 'rgba(255,255,255,0.8)';
+    ctx.beginPath();
+    ctx.arc(origin.x, origin.y, 2, 0, Math.PI * 2);
+    ctx.fill();
     ctx.restore();
 
     /* --- BOAT --- */
