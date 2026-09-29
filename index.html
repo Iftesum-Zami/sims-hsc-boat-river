@@ -2868,11 +2868,13 @@ window.addEventListener('DOMContentLoaded', () => {
 
     requestAnimationFrame(animationLoop);
 
-    // Only a browser's first visit gets the onboarding + guided tour; the
-    // flag is saved immediately, so any reload opens the simulation
-    // directly. Clearing this site's data resets it. A shared deep link
-    // (?case=...) always opens the simulation directly.
-    if (!urlState && !prefs.get(FIRST_VISIT_KEY)) {
+    // Only a browser's first visit gets the onboarding + guided tour -- to
+    // ANY url, including a deep link with its own case/values, not just the
+    // bare base URL. The flag is saved immediately, so any later reload (of
+    // any url) opens the simulation directly. Clearing this site's data
+    // (cache/cookies/local storage) resets it, so the next visit is treated
+    // as first-time again.
+    if (!prefs.get(FIRST_VISIT_KEY)) {
         isFirstVisit = true;
         prefs.set(FIRST_VISIT_KEY, '1');
         setTimeout(startConceptOnboarding, 500);
@@ -4064,9 +4066,13 @@ function sceneArrow(x1, y1, x2, y2, color, w, isLight) {
 }
 
 /* Top-down wooden rowboat with a rower, in boat-local coordinates:
-   bow at (0,-21), stern transom at y=+19.5. The bow wave shows only
-   while the boat is actually under way. */
+   bow at (0,-21), stern transom at y=+19.5. Oars sweep and the wake
+   churns only while the boat is actually under way. */
 function drawRowboat(boatColor, isLight, moving, now) {
+    const oarPhase = now * 5.2;
+    const sweep = moving ? Math.sin(oarPhase) : 0.15;
+    const bladeInWater = moving && Math.cos(oarPhase) > 0.2;
+
     ctx.lineJoin = 'round';
     ctx.lineCap = 'round';
 
@@ -4089,6 +4095,25 @@ function drawRowboat(boatColor, isLight, moving, now) {
             ctx.quadraticCurveTo(side * 16, 10, side * 28, 44);
             ctx.stroke();
         }
+        for (let k = 0; k < 3; k++) {
+            const ph = (now * 1.4 + k / 3) % 1;
+            ctx.strokeStyle = `rgba(255,255,255,${(0.6 * (1 - ph)).toFixed(3)})`;
+            ctx.lineWidth = 1.4;
+            ctx.beginPath();
+            ctx.ellipse(0, 21 + ph * 18, 5 + ph * 10, 2 + ph * 3.5, 0, 0, Math.PI * 2);
+            ctx.stroke();
+        }
+    } else {
+        for (let k = 0; k < 2; k++) {
+            const ph = (now * 0.33 + k / 2) % 1;
+            ctx.strokeStyle = isLight
+                ? `rgba(255,255,255,${(0.55 * (1 - ph)).toFixed(3)})`
+                : `rgba(170,210,255,${(0.35 * (1 - ph)).toFixed(3)})`;
+            ctx.lineWidth = 1.2;
+            ctx.beginPath();
+            ctx.ellipse(0, 0, 11 + ph * 7, 22 + ph * 8, 0, 0, Math.PI * 2);
+            ctx.stroke();
+        }
     }
     ctx.restore();
 
@@ -4102,6 +4127,41 @@ function drawRowboat(boatColor, isLight, moving, now) {
         ctx.bezierCurveTo(10 * k, -8 * k, 6 * k, -17 * k, 0, -21 * k);
         ctx.closePath();
     };
+
+    // --- Oars (drawn first so the gunwale overlaps the shafts) ---
+    const oarRot = (side) => side * (-0.1 + 0.5 * sweep);
+    const drawOar = (side) => {
+        ctx.save();
+        ctx.translate(side * 8.6, -1);
+        ctx.rotate(oarRot(side));
+        const tipX = side * 24;
+        if (bladeInWater) {
+            ctx.strokeStyle = 'rgba(255,255,255,0.75)';
+            ctx.lineWidth = 1.1;
+            ctx.beginPath();
+            ctx.ellipse(tipX, 0, 7, 3.6, 0, 0, Math.PI * 2);
+            ctx.stroke();
+        }
+        ctx.strokeStyle = '#6B4424';
+        ctx.lineWidth = 1.6;
+        ctx.beginPath();
+        ctx.moveTo(-side * 4, 0);
+        ctx.lineTo(tipX - side * 4, 0);
+        ctx.stroke();
+        const bg = ctx.createLinearGradient(tipX - side * 6, 0, tipX + side * 3, 0);
+        bg.addColorStop(0, '#9C6B3E');
+        bg.addColorStop(1, '#C99A63');
+        ctx.fillStyle = bg;
+        ctx.strokeStyle = 'rgba(50, 28, 10, 0.8)';
+        ctx.lineWidth = 0.6;
+        ctx.beginPath();
+        ctx.ellipse(tipX, 0, 5.2, 2.1, 0, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.stroke();
+        ctx.restore();
+    };
+    drawOar(-1);
+    drawOar(1);
 
     // --- Hull with soft drop shadow on the water ---
     ctx.save();
@@ -4183,13 +4243,26 @@ function drawRowboat(boatColor, isLight, moving, now) {
     thwart(1, 7.6, 3.2);
     thwart(11, 6.4, 2.8);
 
-    // --- Rower, seated on the middle thwart facing the stern, arms resting ---
+    // Oarlocks
+    ctx.fillStyle = '#2A2A2A';
+    for (const side of [-1, 1]) {
+        ctx.beginPath();
+        ctx.arc(side * 8.6, -1, 1.1, 0, Math.PI * 2);
+        ctx.fill();
+    }
+
+    // --- Rower, seated on the middle thwart facing the stern ---
+    const handle = (side) => {
+        const r = oarRot(side);
+        return { x: side * 8.6 + Math.cos(r) * (-side * 4), y: -1 + Math.sin(r) * (-side * 4) };
+    };
     ctx.strokeStyle = '#B97A4E';
     ctx.lineWidth = 1.7;
     for (const side of [-1, 1]) {
+        const hdl = handle(side);
         ctx.beginPath();
         ctx.moveTo(side * 4.2, 3.4);
-        ctx.quadraticCurveTo(side * 5.2, 1.5, side * 4.6, -0.8);
+        ctx.quadraticCurveTo(side * 4.8, 0.5, hdl.x, hdl.y);
         ctx.stroke();
     }
     const sg = ctx.createRadialGradient(-1.5, 2.6, 0.5, 0, 3.6, 6);
