@@ -2428,7 +2428,6 @@ const I18N = {
         'canvas.drift': 'Drift',
         'canvas.zeroDriftRef': '0-drift ref',
         'canvas.badgeImpossible': 'IMPOSSIBLE — v_b < v_r',
-        'canvas.badgeZeroDrift': 'ZERO DRIFT — straight path',
         'canvas.badgeCompleted': 'CROSSING COMPLETED',
         'canvas.headingEqualsPath': 'Heading = Actual path (no drift)',
 
@@ -2654,7 +2653,6 @@ const I18N = {
         'canvas.drift': 'সরণ',
         'canvas.zeroDriftRef': '০-সরণ রেফ',
         'canvas.badgeImpossible': 'অসম্ভব — v_b < v_r',
-        'canvas.badgeZeroDrift': 'শূন্য সরণ — সরাসরি পথ',
         'canvas.badgeCompleted': 'পারাপার সম্পন্ন',
         'canvas.headingEqualsPath': 'দিক = প্রকৃত পথ (সরণ নেই)',
 
@@ -4795,12 +4793,9 @@ function drawRiverSection(res, yOffset, sectionHeight, caseLabel, boatColor, ani
         if (res.impossibleCaseB) {
             badgeText = `✕  ${t('canvas.badgeImpossible')}`;
             badgeColor = isLight ? '#E8001D' : '#FF6B7A';
-        } else if (Math.abs(drift) < 0.1) {
-            badgeText = `✓  ${t('canvas.badgeZeroDrift')}`;
-            badgeColor = isLight ? '#0E7B4F' : '#4ADE80';
         } else {
-            // A normal crossing needs no status badge; only the special
-            // outcomes (impossible / zero drift) are called out.
+            // Only the impossible outcome gets a status badge; zero drift is
+            // already shown by the drift label at the landing point.
             badgeText = '';
             badgeColor = isLight ? '#274FE3' : '#7CA0FF';
         }
