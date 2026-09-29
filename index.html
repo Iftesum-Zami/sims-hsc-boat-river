@@ -1339,9 +1339,6 @@
             border-color: rgba(28, 171, 85, 0.35);
         }
         html.dark-theme .tutorial-action:not(.done) { color: #FBBF24; }
-        /* No way out of the mandatory tour except finishing it. */
-        .tutorial-tooltip.tutorial-mandatory .tutorial-skip,
-        .tutorial-tooltip.tutorial-mandatory .tutorial-close { display: none; }
         .tutorial-nav-btn:disabled { opacity: 0.45; cursor: not-allowed; }
         /* A card's hover lift would create a stacking context and drop the
            spotlighted control under the backdrop mid-interaction. */
@@ -1352,7 +1349,6 @@
         /* ...and don't let it be closed mid-step: the hamburger is behind the
            backdrop, so a closed drawer would leave no way to finish the step. */
         body.tutorial-running .mobile-menu-close { visibility: hidden; }
-        .tutorial-tooltip.tutorial-mandatory .tutorial-footer { justify-content: flex-end; }
 
         .tutorial-dots {
             display: flex;
@@ -5147,8 +5143,11 @@ let tutorialIndex = 0;
 let tutorialActive = false;
 let tutorialTarget = null;
 let tutorialReturnFocusEl = null;
-// Mandatory mode: the first-visit tour that follows the onboarding. It
-// can't be skipped, and interactive steps wait for the student to act.
+// Mandatory mode: the first-visit tour that follows the onboarding.
+// Interactive steps wait for the student to act before Next unlocks, but
+// Skip/close/Escape still end it early at any point -- "mandatory" only
+// means it's launched automatically and gates Next on each step's action,
+// never that the student is trapped in it.
 let tutorialMandatory = false;
 let tutorialDoneSteps = new Set();
 let tutorialActionCleanup = null;
@@ -5195,7 +5194,7 @@ function getTutorialFocusable() {
 
 function onTutorialKeydown(e) {
     if (!tutorialActive) return;
-    if (e.key === 'Escape') { if (!tutorialMandatory) endTutorial(); return; }
+    if (e.key === 'Escape') { endTutorial(); return; }
     // Arrow keys belong to the slider or input the student is using.
     if (e.target.closest && e.target.closest('input, textarea, select')) return;
     if (e.key === 'ArrowRight') { nextTutorialStep(); return; }
@@ -5320,8 +5319,8 @@ function prevTutorialStep() {
 }
 
 function endTutorial() {
-    // The mandatory tour only ends by finishing it, so reaching here means
-    // this student has done it — it won't be forced on them again.
+    // Reaching here at all -- whether by finishing or by Skip/close/Escape
+    // -- means this student doesn't need the auto-launched tour again.
     if (tutorialMandatory) prefs.set('guided_tutorial_done_v1', '1');
     tutorialActive = false;
     tutorialMandatory = false;
