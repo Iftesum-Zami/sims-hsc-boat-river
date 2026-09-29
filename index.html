@@ -4542,10 +4542,10 @@ function drawRiverSection(res, yOffset, sectionHeight, caseLabel, boatColor, ani
     drawBushes(yOffset, farH - 14, true);
     drawBushes(waterBot + 14, nearH - 14, false);
 
-    // Wooden plank platforms on the bank at the launch and landing points.
-    // They sit entirely on land (starting just past the water's edge), so
-    // the river itself stays unbroken; the exact start/landing positions
-    // are marked by the point markers drawn later. Purely cosmetic.
+    // Wooden plank platform on the starting bank at the launch point. It
+    // sits entirely on land (starting just past the water's edge), so the
+    // river itself stays unbroken; the far bank has no platform, only the
+    // landing point marker and flag. Purely cosmetic.
     const platScale = Math.max(0.85, Math.min(2.0, W / 450));
     const platHalfW = 15 * platScale;
     const drawPlatform = (cx, yEdge, dir, bankH) => {
@@ -4585,7 +4585,6 @@ function drawRiverSection(res, yOffset, sectionHeight, caseLabel, boatColor, ani
         ctx.restore();
     };
     drawPlatform(px(0, 0).x, waterBot, 1, nearH);
-    if (show.landing && res.crossingTime !== Infinity) drawPlatform(px(drift, d).x, waterTop, -1, farH);
 
     // Bank labels — right-aligned so the top-left gutter stays free for the
     // status badge, and clamped so a short bank strip never clips them.
@@ -4742,8 +4741,8 @@ function drawRiverSection(res, yOffset, sectionHeight, caseLabel, boatColor, ani
         ctx.arc(land.x, land.y, 2.4, 0, Math.PI * 2);
         ctx.fill();
         if (farH > 22) {
-            // Planted on the bank just beside the landing platform
-            const fx = land.x + platHalfW + 7;
+            // Planted on the bank just beside the landing point
+            const fx = land.x + 9;
             const poleBase = land.y - 3;
             const poleTop = land.y - Math.min(24, farH - 6);
             ctx.strokeStyle = isLight ? '#3F3F46' : '#D4D4D8';
