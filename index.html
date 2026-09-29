@@ -1250,13 +1250,13 @@
             display: none;
             position: fixed;
             inset: 0;
-            /* Transparent, not dark -- the rest of the page stays at full
-               brightness during the tour; only the red ring below marks
-               the spotlighted control. Kept as a real element (rather than
-               removed) since it still intercepts clicks outside the tour
-               dialog and sits under .tutorial-spotlight in the stacking
-               order. */
-            background: transparent;
+            /* Light dim, not the original heavy 55% black -- enough to draw
+               the eye to the spotlighted control without hiding the rest
+               of the page from view underneath it. This is the only dim
+               layer: .tutorial-spotlight below adds just the red ring, not
+               its own matching box-shadow spread, so the two don't stack
+               into something darker than either alone. */
+            background: rgba(17, 24, 39, 0.28);
             z-index: 9998;
         }
         .tutorial-backdrop.active { display: block; }
