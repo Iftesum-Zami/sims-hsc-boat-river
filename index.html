@@ -2059,6 +2059,7 @@
                 <span class="input-label" data-i18n="ratio.label">Speed Ratio:</span>
                 <span id="speed-ratio-badge" class="hsc-badge">v<sub>b</sub> / v<sub>r</sub> = 1.33</span>
             </div>
+            <div id="drift-limit-note" class="info-box" style="display:none"><div data-i18n="limit.note">To keep the whole crossing on screen, the downstream drift is kept within 2× the river width (current ≤ 2 × boat speed).</div></div>
 
             <!-- d slider -->
             <div class="input-group" id="group-d">
@@ -2433,6 +2434,7 @@ const I18N = {
         'caseE.zeroDriftLabel': 'This heading produces ZERO DRIFT. The boat crosses straight across.',
         'caseE.timeLabel': 'Crossing time formula (t = d / (v<sub>b</sub> cos 30°)):',
 
+        'limit.note': 'To keep the whole crossing on screen, the downstream drift is kept within 2× the river width (current ≤ 2 × boat speed).',
         'canvas.start': 'Start',
         'canvas.oppositeBank': 'Opposite bank',
         'canvas.riverCurrent': 'River current',
@@ -2658,6 +2660,7 @@ const I18N = {
         'caseE.zeroDriftLabel': 'এই দিকে নৌকা চালালে শূন্য সরণ হয়। নৌকা সরাসরি ওপারে যায়।',
         'caseE.timeLabel': 'পারাপারের সময়ের সূত্র (t = d / (v<sub>b</sub> cos 30°)):',
 
+        'limit.note': 'পুরো পারাপার স্ক্রিনে দেখাতে ভাটির দিকে সরণ নদীর প্রস্থের সর্বোচ্চ ২ গুণ রাখা হয়েছে (স্রোতের বেগ ≤ ২ × নৌকার বেগ)।',
         'canvas.start': 'শুরু',
         'canvas.oppositeBank': 'বিপরীত তীর',
         'canvas.riverCurrent': 'নদীর স্রোত',
@@ -2839,6 +2842,7 @@ window.addEventListener('DOMContentLoaded', () => {
         if (urlState.ac) setAngleConvention(urlState.ac);
         if (urlState.compare) toggleCompareMode();
         if (urlState.case) setCase(urlState.case);
+        enforceDriftLimit('vr');
         syncSlidersConfig();
     }
 
@@ -3061,6 +3065,8 @@ function setCase(code) {
     }
 
     state.activeCase = active;
+    enforceDriftLimit(null);
+    showDriftLimitNote(false);
     document.querySelectorAll('.case-tab').forEach(el => el.classList.remove('active'));
     document.getElementById('case-' + active.toLowerCase()).classList.add('active');
 
@@ -3139,12 +3145,63 @@ function updateValue(param, val) {
             state.customTheta = val - 90;
         }
     }
+    if (param !== 'd') showDriftLimitNote(enforceDriftLimit(param));
 
     // flag impossible Case B (boat too slow to cancel the current)
     state.showImpossibleBWarning = state.activeCase === 'B' && state.vb < state.vr;
 
     resetAnim();
     updateUI();
+}
+
+/* The scene keeps a fixed zoom per river width, so the start and landing
+   points only both fit on screen if the drift is bounded. Every crossing
+   is kept to |drift| <= MAX_DRIFT_RATIO x d: the current may be at most
+   MAX_DRIFT_RATIO x the boat speed (Case A's drift is d * vr / vb), and in
+   Case C the heading angle is limited to the range that meets the same
+   bound. A slider pushed past the limit stops there. */
+const MAX_DRIFT_RATIO = 2;
+
+function driftRatioAt(vb, vr, thetaDeg) {
+    if (Math.abs(thetaDeg) >= 85) return Infinity;
+    const th = thetaDeg * Math.PI / 180;
+    return Math.abs((vr - vb * Math.sin(th)) / (vb * Math.cos(th)));
+}
+
+// Whole-degree Case C headings (θ from straight across) that keep the drift in bounds.
+function feasibleThetaRange(vb, vr) {
+    let lo = null, hi = null;
+    for (let t = -84; t <= 84; t++) {
+        if (driftRatioAt(vb, vr, t) <= MAX_DRIFT_RATIO + 1e-9) {
+            if (lo === null) lo = t;
+            hi = t;
+        }
+    }
+    return lo === null ? [0, 0] : [lo, hi];
+}
+
+// Clamps state to the drift limit; `changed` is the value the user just
+// moved, which is the one that gets held back. Returns true if clamped.
+function enforceDriftLimit(changed) {
+    let limited = false;
+    if (state.vr > MAX_DRIFT_RATIO * state.vb + 1e-9) {
+        const toUI = state.unit === 'metric' ? 1 : 3.6;
+        if (changed === 'vb') state.vb = Math.ceil(state.vr / MAX_DRIFT_RATIO * toUI * 10 - 1e-6) / 10 / toUI;
+        else                  state.vr = Math.floor(MAX_DRIFT_RATIO * state.vb * toUI * 10 + 1e-6) / 10 / toUI;
+        limited = true;
+    }
+    const [lo, hi] = feasibleThetaRange(state.vb, state.vr);
+    if (state.customTheta < lo || state.customTheta > hi) {
+        state.customTheta = Math.max(lo, Math.min(hi, Math.round(state.customTheta)));
+        if (changed === 'theta' || state.activeCase === 'D') limited = true;
+    }
+    if (limited) syncSlidersConfig();
+    return limited;
+}
+
+function showDriftLimitNote(show) {
+    const note = document.getElementById('drift-limit-note');
+    if (note) note.style.display = show ? '' : 'none';
 }
 
 function toggleCompareMode() {
@@ -4305,7 +4362,11 @@ function drawRiverSection(res, yOffset, sectionHeight, caseLabel, boatColor, ani
     // reads as wider.
     const dT = Math.max(0, Math.min(1, Math.log(d / 10) / Math.log(50)));
     const waterFrac = 0.28 + 0.5 * dT;
-    const scale = Math.min(waterFrac * sectionHeight / d, W / (1.5 * d));
+    // Horizontally the view always fits the largest allowed drift
+    // (MAX_DRIFT_RATIO x d) plus room for the boat at each end, so both the
+    // start and the landing point are on screen whatever the speeds.
+    const endRoomPx = 64;
+    const scale = Math.min(waterFrac * sectionHeight / d, (W - 2 * endRoomPx) / (MAX_DRIFT_RATIO * d));
     const viewW = W / scale;   // visible river length, in metres
 
     // Horizontal camera: a pan, never a zoom. The content to show runs from
@@ -4315,16 +4376,14 @@ function drawRiverSection(res, yOffset, sectionHeight, caseLabel, boatColor, ani
     // Compare mode shares Case A's extents so the two halves line up.
     const viewRes = opts.viewRes || (isCompare ? solvePhysicsForCase('A') : res);
     const viewDrift = viewRes.crossingTime === Infinity ? 0 : viewRes.drift;
-    // The right margin is at least 140px so the drift label drawn to the
-    // right of the landing point isn't clipped on a narrow phone canvas.
-    let cxL = Math.min(0, viewDrift) - Math.max(d * 0.28, 60 / scale);
-    let cxR = Math.max(0, viewDrift) + Math.max(d * 0.28, 140 / scale);
+    let cxL = Math.min(0, viewDrift) - endRoomPx / scale;
+    let cxR = Math.max(0, viewDrift) + endRoomPx / scale;
     if (opts.viewX) [cxL, cxR] = opts.viewX;
     // Start point sits 36% in from the left: clear of the top-left case pill.
     let camL = -0.36 * viewW;
     camL = Math.max(camL, cxR - viewW);
     camL = Math.min(camL, cxL);
-    if (cxR - cxL > viewW) {
+    if (cxR - cxL > viewW * 1.001) {
         const tBoat = res.crossingTime === Infinity ? 0 : animProgress * res.crossingTime;
         const boatX = res.vx * tBoat;
         const margin = 0.25 * viewW;
@@ -4811,8 +4870,18 @@ function drawRiverSection(res, yOffset, sectionHeight, caseLabel, boatColor, ani
         // Landing and drift annotations
         const isZeroDrift = Math.abs(drift) < 0.1;
         const driftText = isZeroDrift ? t('canvas.zeroDrift') : `${t('canvas.drift')}: ${fmtDist(drift)}`;
-        // Offset past the boat's oar span, so the docked boat never hides it
-        scenePill(driftText, land.x + 34 * platScale, land.y + labelGap, boatColor === '#1CAB55' && isLight ? '#0E7B4F' : boatColor, isLight, uiFont(700, smallSize), 'left');
+        // Offset past the boat's oar span, so the docked boat never hides it.
+        // Drawn to the right of the landing point, or to its left when it
+        // would run off the right edge of the canvas.
+        const driftFont = uiFont(700, smallSize);
+        ctx.save();
+        ctx.font = driftFont;
+        const driftW = ctx.measureText(driftText).width + 12;
+        ctx.restore();
+        const gapX = 34 * platScale;
+        const fitsRight = land.x + gapX + driftW <= W - 6;
+        scenePill(driftText, fitsRight ? land.x + gapX : land.x - gapX, land.y + labelGap,
+            boatColor === '#1CAB55' && isLight ? '#0E7B4F' : boatColor, isLight, driftFont, fitsRight ? 'left' : 'right');
 
         // 0-drift reference marker
         if (!isZeroDrift) {
