@@ -4295,24 +4295,52 @@ function drawRiverSection(res, yOffset, sectionHeight, caseLabel, boatColor, ani
 
     const isLight = isLightTheme();
 
-    // Viewport coordinates computed using Case A drift for consistent scaling in comparison mode
-    const physA = opts.viewRes || solvePhysicsForCase('A');
-    const driftA = physA.drift;
-    let xL = -physA.d * 0.28, xR = physA.d * 0.9;
-    if (driftA >= 0) xR = Math.max(xR, driftA + physA.d * 0.28);
-    else             xL = Math.min(xL, driftA - physA.d * 0.28);
-    if (opts.viewX) [xL, xR] = opts.viewX;
-    const yB = -d * 0.12, yT = d * 1.12;
+    // Zoom depends only on the river width d and the canvas size — never on
+    // the speeds — so the river looks exactly as wide on screen until d
+    // itself changes. d is mapped on a log scale (10 m .. 500 m) to the
+    // share of the section height the water fills, so a wider river always
+    // reads as wider.
+    const dT = Math.max(0, Math.min(1, Math.log(d / 10) / Math.log(50)));
+    const waterFrac = 0.28 + 0.5 * dT;
+    const scale = Math.min(waterFrac * sectionHeight / d, W / (1.5 * d));
+    const viewW = W / scale;   // visible river length, in metres
 
-    const scX = W / (xR - xL);
-    const scY = sectionHeight / (yT - yB);
-    const scale = Math.min(scX, scY) * 0.92;
-    const xMid  = (xL + xR) / 2;
-    const yMid  = (yB + yT) / 2;
+    // Horizontal camera: a pan, never a zoom. The content to show runs from
+    // the start to the landing point (plus a margin). The start sits at a
+    // fixed spot when everything fits; a big drift that doesn't fit is
+    // followed by panning with the boat instead of shrinking the scene.
+    // Compare mode shares Case A's extents so the two halves line up.
+    const viewRes = opts.viewRes || (isCompare ? solvePhysicsForCase('A') : res);
+    const viewDrift = viewRes.crossingTime === Infinity ? 0 : viewRes.drift;
+    // The right margin is at least 140px so the drift label drawn to the
+    // right of the landing point isn't clipped on a narrow phone canvas.
+    let cxL = Math.min(0, viewDrift) - Math.max(d * 0.28, 60 / scale);
+    let cxR = Math.max(0, viewDrift) + Math.max(d * 0.28, 140 / scale);
+    if (opts.viewX) [cxL, cxR] = opts.viewX;
+    // Start point sits 36% in from the left: clear of the top-left case pill.
+    let camL = -0.36 * viewW;
+    camL = Math.max(camL, cxR - viewW);
+    camL = Math.min(camL, cxL);
+    if (cxR - cxL > viewW) {
+        const tBoat = res.crossingTime === Infinity ? 0 : animProgress * res.crossingTime;
+        const boatX = res.vx * tBoat;
+        const margin = 0.25 * viewW;
+        // Room ahead of the boat for the drift label drawn right of it.
+        const rightM = Math.max(margin, 140 / scale);
+        camL = Math.max(camL, boatX + rightM - viewW);
+        camL = Math.min(camL, boatX - margin);
+        // The landing end keeps the same margin as the boat, so the landing
+        // point and its drift label stay on screen once the boat arrives.
+        const lo = viewDrift < 0 ? viewDrift - margin : cxL;
+        const hi = (viewDrift >= 0 ? viewDrift + rightM : cxR) - viewW;
+        camL = Math.max(lo, Math.min(camL, hi));
+    }
+    // Visible window in metres, used by the waves, particles and current arrow.
+    const xL = camL, xR = camL + viewW;
 
     const px = (X, Y) => ({
-        x: W / 2 + (X - xMid) * scale,
-        y: yOffset + sectionHeight / 2 - (Y - yMid) * scale,
+        x: (X - camL) * scale,
+        y: yOffset + sectionHeight / 2 - (Y - d / 2) * scale,
     });
 
     const secBot = yOffset + sectionHeight;
