@@ -5169,6 +5169,9 @@ let tutorialReturnFocusEl = null;
 // means it's launched automatically and gates Next on each step's action,
 // never that the student is trapped in it.
 let tutorialMandatory = false;
+// v2: v1 was also set by *cancelling* the tour, which left some first-timers
+// permanently without it; bumping the key gives them the tour again.
+const TOUR_DONE_KEY = 'guided_tutorial_done_v2';
 let tutorialDoneSteps = new Set();
 let tutorialActionCleanup = null;
 
@@ -5331,17 +5334,18 @@ function positionTutorialTooltip(target) {
 function nextTutorialStep() {
     if (tutorialNeedsAction(tutorialIndex)) return;
     if (tutorialIndex < TUTORIAL_STEPS.length - 1) showTutorialStep(tutorialIndex + 1);
-    else endTutorial();
+    else endTutorial(true);
 }
 
 function prevTutorialStep() {
     if (tutorialIndex > 0) showTutorialStep(tutorialIndex - 1);
 }
 
-function endTutorial() {
-    // Reaching here at all -- whether by finishing or by Skip/close/Escape
-    // -- means this student doesn't need the auto-launched tour again.
-    if (tutorialMandatory) prefs.set('guided_tutorial_done_v1', '1');
+function endTutorial(completed = false) {
+    // Only finishing the auto-launched tour marks it done. Skip/close/Escape
+    // just mean "not now" -- a first-timer who cancels still gets it after
+    // the onboarding on their next visit, until they complete it once.
+    if (tutorialMandatory && completed) prefs.set(TOUR_DONE_KEY, '1');
     tutorialActive = false;
     tutorialMandatory = false;
     if (tutorialActionCleanup) { tutorialActionCleanup(); tutorialActionCleanup = null; }
@@ -5484,7 +5488,7 @@ function nextAssessStep() {
     if (conceptAssessIdx >= CONCEPT_ASSESS.length) {
         // First visit: straight from the last assessment into the mandatory
         // hands-on tour of the real controls.
-        if (!prefs.get('guided_tutorial_done_v1')) {
+        if (!prefs.get(TOUR_DONE_KEY)) {
             finishConceptOnboarding();
             startTutorial({ mandatory: true });
             return;
@@ -5503,7 +5507,13 @@ function finishConceptOnboarding() {
     conceptReturnFocusEl = null;
 }
 
-function skipConceptOnboarding() { finishConceptOnboarding(); }
+// Closing the onboarding early (✕ / Escape) still leads a first-timer into
+// the hands-on tour -- skipping the concept lesson shouldn't also skip
+// learning the controls.
+function skipConceptOnboarding() {
+    finishConceptOnboarding();
+    if (!prefs.get(TOUR_DONE_KEY)) startTutorial({ mandatory: true });
+}
 
 /* =============================================================
    ONBOARDING STAGE — a live, cut-down copy of the main simulation.
