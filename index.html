@@ -2868,10 +2868,13 @@ window.addEventListener('DOMContentLoaded', () => {
 
     requestAnimationFrame(animationLoop);
 
-    // Every page load opens with the concept walkthrough; a shared deep
-    // link (?case=...) means someone already set this up for a specific
-    // purpose, so it's skipped rather than interrupting them.
-    if (!urlState) {
+    // Only a browser's first visit gets the onboarding + guided tour; the
+    // flag is saved immediately, so any reload opens the simulation
+    // directly. Clearing this site's data resets it. A shared deep link
+    // (?case=...) always opens the simulation directly.
+    if (!urlState && !prefs.get(FIRST_VISIT_KEY)) {
+        isFirstVisit = true;
+        prefs.set(FIRST_VISIT_KEY, '1');
         setTimeout(startConceptOnboarding, 500);
     }
 });
@@ -5206,9 +5209,10 @@ let tutorialReturnFocusEl = null;
 // means it's launched automatically and gates Next on each step's action,
 // never that the student is trapped in it.
 let tutorialMandatory = false;
-// v2: v1 was also set by *cancelling* the tour, which left some first-timers
-// permanently without it; bumping the key gives them the tour again.
-const TOUR_DONE_KEY = 'guided_tutorial_done_v2';
+// Set on a browser's first visit to the base URL; while unset, that visit
+// runs the onboarding then the guided tour. Cleared with the site data.
+const FIRST_VISIT_KEY = 'first_visit_done_v1';
+let isFirstVisit = false;
 let tutorialDoneSteps = new Set();
 let tutorialActionCleanup = null;
 
@@ -5371,18 +5375,14 @@ function positionTutorialTooltip(target) {
 function nextTutorialStep() {
     if (tutorialNeedsAction(tutorialIndex)) return;
     if (tutorialIndex < TUTORIAL_STEPS.length - 1) showTutorialStep(tutorialIndex + 1);
-    else endTutorial(true);
+    else endTutorial();
 }
 
 function prevTutorialStep() {
     if (tutorialIndex > 0) showTutorialStep(tutorialIndex - 1);
 }
 
-function endTutorial(completed = false) {
-    // Only finishing the auto-launched tour marks it done. Skip/close/Escape
-    // just mean "not now" -- a first-timer who cancels still gets it after
-    // the onboarding on their next visit, until they complete it once.
-    if (tutorialMandatory && completed) prefs.set(TOUR_DONE_KEY, '1');
+function endTutorial() {
     tutorialActive = false;
     tutorialMandatory = false;
     if (tutorialActionCleanup) { tutorialActionCleanup(); tutorialActionCleanup = null; }
@@ -5525,7 +5525,8 @@ function nextAssessStep() {
     if (conceptAssessIdx >= CONCEPT_ASSESS.length) {
         // First visit: straight from the last assessment into the mandatory
         // hands-on tour of the real controls.
-        if (!prefs.get(TOUR_DONE_KEY)) {
+        if (isFirstVisit) {
+            isFirstVisit = false;
             finishConceptOnboarding();
             startTutorial({ mandatory: true });
             return;
@@ -5549,7 +5550,7 @@ function finishConceptOnboarding() {
 // learning the controls.
 function skipConceptOnboarding() {
     finishConceptOnboarding();
-    if (!prefs.get(TOUR_DONE_KEY)) startTutorial({ mandatory: true });
+    if (isFirstVisit) { isFirstVisit = false; startTutorial({ mandatory: true }); }
 }
 
 /* =============================================================
