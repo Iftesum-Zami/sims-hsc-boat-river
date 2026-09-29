@@ -541,12 +541,26 @@
         }
         .case-tab:hover { border-color: var(--gray-400); }
         .case-tab.active {
+            border-color: var(--success);
+            background: rgba(28, 171, 85, 0.10);
+            color: var(--success-text);
+            box-shadow: 0 0 0 3px rgba(28, 171, 85, 0.10);
+        }
+        .case-tab.active small { color: var(--success-text); opacity: 0.85; }
+        html.dark-theme .case-tab.active,
+        html.dark-theme .case-tab.active small { color: var(--color-accent); }
+        html.dark-theme .case-tab.active { border-color: var(--color-accent); background: rgba(74, 222, 128, 0.12); }
+        /* Red only when the selected case can't actually happen (Case B with
+           the boat slower than the current). */
+        .case-tab.active.impossible,
+        html.dark-theme .case-tab.active.impossible {
             border-color: var(--ten-red);
             background: var(--tint-red);
             color: var(--ten-red);
             box-shadow: 0 0 0 3px rgba(232, 0, 29, 0.08);
         }
-        .case-tab.active small { color: var(--ten-red); opacity: 0.85; }
+        .case-tab.active.impossible small,
+        html.dark-theme .case-tab.active.impossible small { color: var(--ten-red); }
         .case-tab:active { transform: scale(0.98); }
 
         .case-warn-flag { display: none; color: var(--ten-red); }
@@ -3223,6 +3237,7 @@ function updateUI() {
     // Update Case B warning flag next to tab B
     const bWarn = document.getElementById('case-b-warn');
     if (bWarn) bWarn.style.display = state.vb < state.vr ? 'inline-flex' : 'none';
+    document.getElementById('case-b').classList.toggle('impossible', state.vb < state.vr);
 
     // Description of the selected case — always visible, so touch users get it too
     syncCaseDescription();
