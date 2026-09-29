@@ -906,6 +906,9 @@
             letter-spacing: 0.04em;
             color: var(--gray-700);
         }
+        /* Overlaid on the simulation itself, which students mostly watch
+           on a phone — kept at the same readable size as the canvas text. */
+        .canvas-overlay .canvas-badge { font-size: 13px; padding: 5px 12px; }
         html.dark-theme .canvas-badge {
             background: rgba(11, 17, 23, 0.85);
             border-color: rgba(255, 255, 255, 0.18);
@@ -929,14 +932,14 @@
             background: rgba(255, 255, 255, 0.92);
             border: 1px solid var(--border-strong);
             border-radius: var(--r-pill);
-            padding: 4px 10px;
-            font-size: var(--fs-micro);
+            padding: 5px 12px;
+            font-size: 13px;
             font-weight: 700;
             color: var(--gray-700);
             cursor: pointer;
             font-variant-numeric: tabular-nums;
         }
-        #canvas-speed-btn .icon { width: 14px; height: 14px; }
+        #canvas-speed-btn .icon { width: 16px; height: 16px; }
         html.dark-theme #canvas-speed-btn {
             background: rgba(11, 17, 23, 0.85);
             border-color: rgba(255, 255, 255, 0.18);
@@ -945,7 +948,7 @@
         .canvas-speed-popup {
             display: none;
             position: absolute;
-            top: calc(var(--s-3) + 34px);
+            top: calc(var(--s-3) + 40px);
             right: var(--s-3);
             width: 148px;
             background: var(--surface-card);
@@ -1319,6 +1322,38 @@
             margin-bottom: var(--s-3);
         }
 
+        /* Mandatory tour: what to do on this step, then a confirmation. */
+        .tutorial-action {
+            font-size: var(--fs-body-sm);
+            font-weight: 700;
+            color: #B45309;
+            background: rgba(245, 158, 11, 0.12);
+            border: 1px solid rgba(245, 158, 11, 0.35);
+            border-radius: var(--r-md);
+            padding: 8px var(--s-3);
+            margin: calc(-1 * var(--s-1)) 0 var(--s-3);
+        }
+        .tutorial-action.done {
+            color: var(--success-text);
+            background: rgba(28, 171, 85, 0.12);
+            border-color: rgba(28, 171, 85, 0.35);
+        }
+        html.dark-theme .tutorial-action:not(.done) { color: #FBBF24; }
+        /* No way out of the mandatory tour except finishing it. */
+        .tutorial-tooltip.tutorial-mandatory .tutorial-skip,
+        .tutorial-tooltip.tutorial-mandatory .tutorial-close { display: none; }
+        .tutorial-nav-btn:disabled { opacity: 0.45; cursor: not-allowed; }
+        /* A card's hover lift would create a stacking context and drop the
+           spotlighted control under the backdrop mid-interaction. */
+        body.tutorial-running .card:hover { transform: none; }
+        /* The phone's case selector sits in the menu drawer; lift the drawer
+           above the tour's backdrop for that step. */
+        body.tutorial-running .mobile-menu-drawer { z-index: 10000; }
+        /* ...and don't let it be closed mid-step: the hamburger is behind the
+           backdrop, so a closed drawer would leave no way to finish the step. */
+        body.tutorial-running .mobile-menu-close { visibility: hidden; }
+        .tutorial-tooltip.tutorial-mandatory .tutorial-footer { justify-content: flex-end; }
+
         .tutorial-dots {
             display: flex;
             align-items: center;
@@ -1390,8 +1425,8 @@
            A full-screen, concept-first walkthrough (gate question -> four
            "theory + live diagram" teaching screens covering the three
            velocities and the three headline cases -> a four-question
-           assessment, the last one a hands-on drag task) shown once to
-           first-time visitors. Split layout: a dark stage on one side
+           assessment, the last one a hands-on drag task) shown on every
+           page load. Split layout: a dark stage on one side
            renders a self-contained SVG diagram per step (never touches the
            real simulation state), text/quiz content on the other. Separate
            from the feature-tour GUIDED TUTORIAL above, which stays a
@@ -1435,28 +1470,29 @@
         .concept-close:hover { color: var(--fg-1); background: var(--gray-50); }
         .concept-close .icon { width: 16px; height: 16px; }
 
+        /* Same surface and framing as the main simulation card, so the
+           onboarding's live canvas reads as "the simulation", not a diagram. */
         .concept-stage {
             position: relative;
             display: flex;
             flex-direction: column;
             padding: var(--s-5);
-            background:
-                radial-gradient(ellipse at 30% 0%, rgba(28, 171, 85, 0.10), transparent 55%),
-                linear-gradient(180deg, #0B1522 0%, #0B1117 100%);
+            background: var(--bg);
+            border-right: 1px solid var(--border);
             overflow: hidden;
         }
-        .concept-stage-caption {
-            font-size: var(--fs-micro);
-            font-weight: 800;
-            text-transform: uppercase;
-            letter-spacing: var(--tracking-wide);
-            color: rgba(255, 255, 255, 0.55);
-            margin-bottom: var(--s-2);
-            min-height: 1.4em;
+        .concept-canvas-wrap {
+            flex: 1;
+            min-height: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
-        .concept-svg-wrap { flex: 1; display: flex; align-items: center; justify-content: center; min-height: 0; }
-        .concept-svg { width: 100%; height: 100%; }
-        .concept-svg text { font-family: var(--font-sans); }
+        #concept-canvas {
+            display: block;
+            border: 1px solid var(--border);
+            border-radius: var(--r-md);
+        }
 
         .concept-panel {
             display: flex;
@@ -1464,6 +1500,9 @@
             padding: var(--s-6) var(--s-5) var(--s-5);
             overflow-y: auto;
         }
+        /* Vertically centred, but auto margins (not justify-content) so a
+           long step still scrolls from its top instead of being clipped. */
+        .concept-panel-inner { margin: auto 0; width: 100%; }
 
         .concept-eyebrow {
             display: flex;
@@ -1657,12 +1696,43 @@
         .concept-live-hint.solved { background: var(--tint-vR); border-color: rgba(28, 171, 85, 0.35); }
         .concept-live-hint.solved strong { color: var(--success-text); }
 
-        .concept-angle-slider {
-            width: 100%;
+        .concept-angle-head {
+            display: flex;
+            align-items: baseline;
+            justify-content: space-between;
+            gap: var(--s-2);
+        }
+        .concept-angle-value {
+            font-size: var(--fs-h2);
+            font-weight: 800;
+            color: #B45309;
+            font-variant-numeric: tabular-nums;
+        }
+        html.dark-theme .concept-angle-value { color: #FBBF24; }
+        .concept-angle-row {
+            display: flex;
+            align-items: center;
+            gap: var(--s-2);
             margin: var(--s-2) 0 var(--s-3);
         }
+        .concept-angle-slider { flex: 1; min-width: 0; }
+        .concept-step-btn {
+            flex-shrink: 0;
+            width: 40px; height: 40px;
+            border-radius: 50%;
+            border: 1px solid var(--border-strong);
+            background: var(--surface-card);
+            color: var(--fg-1);
+            font-family: inherit;
+            font-size: 22px;
+            font-weight: 700;
+            line-height: 1;
+            cursor: pointer;
+        }
+        .concept-step-btn:hover { background: var(--gray-50); }
+        html.dark-theme .concept-step-btn:hover { background: rgba(255, 255, 255, 0.06); }
 
-        .concept-actions { margin-top: auto; padding-top: var(--s-3); }
+        .concept-actions { padding-top: var(--s-3); }
 
         @media (max-width: 860px) {
             .concept-shell {
@@ -1671,6 +1741,7 @@
                 grid-template-columns: 1fr;
                 grid-template-rows: 38vh 1fr;
             }
+            .concept-stage { padding: var(--s-3); border-right: none; border-bottom: 1px solid var(--border); }
             .concept-panel { padding: var(--s-4); }
         }
 
@@ -2139,6 +2210,7 @@
         </button>
     </div>
     <p id="tutorial-body" class="tutorial-body"></p>
+    <p id="tutorial-action" class="tutorial-action" aria-live="polite" hidden></p>
     <div id="tutorial-dots" class="tutorial-dots"></div>
     <div class="tutorial-footer">
         <button type="button" class="tutorial-skip" onclick="endTutorial()" data-i18n="tutorial.skip">Skip</button>
@@ -2162,8 +2234,7 @@
         <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
     </button>
     <div class="concept-stage">
-        <div class="concept-stage-caption" id="concept-stage-caption"></div>
-        <div class="concept-svg-wrap" id="concept-svg-wrap"></div>
+        <div class="concept-canvas-wrap"><canvas id="concept-canvas" aria-hidden="true"></canvas></div>
     </div>
     <div class="concept-panel" id="concept-panel"></div>
 </div>
@@ -2373,6 +2444,12 @@ const I18N = {
         'tutorial.back': 'Back',
         'tutorial.next': 'Next',
         'tutorial.finish': 'Finish',
+        'tutorial.step1.action': 'Tap any case to select it.',
+        'tutorial.step2.action': 'Drag the boat speed slider (or type a value).',
+        'tutorial.step3.action': 'Drag the current speed slider (or type a value).',
+        'tutorial.step4.action': 'Drag the river width slider (or type a value).',
+        'tutorial.step7.action': 'Press Play to start the crossing.',
+        'tutorial.actionDone': 'Great — now go to the next step.',
         'tutorial.step1.title': 'Problem Case Selector',
         'tutorial.step1.body': 'Pick which physics scenario to explore: minimum crossing time, shortest path, a custom heading angle, or the classic 120° spotlight case.',
         'tutorial.step2.title': 'Boat Speed (v<sub>b</sub>)',
@@ -2397,7 +2474,7 @@ const I18N = {
         'concept.skip': 'Skip',
         'concept.gate.eyebrow': 'Before we start',
         'concept.gate.question': 'Do you already know what relative velocity is, and how a boat crosses a moving river?',
-        'concept.gate.yes': 'Yes, I know — take me to the quiz',
+        'concept.gate.yes': 'Yes, I know',
         'concept.gate.no': "No, teach me first",
         'concept.step': 'Step',
         'concept.lesson': 'Concept',
@@ -2419,17 +2496,14 @@ const I18N = {
         'concept.teach.velocities.vR.name': 'Resultant Velocity (v<sub>R</sub>)',
         'concept.teach.velocities.vR.desc': 'What a person standing on the bank actually sees — the vector sum of v<sub>b</sub> and v<sub>r</sub>.',
 
-        'concept.teach.caseA.eyebrow': 'Case A',
         'concept.teach.caseA.title': 'Minimum Time',
         'concept.teach.caseA.body': 'Point the boat straight across the river (perpendicular to the bank). This gets you to the other side in the least possible time — but the current sweeps you downstream the whole way, so you land away from the point directly opposite where you started.',
         'concept.teach.caseA.fact': 'Crossing time = d / v<sub>b</sub> · Downstream drift = v<sub>r</sub> × time',
 
-        'concept.teach.caseB.eyebrow': 'Case B',
         'concept.teach.caseB.title': 'Shortest Path (Zero Drift)',
         'concept.teach.caseB.body': 'Angle the boat upstream, into the current, just enough that the current\'s push exactly cancels the boat\'s sideways drift. The resultant path is a straight line straight across — the shortest possible path, though not the fastest.',
         'concept.teach.caseB.fact': 'Only possible when <strong>v<sub>b</sub> &gt; v<sub>r</sub></strong> — a slower boat can never fully cancel the current.',
 
-        'concept.teach.caseE.eyebrow': 'Case E — HSC Special Case',
         'concept.teach.caseE.title': 'The 120° Spotlight',
         'concept.teach.caseE.body': 'A famous exam case: when the boat speed is exactly twice the current speed, the zero-drift angle measured from the current\'s direction always works out to exactly 120° — no matter what the actual speeds are. You\'ll get to find this angle yourself in a moment.',
         'concept.teach.caseE.fact': '<strong>v<sub>b</sub> = 2v<sub>r</sub></strong>  →  zero-drift angle from current = <strong>120°</strong>',
@@ -2441,14 +2515,16 @@ const I18N = {
         'concept.mcq.identify.opt3': 'The wind speed',
         'concept.mcq.identify.explain': 'The green arrow is the resultant velocity v<sub>R</sub> — the vector sum of v<sub>b</sub> and v<sub>r</sub>. It\'s what you\'d actually see watching the boat from the riverbank.',
 
-        'concept.mcq.cases.q': 'Which statement correctly compares Case A and Case B?',
-        'concept.mcq.cases.opt0': 'Case A crosses in the least time; Case B has zero drift but takes longer',
-        'concept.mcq.cases.opt1': 'Case A has zero drift; Case B is the fastest',
-        'concept.mcq.cases.opt2': 'Both cases always take exactly the same time',
-        'concept.mcq.cases.opt3': 'Case B works even when the boat is slower than the current',
-        'concept.mcq.cases.explain': 'Case A (straight across) always wins on time, since none of the boat\'s speed is "wasted" fighting the current. Case B trades that speed for a straight path — and it only works at all when v<sub>b</sub> &gt; v<sub>r</sub>.',
+        'concept.mcq.cases.q': 'Which statement correctly compares these two ways of crossing?',
+        'concept.mcq.cases.opt0': 'Pointing straight across is fastest; angling upstream gives zero drift but takes longer',
+        'concept.mcq.cases.opt1': 'Pointing straight across gives zero drift; angling upstream is the fastest',
+        'concept.mcq.cases.opt2': 'Both ways always take exactly the same time',
+        'concept.mcq.cases.opt3': 'Angling upstream gives zero drift even when the boat is slower than the current',
+        'concept.mcq.cases.explain': 'Pointing straight across always wins on time, since none of the boat\'s speed is "wasted" fighting the current. Angling upstream trades that speed for a straight path — and it only works at all when v<sub>b</sub> &gt; v<sub>r</sub>.',
+        'concept.scene.straight': 'Straight across (least time)',
+        'concept.scene.upstream': 'Angled upstream (zero drift)',
 
-        'concept.mcq.predict.q': 'If you increase the current speed while keeping the boat speed the same, what happens to the downstream drift in Case A?',
+        'concept.mcq.predict.q': 'The boat points straight across. If you increase the current speed while keeping the boat speed the same, what happens to the downstream drift?',
         'concept.mcq.predict.opt0': 'It increases',
         'concept.mcq.predict.opt1': 'It decreases',
         'concept.mcq.predict.opt2': 'It stays the same',
@@ -2456,16 +2532,16 @@ const I18N = {
         'concept.mcq.predict.explain': 'A stronger current sweeps the boat further downstream during the same crossing time — drift = v<sub>r</sub> × time, so a bigger v<sub>r</sub> directly means more drift.',
 
         'concept.interactive.eyebrow': 'Hands-on',
-        'concept.interactive.title': 'Find the zero-drift angle',
-        'concept.interactive.instruction': 'The current is fixed, and the boat speed is locked at exactly twice the current speed. Drag the slider to angle the boat until the resultant velocity (green) points straight across — perpendicular to the current — with zero drift.',
-        'concept.interactive.angleLabel': 'Angle from current direction (&phi;)',
-        'concept.interactive.hintOver': 'φ = {angle}° — resultant still tilts <strong>upstream</strong>. Try a smaller angle.',
-        'concept.interactive.hintUnder': 'φ = {angle}° — resultant still tilts <strong>downstream</strong>. Try a larger angle.',
-        'concept.interactive.hintSolved': 'φ = {angle}° — <strong>zero drift!</strong> The resultant is perpendicular to the current.',
-        'concept.interactive.success': '🎯 Exactly 120° — this is the Case E Spotlight condition.',
+        'concept.interactive.title': 'Turn the boat so it crosses straight across',
+        'concept.interactive.instruction': 'The water flows at 5 m/s and the boat moves at 10 m/s. Change the boat\'s direction and watch the angle φ (measured from the current) change in the simulation. Once the boat crosses straight to the point directly opposite, you can finish.',
+        'concept.interactive.angleLabel': 'Boat direction — angle from the current (φ)',
+        'concept.interactive.hintOver': 'φ = {angle}° — the boat now drifts <strong>upstream</strong>. Turn it a little less.',
+        'concept.interactive.hintUnder': 'φ = {angle}° — the current still pushes the boat <strong>downstream</strong>. Turn it further upstream.',
+        'concept.interactive.hintSolved': 'φ = {angle}° — <strong>zero drift!</strong> The boat crosses straight across.',
+        'concept.interactive.success': '🎯 Exactly 120° — when the boat is twice as fast as the current, this is the angle for a straight crossing.',
 
         'concept.done.title': 'You understand relative velocity!',
-        'concept.done.body': 'Explore Case A–D on your own, or open Tutorial anytime to learn about the interface controls.',
+        'concept.done.body': 'Now explore the full simulation on your own, or open Tutorial anytime to learn about the interface controls.',
         'concept.done.start': 'Start exploring',
     },
     bn: {
@@ -2594,6 +2670,12 @@ const I18N = {
         'tutorial.back': 'পেছনে',
         'tutorial.next': 'পরবর্তী',
         'tutorial.finish': 'শেষ',
+        'tutorial.step1.action': 'যেকোনো একটি কেসে ট্যাপ করে সেটি বেছে নাও।',
+        'tutorial.step2.action': 'নৌকার বেগের স্লাইডারটি টেনে দেখো (অথবা মান লেখো)।',
+        'tutorial.step3.action': 'স্রোতের বেগের স্লাইডারটি টেনে দেখো (অথবা মান লেখো)।',
+        'tutorial.step4.action': 'নদীর প্রস্থের স্লাইডারটি টেনে দেখো (অথবা মান লেখো)।',
+        'tutorial.step7.action': 'পারাপার শুরু করতে "চালান" বোতাম চাপো।',
+        'tutorial.actionDone': 'দারুণ! এবার পরবর্তী ধাপে যাও।',
         'tutorial.step1.title': 'সমস্যার ধরন নির্বাচক',
         'tutorial.step1.body': 'কোন পদার্থবিজ্ঞান দৃশ্যকল্প দেখতে চান তা বেছে নিন: সর্বনিম্ন সময়, সংক্ষিপ্ত পথ, কাস্টম কোণ, অথবা বিখ্যাত ১২০° স্পটলাইট কেস।',
         'tutorial.step2.title': 'নৌকার বেগ (v<sub>b</sub>)',
@@ -2618,7 +2700,7 @@ const I18N = {
         'concept.skip': 'বাদ দিন',
         'concept.gate.eyebrow': 'শুরু করার আগে',
         'concept.gate.question': 'আপেক্ষিক বেগ কী, এবং চলন্ত নদীতে নৌকা কীভাবে পার হয় — এটা কি তুমি আগে থেকেই জানো?',
-        'concept.gate.yes': 'হ্যাঁ, জানি — সরাসরি কুইজে যাই',
+        'concept.gate.yes': 'হ্যাঁ, জানি',
         'concept.gate.no': 'না, আগে শিখতে চাই',
         'concept.step': 'ধাপ',
         'concept.lesson': 'ধারণা',
@@ -2640,17 +2722,14 @@ const I18N = {
         'concept.teach.velocities.vR.name': 'লব্ধি বেগ (v<sub>R</sub>)',
         'concept.teach.velocities.vR.desc': 'নদীর তীরে দাঁড়ানো একজন মানুষ আসলে যা দেখে — v<sub>b</sub> ও v<sub>r</sub>-এর ভেক্টর যোগফল।',
 
-        'concept.teach.caseA.eyebrow': 'কেস A',
         'concept.teach.caseA.title': 'সর্বনিম্ন সময়',
         'concept.teach.caseA.body': 'নৌকাকে একদম সোজা ওপার বরাবর (তীরের সাথে লম্বভাবে) চালাও। এতে সবচেয়ে কম সময়ে ওপারে পৌঁছানো যায় — কিন্তু পুরো পথে স্রোত নৌকাকে ভাটির দিকে ঠেলে দেয়, তাই তুমি ঠিক বিপরীত বিন্দুতে না নেমে কিছুটা দূরে নামবে।',
         'concept.teach.caseA.fact': 'পারাপারের সময় = d / v<sub>b</sub> · ভাটির সরণ = v<sub>r</sub> × সময়',
 
-        'concept.teach.caseB.eyebrow': 'কেস B',
         'concept.teach.caseB.title': 'সংক্ষিপ্ততম পথ (শূন্য সরণ)',
         'concept.teach.caseB.body': 'নৌকাকে স্রোতের বিপরীতে এমনভাবে কোণ করে চালাও, যাতে স্রোতের ধাক্কা নৌকার পার্শ্ব-সরণকে ঠিক বাতিল করে দেয়। ফলে লব্ধি পথ হয় একদম সোজা রেখা — সংক্ষিপ্ততম পথ, যদিও দ্রুততম নয়।',
         'concept.teach.caseB.fact': 'কেবল তখনই সম্ভব যখন <strong>v<sub>b</sub> &gt; v<sub>r</sub></strong> — ধীরগতির নৌকা কখনোই স্রোত পুরোপুরি বাতিল করতে পারে না।',
 
-        'concept.teach.caseE.eyebrow': 'কেস D — এইচএসসি স্পেশাল কেস',
         'concept.teach.caseE.title': '১২০° স্পটলাইট',
         'concept.teach.caseE.body': 'নৌকার বেগ স্রোতের বেগের দ্বিগুণ হলে, শুধু সোজাসুজি নদী পার হওয়ার জন্য নৌকাকে স্রোতের দিক থেকে ১২০° কোণে রওনা দিতে হয় — বাস্তব বেগ যত-ই হোক না কেন, এই অনুপাত ঠিক থাকলে কোণটা সবসময় ১২০°-ই থাকে। এটি এইচএসসি পরীক্ষার একটি বিখ্যাত কেস। একটু পরেই তুমি নিজে এই কোণটি খুঁজে বের করবে।',
         'concept.teach.caseE.fact': '<strong>v<sub>b</sub> = 2v<sub>r</sub></strong>  →  স্রোত থেকে শূন্য-সরণ কোণ = <strong>১২০°</strong>',
@@ -2662,14 +2741,16 @@ const I18N = {
         'concept.mcq.identify.opt3': 'বাতাসের বেগ',
         'concept.mcq.identify.explain': 'সবুজ তীরচিহ্নটি লব্ধি বেগ v<sub>R</sub> — v<sub>b</sub> এবং v<sub>r</sub>-এর ভেক্টর যোগফল। নদীর তীর থেকে দেখলে নৌকাকে আসলে এই পথেই যেতে দেখা যাবে।',
 
-        'concept.mcq.cases.q': 'কেস A ও কেস B নিয়ে কোন বাক্যটি সঠিক?',
-        'concept.mcq.cases.opt0': 'কেস A সবচেয়ে কম সময়ে পার হয়; কেস B-তে সরণ শূন্য কিন্তু বেশি সময় লাগে',
-        'concept.mcq.cases.opt1': 'কেস A-তে সরণ শূন্য; কেস B সবচেয়ে দ্রুত',
-        'concept.mcq.cases.opt2': 'দুটি কেসেই সবসময় ঠিক একই সময় লাগে',
-        'concept.mcq.cases.opt3': 'নৌকা স্রোতের চেয়ে ধীর হলেও কেস B কাজ করে',
-        'concept.mcq.cases.explain': 'কেস A (সোজা ওপার) সময়ের দিক থেকে সবসময় সেরা, কারণ নৌকার কোনো বেগ স্রোতের সাথে লড়াইয়ে "নষ্ট" হয় না। কেস B সেই বেগের বিনিময়ে সোজা পথ পায় — আর এটি কাজ করে কেবল তখনই যখন v<sub>b</sub> &gt; v<sub>r</sub>।',
+        'concept.mcq.cases.q': 'এই দুইভাবে নদী পার হওয়া নিয়ে কোন বাক্যটি সঠিক?',
+        'concept.mcq.cases.opt0': 'সোজা ওপারে তাক করলে সবচেয়ে কম সময় লাগে; উজানে কোণ করে চালালে সরণ শূন্য হয় কিন্তু সময় বেশি লাগে',
+        'concept.mcq.cases.opt1': 'সোজা ওপারে তাক করলে সরণ শূন্য হয়; উজানে কোণ করে চালালে সবচেয়ে দ্রুত পার হওয়া যায়',
+        'concept.mcq.cases.opt2': 'দুইভাবেই সবসময় ঠিক একই সময় লাগে',
+        'concept.mcq.cases.opt3': 'নৌকা স্রোতের চেয়ে ধীর হলেও উজানে কোণ করে চালালে সরণ শূন্য হয়',
+        'concept.mcq.cases.explain': 'সোজা ওপারে তাক করলে সময়ের দিক থেকে সবসময় সেরা, কারণ নৌকার কোনো বেগ স্রোতের সাথে লড়াইয়ে "নষ্ট" হয় না। উজানে কোণ করে চালালে সেই বেগের বিনিময়ে সোজা পথ পাওয়া যায় — আর এটি কাজ করে কেবল তখনই যখন v<sub>b</sub> &gt; v<sub>r</sub>।',
+        'concept.scene.straight': 'সোজা ওপারে (সর্বনিম্ন সময়)',
+        'concept.scene.upstream': 'উজানে কোণ করে (শূন্য সরণ)',
 
-        'concept.mcq.predict.q': 'নৌকার বেগ একই রেখে যদি স্রোতের বেগ বাড়াও, তাহলে কেস A-তে ভাটির দিকে সরণের কী হবে?',
+        'concept.mcq.predict.q': 'নৌকা সোজা ওপারে তাক করা আছে। নৌকার বেগ একই রেখে যদি স্রোতের বেগ বাড়াও, তাহলে ভাটির দিকে সরণের কী হবে?',
         'concept.mcq.predict.opt0': 'বেড়ে যাবে',
         'concept.mcq.predict.opt1': 'কমে যাবে',
         'concept.mcq.predict.opt2': 'একই থাকবে',
@@ -2677,16 +2758,16 @@ const I18N = {
         'concept.mcq.predict.explain': 'স্রোত যত শক্তিশালী হয়, একই পারাপারের সময়ে নৌকা তত বেশি ভাটির দিকে সরে যায় — সরণ = v<sub>r</sub> × সময়, তাই বড় v<sub>r</sub> মানেই সরাসরি বেশি সরণ।',
 
         'concept.interactive.eyebrow': 'নিজে করো',
-        'concept.interactive.title': 'শূন্য-সরণ কোণ খুঁজে বের করো',
-        'concept.interactive.instruction': 'স্রোতের বেগ স্থির, এবং নৌকার বেগ স্রোতের বেগের ঠিক দ্বিগুণে আটকানো আছে। স্লাইডারটি টেনে নৌকার কোণ এমনভাবে ঠিক করো যাতে লব্ধি বেগ (সবুজ) সোজা ওপার বরাবর — স্রোতের সাথে লম্বভাবে — নির্দেশ করে, শূন্য সরণসহ।',
-        'concept.interactive.angleLabel': 'স্রোতের দিক থেকে কোণ (φ)',
-        'concept.interactive.hintOver': 'φ = {angle}° — লব্ধি এখনও <strong>উজানের</strong> দিকে হেলে আছে। ছোট কোণ চেষ্টা করো।',
-        'concept.interactive.hintUnder': 'φ = {angle}° — লব্ধি এখনও <strong>ভাটির</strong> দিকে হেলে আছে। বড় কোণ চেষ্টা করো।',
-        'concept.interactive.hintSolved': 'φ = {angle}° — <strong>শূন্য সরণ!</strong> লব্ধি বেগ স্রোতের সাথে লম্ব হয়ে গেছে।',
-        'concept.interactive.success': '🎯 ঠিক ১২০° — এটাই কেস D স্পটলাইটের শর্ত।',
+        'concept.interactive.title': 'নৌকাটিকে সোজাসুজি পার করার জন্য নৌকার দিক (কোণ) পরিবর্তন করো',
+        'concept.interactive.instruction': 'পানির স্রোতের বেগ 5 m/s এবং নৌকার বেগ 10 m/s। নৌকার দিক পরিবর্তন করো — সিমুলেশনে স্রোতের দিক থেকে মাপা কোণ φ কীভাবে বদলায় দেখো। নৌকা যখন একদম সোজা বিপরীত বিন্দুতে পৌঁছাবে, তখন তুমি শেষ করতে পারবে।',
+        'concept.interactive.angleLabel': 'নৌকার দিক — স্রোত থেকে কোণ (φ)',
+        'concept.interactive.hintOver': 'φ = {angle}° — নৌকা এখন <strong>উজানের</strong> দিকে সরে যাচ্ছে। কোণ একটু কমাও।',
+        'concept.interactive.hintUnder': 'φ = {angle}° — স্রোত এখনও নৌকাকে <strong>ভাটির</strong> দিকে ঠেলে দিচ্ছে। কোণ আরও বাড়াও।',
+        'concept.interactive.hintSolved': 'φ = {angle}° — <strong>শূন্য সরণ!</strong> নৌকা একদম সোজাসুজি পার হচ্ছে।',
+        'concept.interactive.success': '🎯 ঠিক ১২০° — নৌকার বেগ স্রোতের দ্বিগুণ হলে সোজাসুজি পার হওয়ার জন্য এটাই সঠিক কোণ।',
 
         'concept.done.title': 'তুমি আপেক্ষিক বেগ বুঝে গেছো!',
-        'concept.done.body': 'নিজে থেকে কেস A–D ঘুরে দেখো, অথবা ইন্টারফেসের নিয়ন্ত্রণগুলো শিখতে যেকোনো সময় টিউটোরিয়াল খোলো।',
+        'concept.done.body': 'এখন পুরো সিমুলেশনটি নিজে ঘুরে দেখো, অথবা ইন্টারফেসের নিয়ন্ত্রণগুলো শিখতে যেকোনো সময় টিউটোরিয়াল খোলো।',
         'concept.done.start': 'শুরু করি',
     },
 };
@@ -2720,7 +2801,9 @@ function setLang(lang) {
    DOM REFS
    ============================================================= */
 const canvas    = document.getElementById('simulation-canvas');
-const ctx       = canvas.getContext('2d');
+// `let`, not `const`: the onboarding briefly points this at its own canvas
+// so it can reuse the exact same scene renderer (see drawConceptCanvas).
+let ctx         = canvas.getContext('2d');
 const vectorSvg = document.getElementById('vector-svg');
 
 /* =============================================================
@@ -2766,15 +2849,15 @@ window.addEventListener('DOMContentLoaded', () => {
     layoutMobileMenu();
     mobileMenuMQ.addEventListener('change', layoutMobileMenu);
     document.addEventListener('keydown', (e) => {
-        if (e.key === 'Escape' && document.getElementById('mobile-menu-drawer').classList.contains('open')) closeMobileMenu();
+        if (e.key === 'Escape' && !tutorialActive && document.getElementById('mobile-menu-drawer').classList.contains('open')) closeMobileMenu();
     });
 
     requestAnimationFrame(animationLoop);
 
-    // First-time visitors get the concept walkthrough automatically; a
-    // shared deep link (?case=...) means someone already set this up for a
-    // specific purpose, so it's skipped rather than interrupting them.
-    if (!urlState && !prefs.get('concept_onboarding_done_v1')) {
+    // Every page load opens with the concept walkthrough; a shared deep
+    // link (?case=...) means someone already set this up for a specific
+    // purpose, so it's skipped rather than interrupting them.
+    if (!urlState) {
         setTimeout(startConceptOnboarding, 500);
     }
 });
@@ -3077,6 +3160,12 @@ function solvePhysicsForCase(caseCode, vb = state.vb, vr = state.vr, d = state.d
         thetaDeg = state.customTheta;
     }
 
+    return solveCrossing(vb, vr, d, thetaDeg, impossibleCaseB);
+}
+
+/* The crossing kinematics for any heading — shared by the main simulation
+   (via the case rules above) and the onboarding's own small scenarios. */
+function solveCrossing(vb, vr, d, thetaDeg, impossibleCaseB = false) {
     const phiDeg = 90 + thetaDeg; // Convention B
     const isParallel = Math.abs(thetaDeg) >= 85;
 
@@ -3764,224 +3853,796 @@ function animationLoop(ts) {
    CANVAS RENDERING
    ============================================================= */
 
-function drawRiverSection(res, yOffset, sectionHeight, caseLabel, boatColor, animProgress, wakePts, isCompare = false) {
+/* =============================================================
+   SCENE RENDERING
+   Purely visual layer for the crossing canvas. Every position still
+   comes from the same physics results (res) and the same px() world ->
+   screen mapping as before; only how things are painted changed.
+   Textures are generated once (seeded, so they never shimmer between
+   loads) and cached per theme.
+   ============================================================= */
+const sceneCache = {};
+
+function sceneRand(seed) {
+    let s = (seed >>> 0) || 1;
+    return () => { s = (Math.imul(s, 1664525) + 1013904223) >>> 0; return s / 4294967296; };
+}
+
+/* Runs fn at the 9 wrap offsets so a texture tiles with no visible seam. */
+function drawWrapped(S, fn) {
+    for (let dx = -S; dx <= S; dx += S)
+        for (let dy = -S; dy <= S; dy += S) fn(dx, dy);
+}
+
+function grassTexture(isLight) {
+    const key = 'grass-' + isLight;
+    if (sceneCache[key]) return sceneCache[key];
+    const S = 256;
+    const c = document.createElement('canvas');
+    c.width = c.height = S;
+    const g = c.getContext('2d');
+    const rnd = sceneRand(isLight ? 7 : 8);
+    g.fillStyle = isLight ? '#7DBE5E' : '#1B3824';
+    g.fillRect(0, 0, S, S);
+
+    // Mottled light/dark patches so the lawn doesn't read as a flat fill
+    for (let i = 0; i < 70; i++) {
+        const x = rnd() * S, y = rnd() * S, r = 14 + rnd() * 36;
+        const light = rnd() > 0.5;
+        const col = isLight
+            ? (light ? 'rgba(186, 226, 124, 0.42)' : 'rgba(64, 128, 50, 0.35)')
+            : (light ? 'rgba(62, 112, 66, 0.35)' : 'rgba(6, 22, 12, 0.42)');
+        drawWrapped(S, (dx, dy) => {
+            const cx = x + dx, cy = y + dy;
+            if (cx < -r || cx > S + r || cy < -r || cy > S + r) return;
+            const grd = g.createRadialGradient(cx, cy, 0, cx, cy, r);
+            grd.addColorStop(0, col);
+            grd.addColorStop(1, 'rgba(0,0,0,0)');
+            g.fillStyle = grd;
+            g.fillRect(cx - r, cy - r, r * 2, r * 2);
+        });
+    }
+
+    // Individual blades
+    g.lineCap = 'round';
+    const blades = isLight
+        ? ['#5A9A42', '#6BAF4D', '#9CCF70', '#4A8636', '#B9DF8C']
+        : ['#2B5435', '#23482D', '#3A6A44', '#162E1D', '#4A7C52'];
+    for (let i = 0; i < 1600; i++) {
+        const x = rnd() * S, y = rnd() * S;
+        const len = 2 + rnd() * 4.5;
+        const ang = -Math.PI / 2 + (rnd() - 0.5) * 1.1;
+        const col = blades[Math.floor(rnd() * blades.length)];
+        const alpha = 0.55 + rnd() * 0.45;
+        const lw = 0.8 + rnd() * 0.7;
+        drawWrapped(S, (dx, dy) => {
+            const cx = x + dx, cy = y + dy;
+            if (cx < -8 || cx > S + 8 || cy < -8 || cy > S + 8) return;
+            g.strokeStyle = col;
+            g.globalAlpha = alpha;
+            g.lineWidth = lw;
+            g.beginPath();
+            g.moveTo(cx, cy);
+            g.lineTo(cx + Math.cos(ang) * len, cy + Math.sin(ang) * len);
+            g.stroke();
+        });
+    }
+    g.globalAlpha = 1;
+    return (sceneCache[key] = c);
+}
+
+function waterTexture(isLight) {
+    const key = 'water-' + isLight;
+    if (sceneCache[key]) return sceneCache[key];
+    const S = 512;
+    const c = document.createElement('canvas');
+    c.width = c.height = S;
+    const g = c.getContext('2d');
+    const rnd = sceneRand(isLight ? 21 : 22);
+
+    // Soft darker troughs between swells
+    for (let i = 0; i < 90; i++) {
+        const x = rnd() * S, y = rnd() * S, rx = 30 + rnd() * 90, ry = 3 + rnd() * 7;
+        g.fillStyle = isLight ? 'rgba(10, 70, 120, 0.07)' : 'rgba(0, 8, 20, 0.14)';
+        drawWrapped(S, (dx, dy) => {
+            const cx = x + dx, cy = y + dy;
+            if (cx < -rx || cx > S + rx || cy < -ry || cy > S + ry) return;
+            g.beginPath();
+            g.ellipse(cx, cy, rx, ry, 0, 0, Math.PI * 2);
+            g.fill();
+        });
+    }
+
+    // Light-catching ripple crests, stretched along the flow direction
+    g.lineCap = 'round';
+    for (let i = 0; i < 420; i++) {
+        const x = rnd() * S, y = rnd() * S, w = 8 + rnd() * 44, bend = (rnd() - 0.5) * 4;
+        const a = isLight ? 0.12 + rnd() * 0.38 : 0.05 + rnd() * 0.22;
+        g.strokeStyle = isLight ? `rgba(255,255,255,${a.toFixed(3)})` : `rgba(165,210,255,${a.toFixed(3)})`;
+        g.lineWidth = 0.8 + rnd() * 1.6;
+        drawWrapped(S, (dx, dy) => {
+            const cx = x + dx, cy = y + dy;
+            if (cx < -w || cx > S + w || cy < -6 || cy > S + 6) return;
+            g.beginPath();
+            g.moveTo(cx - w / 2, cy);
+            g.quadraticCurveTo(cx, cy + bend, cx + w / 2, cy);
+            g.stroke();
+        });
+    }
+    return (sceneCache[key] = c);
+}
+
+function scenePattern(name, build) {
+    const key = 'pat-' + name + '-' + ctx.canvas.id;
+    if (!sceneCache[key]) sceneCache[key] = ctx.createPattern(build(), 'repeat');
+    return sceneCache[key];
+}
+
+/* Deterministic props (bushes, pebbles, reeds), generated once and placed
+   by fraction of the canvas width so they stay put on resize. */
+function sceneProps() {
+    if (sceneCache.props) return sceneCache.props;
+    const rnd = sceneRand(99);
+    const mk = (n) => Array.from({ length: n }, () => ({ fx: rnd(), fy: rnd(), s: rnd(), h: rnd() }));
+    return (sceneCache.props = { bushes: mk(14), pebbles: mk(26), reeds: mk(12) });
+}
+
+/* Smooth, repeatable wobble in [-1, 1] for irregular shorelines. */
+function shoreNoise(x, seed) {
+    return 0.5 * Math.sin(x * 0.045 + seed) + 0.3 * Math.sin(x * 0.13 + seed * 2.1) + 0.2 * Math.sin(x * 0.31 + seed * 3.7);
+}
+
+/* Text on a soft rounded backing, so labels stay legible over any
+   texture (grass, water, sand). Understands the same v_r subscript
+   syntax as fillTextWithSubscripts. */
+function scenePill(text, x, y, color, isLight, font, align) {
+    ctx.save();
+    ctx.font = font;
+    ctx.textAlign = 'left';
+    const size = parseFloat((font.match(/(\d+(?:\.\d+)?)px/) || [0, 10])[1]);
+    const w = ctx.measureText(text.replace(/_/g, '')).width;
+    const padX = 6, h = size + 8;
+    const left = align === 'right' ? x - w - padX * 2 : align === 'center' ? x - w / 2 - padX : x - padX;
+    ctx.fillStyle = isLight ? 'rgba(255, 255, 255, 0.88)' : 'rgba(8, 16, 24, 0.80)';
+    ctx.strokeStyle = isLight ? 'rgba(15, 23, 42, 0.08)' : 'rgba(255, 255, 255, 0.10)';
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.roundRect(left, y - size - 3, w + padX * 2, h, h / 2);
+    ctx.fill();
+    ctx.stroke();
+    ctx.fillStyle = color;
+    fillTextWithSubscripts(ctx, text, left + padX, y);
+    ctx.restore();
+}
+
+/* Arrow with a contrasting halo so vectors read over busy water. */
+function sceneArrow(x1, y1, x2, y2, color, w, isLight) {
+    const ang = Math.atan2(y2 - y1, x2 - x1);
+    const hl = 6 + w * 2.2;
+    const pass = (col, lw, grow) => {
+        const bx = x2 - hl * Math.cos(ang), by = y2 - hl * Math.sin(ang);
+        ctx.strokeStyle = col;
+        ctx.fillStyle = col;
+        ctx.lineWidth = lw;
+        ctx.lineCap = 'round';
+        ctx.beginPath();
+        ctx.moveTo(x1, y1);
+        ctx.lineTo(bx + hl * 0.3 * Math.cos(ang), by + hl * 0.3 * Math.sin(ang));
+        ctx.stroke();
+        const L = hl + grow, H = (hl * 0.62) + grow;
+        const tx = x2 + grow * 0.6 * Math.cos(ang), ty = y2 + grow * 0.6 * Math.sin(ang);
+        ctx.lineJoin = 'round';
+        ctx.beginPath();
+        ctx.moveTo(tx, ty);
+        ctx.lineTo(tx - L * Math.cos(ang) + H * Math.sin(ang), ty - L * Math.sin(ang) - H * Math.cos(ang));
+        ctx.lineTo(tx - L * Math.cos(ang) - H * Math.sin(ang), ty - L * Math.sin(ang) + H * Math.cos(ang));
+        ctx.closePath();
+        ctx.fill();
+    };
+    ctx.save();
+    pass(isLight ? 'rgba(255, 255, 255, 0.92)' : 'rgba(0, 0, 0, 0.60)', w + 3.5, 1.8);
+    pass(color, w, 0);
+    ctx.restore();
+}
+
+/* Top-down wooden rowboat with a rower, in boat-local coordinates:
+   bow at (0,-21), stern transom at y=+19.5. Oars sweep and the wake
+   churns only while the boat is actually under way. */
+function drawRowboat(boatColor, isLight, moving, now) {
+    const oarPhase = now * 5.2;
+    const sweep = moving ? Math.sin(oarPhase) : 0.15;
+    const bladeInWater = moving && Math.cos(oarPhase) > 0.2;
+
+    ctx.lineJoin = 'round';
+    ctx.lineCap = 'round';
+
+    // --- Water disturbance around the hull ---
+    ctx.save();
+    if (moving) {
+        for (const side of [-1, 1]) {
+            const grd = ctx.createLinearGradient(0, -20, 0, 42);
+            grd.addColorStop(0, 'rgba(255,255,255,0.90)');
+            grd.addColorStop(1, 'rgba(255,255,255,0)');
+            ctx.strokeStyle = grd;
+            ctx.lineWidth = 2.4;
+            ctx.beginPath();
+            ctx.moveTo(side * 2, -20);
+            ctx.quadraticCurveTo(side * 12, -4, side * 24, 38);
+            ctx.stroke();
+            ctx.lineWidth = 1.2;
+            ctx.beginPath();
+            ctx.moveTo(side * 9, -6);
+            ctx.quadraticCurveTo(side * 16, 10, side * 28, 44);
+            ctx.stroke();
+        }
+        for (let k = 0; k < 3; k++) {
+            const ph = (now * 1.4 + k / 3) % 1;
+            ctx.strokeStyle = `rgba(255,255,255,${(0.6 * (1 - ph)).toFixed(3)})`;
+            ctx.lineWidth = 1.4;
+            ctx.beginPath();
+            ctx.ellipse(0, 21 + ph * 18, 5 + ph * 10, 2 + ph * 3.5, 0, 0, Math.PI * 2);
+            ctx.stroke();
+        }
+    } else {
+        for (let k = 0; k < 2; k++) {
+            const ph = (now * 0.33 + k / 2) % 1;
+            ctx.strokeStyle = isLight
+                ? `rgba(255,255,255,${(0.55 * (1 - ph)).toFixed(3)})`
+                : `rgba(170,210,255,${(0.35 * (1 - ph)).toFixed(3)})`;
+            ctx.lineWidth = 1.2;
+            ctx.beginPath();
+            ctx.ellipse(0, 0, 11 + ph * 7, 22 + ph * 8, 0, 0, Math.PI * 2);
+            ctx.stroke();
+        }
+    }
+    ctx.restore();
+
+    const hullPath = (k) => {
+        ctx.beginPath();
+        ctx.moveTo(0, -21 * k);
+        ctx.bezierCurveTo(-6 * k, -17 * k, -10 * k, -8 * k, -10 * k, 2 * k);
+        ctx.bezierCurveTo(-10 * k, 11 * k, -8.5 * k, 17 * k, -6.5 * k, 19.5 * k);
+        ctx.lineTo(6.5 * k, 19.5 * k);
+        ctx.bezierCurveTo(8.5 * k, 17 * k, 10 * k, 11 * k, 10 * k, 2 * k);
+        ctx.bezierCurveTo(10 * k, -8 * k, 6 * k, -17 * k, 0, -21 * k);
+        ctx.closePath();
+    };
+
+    // --- Oars (drawn first so the gunwale overlaps the shafts) ---
+    const oarRot = (side) => side * (-0.1 + 0.5 * sweep);
+    const drawOar = (side) => {
+        ctx.save();
+        ctx.translate(side * 8.6, -1);
+        ctx.rotate(oarRot(side));
+        const tipX = side * 24;
+        if (bladeInWater) {
+            ctx.strokeStyle = 'rgba(255,255,255,0.75)';
+            ctx.lineWidth = 1.1;
+            ctx.beginPath();
+            ctx.ellipse(tipX, 0, 7, 3.6, 0, 0, Math.PI * 2);
+            ctx.stroke();
+        }
+        ctx.strokeStyle = '#6B4424';
+        ctx.lineWidth = 1.6;
+        ctx.beginPath();
+        ctx.moveTo(-side * 4, 0);
+        ctx.lineTo(tipX - side * 4, 0);
+        ctx.stroke();
+        const bg = ctx.createLinearGradient(tipX - side * 6, 0, tipX + side * 3, 0);
+        bg.addColorStop(0, '#9C6B3E');
+        bg.addColorStop(1, '#C99A63');
+        ctx.fillStyle = bg;
+        ctx.strokeStyle = 'rgba(50, 28, 10, 0.8)';
+        ctx.lineWidth = 0.6;
+        ctx.beginPath();
+        ctx.ellipse(tipX, 0, 5.2, 2.1, 0, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.stroke();
+        ctx.restore();
+    };
+    drawOar(-1);
+    drawOar(1);
+
+    // --- Hull with soft drop shadow on the water ---
+    ctx.save();
+    ctx.shadowColor = isLight ? 'rgba(0, 35, 60, 0.38)' : 'rgba(0, 0, 0, 0.6)';
+    ctx.shadowBlur = 8;
+    ctx.shadowOffsetX = 3;
+    ctx.shadowOffsetY = 5;
+    const hg = ctx.createLinearGradient(-10, 0, 10, 0);
+    hg.addColorStop(0, '#4E2A13');
+    hg.addColorStop(0.28, '#8A5230');
+    hg.addColorStop(0.55, '#B7794A');
+    hg.addColorStop(0.78, '#8A5230');
+    hg.addColorStop(1, '#43230F');
+    ctx.fillStyle = hg;
+    hullPath(1);
+    ctx.fill();
+    ctx.restore();
+    ctx.strokeStyle = 'rgba(36, 18, 6, 0.95)';
+    ctx.lineWidth = 1;
+    hullPath(1);
+    ctx.stroke();
+
+    // Case-colour stripe just under the gunwale
+    ctx.strokeStyle = boatColor;
+    ctx.lineWidth = 1.3;
+    ctx.globalAlpha = 0.95;
+    hullPath(0.93);
+    ctx.stroke();
+    ctx.globalAlpha = 1;
+
+    // Interior
+    const ig = ctx.createLinearGradient(-8, 0, 8, 0);
+    ig.addColorStop(0, '#5E3418');
+    ig.addColorStop(0.5, '#A8703F');
+    ig.addColorStop(1, '#5A3116');
+    ctx.fillStyle = ig;
+    hullPath(0.8);
+    ctx.fill();
+
+    // Floor planks following the hull's curve
+    ctx.strokeStyle = 'rgba(55, 28, 10, 0.45)';
+    ctx.lineWidth = 0.6;
+    for (const off of [-4.5, -1.5, 1.5, 4.5]) {
+        ctx.beginPath();
+        ctx.moveTo(off * 0.45, -14);
+        ctx.quadraticCurveTo(off * 1.1, 2, off * 0.85, 15);
+        ctx.stroke();
+    }
+
+    // Gunwale rim
+    ctx.strokeStyle = '#DDA56E';
+    ctx.lineWidth = 1.5;
+    hullPath(0.86);
+    ctx.stroke();
+
+    // Bow deck
+    ctx.fillStyle = '#9A5F33';
+    ctx.beginPath();
+    ctx.moveTo(0, -17.6);
+    ctx.quadraticCurveTo(-4.2, -13.5, -5, -12);
+    ctx.lineTo(5, -12);
+    ctx.quadraticCurveTo(4.2, -13.5, 0, -17.6);
+    ctx.fill();
+
+    // Thwarts (seats)
+    const thwart = (y, half, h) => {
+        const tg = ctx.createLinearGradient(0, y, 0, y + h);
+        tg.addColorStop(0, '#D6985F');
+        tg.addColorStop(1, '#9D6236');
+        ctx.fillStyle = tg;
+        ctx.strokeStyle = 'rgba(45, 22, 8, 0.7)';
+        ctx.lineWidth = 0.6;
+        ctx.beginPath();
+        ctx.roundRect(-half, y, half * 2, h, 0.8);
+        ctx.fill();
+        ctx.stroke();
+    };
+    thwart(-9, 6.2, 2.8);
+    thwart(1, 7.6, 3.2);
+    thwart(11, 6.4, 2.8);
+
+    // Oarlocks
+    ctx.fillStyle = '#2A2A2A';
+    for (const side of [-1, 1]) {
+        ctx.beginPath();
+        ctx.arc(side * 8.6, -1, 1.1, 0, Math.PI * 2);
+        ctx.fill();
+    }
+
+    // --- Rower, seated on the middle thwart facing the stern ---
+    const handle = (side) => {
+        const r = oarRot(side);
+        return { x: side * 8.6 + Math.cos(r) * (-side * 4), y: -1 + Math.sin(r) * (-side * 4) };
+    };
+    ctx.strokeStyle = '#B97A4E';
+    ctx.lineWidth = 1.7;
+    for (const side of [-1, 1]) {
+        const hdl = handle(side);
+        ctx.beginPath();
+        ctx.moveTo(side * 4.2, 3.4);
+        ctx.quadraticCurveTo(side * 4.8, 0.5, hdl.x, hdl.y);
+        ctx.stroke();
+    }
+    const sg = ctx.createRadialGradient(-1.5, 2.6, 0.5, 0, 3.6, 6);
+    sg.addColorStop(0, '#F0555A');
+    sg.addColorStop(1, '#B3222B');
+    ctx.fillStyle = sg;
+    ctx.beginPath();
+    ctx.ellipse(0, 3.6, 5.2, 2.9, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = '#C68B5E';
+    ctx.beginPath();
+    ctx.ellipse(0, 5.2, 1.7, 1.1, 0, 0, Math.PI * 2);
+    ctx.fill();
+    const hair = ctx.createRadialGradient(-0.8, 2.6, 0.2, 0, 3.4, 2.8);
+    hair.addColorStop(0, '#4A3426');
+    hair.addColorStop(1, '#1E140D');
+    ctx.fillStyle = hair;
+    ctx.beginPath();
+    ctx.arc(0, 3.4, 2.5, 0, Math.PI * 2);
+    ctx.fill();
+}
+
+/* opts lets the onboarding reuse this exact renderer on its own canvas with
+   its own scenario: W (canvas width), viewRes (viewport reference instead of
+   the live Case A), flow / particles / moving (its own animation clock), and
+   show (which overlays to draw — defaults are the main simulation's). */
+function drawRiverSection(res, yOffset, sectionHeight, caseLabel, boatColor, animProgress, wakePts, isCompare = false, opts = {}) {
     const d = res.d;
+    const W = opts.W ?? state.canvasW;
+    const show = Object.assign({
+        current: true, heading: true, path: true, wake: true, landing: true,
+        badge: true, vectors: true, teachVectors: false, angleArc: false,
+    }, opts.show);
     const drift = res.crossingTime === Infinity ? 0 : res.drift;
 
     const isLight = isLightTheme();
 
     // Viewport coordinates computed using Case A drift for consistent scaling in comparison mode
-    const physA = solvePhysicsForCase('A');
+    const physA = opts.viewRes || solvePhysicsForCase('A');
     const driftA = physA.drift;
     let xL = -physA.d * 0.28, xR = physA.d * 0.9;
     if (driftA >= 0) xR = Math.max(xR, driftA + physA.d * 0.28);
     else             xL = Math.min(xL, driftA - physA.d * 0.28);
+    if (opts.viewX) [xL, xR] = opts.viewX;
     const yB = -d * 0.12, yT = d * 1.12;
 
-    const scX = state.canvasW / (xR - xL);
+    const scX = W / (xR - xL);
     const scY = sectionHeight / (yT - yB);
     const scale = Math.min(scX, scY) * 0.92;
     const xMid  = (xL + xR) / 2;
     const yMid  = (yB + yT) / 2;
 
     const px = (X, Y) => ({
-        x: state.canvasW / 2 + (X - xMid) * scale,
+        x: W / 2 + (X - xMid) * scale,
         y: yOffset + sectionHeight / 2 - (Y - yMid) * scale,
     });
 
+    const secBot = yOffset + sectionHeight;
     const waterTop  = px(0, d).y;
     const waterBot  = px(0, 0).y;
     const waterH    = waterBot - waterTop;
+    const now  = performance.now() / 1000;
+    const flow = opts.flow ?? (state.wavePhase || 0);
+    const uiFont = (weight, size) => `${weight} ${size}px Inter, "Noto Sans Bengali", "Hind Siliguri", sans-serif`;
+    // Students mostly watch on a phone, so canvas text stays at a readable
+    // 12px minimum and grows with the canvas.
+    const smallSize = Math.max(12, Math.min(15, W / 58)) * (opts.textScale || 1);
+    const labelGap = smallSize + 14;
 
-    /* --- River water gradient + Case background tints --- */
-    const waterGrad = ctx.createLinearGradient(0, waterTop, 0, waterBot);
-    if (res.impossibleCaseB) {
-        // Impossible Case B — Faint amber/orange tint
-        if (isLight) {
-            waterGrad.addColorStop(0,   'rgba(255, 214, 219, 0.96)');
-            waterGrad.addColorStop(0.5, 'rgba(255, 245, 246, 0.98)');
-            waterGrad.addColorStop(1,   'rgba(255, 214, 219, 0.95)');
-        } else {
-            waterGrad.addColorStop(0,   'rgba(46, 10, 14, 0.96)');
-            waterGrad.addColorStop(0.5, 'rgba(56, 12, 18, 0.98)');
-            waterGrad.addColorStop(1,   'rgba(46, 10, 14, 0.95)');
-        }
-    } else if (res.thetaDeg === Math.asin(res.vr/res.vb)*180/Math.PI && res.vb >= res.vr) {
-        // Case B (Zero Drift) — Faint green tint
-        if (isLight) {
-            waterGrad.addColorStop(0,   'rgba(204, 235, 192, 0.96)');
-            waterGrad.addColorStop(0.5, 'rgba(240, 251, 244, 0.98)');
-            waterGrad.addColorStop(1,   'rgba(204, 235, 192, 0.95)');
-        } else {
-            waterGrad.addColorStop(0,   'rgba(10, 30, 20, 0.96)');
-            waterGrad.addColorStop(0.5, 'rgba(12, 40, 25, 0.98)');
-            waterGrad.addColorStop(1,   'rgba(8, 25, 15, 0.95)');
-        }
-    } else {
-        // Default water color
-        if (isLight) {
-            waterGrad.addColorStop(0,   'rgba(216, 243, 255, 0.95)');
-            waterGrad.addColorStop(0.5, 'rgba(243, 252, 255, 0.98)');
-            waterGrad.addColorStop(1,   'rgba(216, 243, 255, 0.92)');
-        } else {
-            waterGrad.addColorStop(0,   'rgba(10, 38, 78, 0.95)');
-            waterGrad.addColorStop(0.5, 'rgba(8, 30, 62, 0.98)');
-            waterGrad.addColorStop(1,   'rgba(12, 42, 85, 0.92)');
-        }
-    }
-    ctx.fillStyle = waterGrad;
-    ctx.fillRect(0, waterTop, state.canvasW, waterH);
-
-    /* --- Animated wave layers --- */
-    const waveCount = 3;
     ctx.save();
-    for (let i = 0; i < waveCount; i++) {
+    ctx.beginPath();
+    ctx.rect(0, yOffset, W, sectionHeight);
+    ctx.clip();
+
+    /* =========================== WATER =========================== */
+    ctx.save();
+    ctx.beginPath();
+    ctx.rect(0, waterTop, W, waterH);
+    ctx.clip();
+
+    // Deep channel in the middle, lighter shallows toward both banks
+    const wg = ctx.createLinearGradient(0, waterTop, 0, waterBot);
+    if (isLight) {
+        wg.addColorStop(0,    '#7ED0DD');
+        wg.addColorStop(0.14, '#48AECB');
+        wg.addColorStop(0.5,  '#2B8DB8');
+        wg.addColorStop(0.86, '#48AECB');
+        wg.addColorStop(1,    '#7ED0DD');
+    } else {
+        wg.addColorStop(0,    '#1B5A6C');
+        wg.addColorStop(0.14, '#10405A');
+        wg.addColorStop(0.5,  '#0A2B42');
+        wg.addColorStop(0.86, '#10405A');
+        wg.addColorStop(1,    '#1B5A6C');
+    }
+    ctx.fillStyle = wg;
+    ctx.fillRect(0, waterTop, W, waterH);
+
+    // Case tints (same conditions as before): impossible Case B reads warm,
+    // exact zero-drift Case B reads faintly green.
+    if (res.impossibleCaseB) {
+        ctx.fillStyle = isLight ? 'rgba(232, 0, 29, 0.16)' : 'rgba(255, 60, 80, 0.14)';
+        ctx.fillRect(0, waterTop, W, waterH);
+    } else if (res.thetaDeg === Math.asin(res.vr/res.vb)*180/Math.PI && res.vb >= res.vr) {
+        ctx.fillStyle = isLight ? 'rgba(28, 171, 85, 0.12)' : 'rgba(74, 222, 128, 0.08)';
+        ctx.fillRect(0, waterTop, W, waterH);
+    }
+
+    // Two parallax layers of ripple texture drifting downstream with the current
+    const wtex = scenePattern('water-' + isLight, () => waterTexture(isLight));
+    const s1 = 0.55, s2 = 0.9;
+    const per1 = 512 * s1, per2 = 512 * s2;
+    wtex.setTransform(new DOMMatrix([s1, 0, 0, s1, (flow * 34) % per1, waterTop]));
+    ctx.fillStyle = wtex;
+    ctx.fillRect(0, waterTop, W, waterH);
+    wtex.setTransform(new DOMMatrix([s2, 0, 0, s2, (flow * 20 + 170) % per2, waterTop + 91]));
+    ctx.globalAlpha = 0.55;
+    ctx.fillRect(0, waterTop, W, waterH);
+    ctx.globalAlpha = 1;
+
+    // Broad, slow swells — the old wave lines, softened into light bands
+    for (let i = 0; i < 3; i++) {
         ctx.beginPath();
-        const yFrac = 0.25 + 0.25 * i;
-        const wavePhysicsY = d * yFrac;
-        
+        const wavePhysicsY = d * (0.25 + 0.25 * i);
         const step = (xR - xL) / 60;
         for (let wx = xL; wx <= xR; wx += step) {
             const amp = d * 0.015;
             const freq = 2 * Math.PI / (d * 0.45);
-            const phaseOffset = i * Math.PI / 2.5;
-            const wy = wavePhysicsY + amp * Math.sin(wx * freq - state.wavePhase - phaseOffset);
+            const wy = wavePhysicsY + amp * Math.sin(wx * freq - flow - i * Math.PI / 2.5);
             const pt = px(wx, wy);
-            if (wx === xL) ctx.moveTo(pt.x, pt.y);
-            else ctx.lineTo(pt.x, pt.y);
+            if (wx === xL) ctx.moveTo(pt.x, pt.y); else ctx.lineTo(pt.x, pt.y);
         }
-        ctx.lineWidth = 1.0 + (res.vr / 10.0) * 1.5;
-        const alpha = 0.12 + 0.08 * i;
-        const waveCol = isLight ? `rgba(39, 79, 227, ${alpha * 1.3})` : `rgba(124, 160, 255, ${alpha})`;
-        ctx.strokeStyle = waveCol;
+        ctx.lineWidth = Math.max(2, waterH * 0.018) * (1 + res.vr / 10);
+        ctx.strokeStyle = isLight ? 'rgba(255, 255, 255, 0.16)' : 'rgba(150, 200, 255, 0.07)';
         ctx.stroke();
     }
-    ctx.restore();
 
-    /* --- Flow particles --- */
+    // Flow streaks — the same drifting particles, drawn as foam flecks
     const vrAlpha = Math.min(1.0, res.vr / 3.0);
-    state.particles.forEach(p => {
-        // wrap particles
+    ctx.lineCap = 'round';
+    (opts.particles || state.particles).forEach(p => {
         if (p.x > xR + d * 0.15) p.x = xL - d * 0.15;
         if (p.x < xL - d * 0.15) p.x = xR + d * 0.15;
-
-        const py2 = (p.y / 100) * d;
-        const pos = px(p.x, py2);
-        const endX = pos.x + p.len * scale * 0.2;
-
-        const grad = ctx.createLinearGradient(pos.x, pos.y, endX, pos.y);
-        grad.addColorStop(0, `rgba(234, 88, 12, 0)`);
-        const pCol = isLight ? `rgba(162, 63, 0, ${p.opacity * vrAlpha * 1.4})` : `rgba(251, 146, 60, ${p.opacity * vrAlpha})`;
-        grad.addColorStop(1, pCol);
+        if (vrAlpha < 0.01) return;
+        const pos = px(p.x, (p.y / 100) * d);
+        const len = (12 + p.len * 2.4) * (0.6 + vrAlpha * 0.8);
+        const a = (isLight ? 0.75 : 0.45) * p.opacity * 1.8 * vrAlpha;
+        const grad = ctx.createLinearGradient(pos.x - len, pos.y, pos.x, pos.y);
+        grad.addColorStop(0, 'rgba(255,255,255,0)');
+        grad.addColorStop(1, `rgba(255,255,255,${Math.min(0.9, a).toFixed(3)})`);
         ctx.strokeStyle = grad;
-        ctx.lineWidth   = 1.1;
+        ctx.lineWidth = 1.6;
         ctx.beginPath();
-        ctx.moveTo(pos.x, pos.y);
-        ctx.lineTo(endX, pos.y);
+        ctx.moveTo(pos.x - len, pos.y);
+        ctx.lineTo(pos.x, pos.y);
         ctx.stroke();
     });
 
-    /* --- Banks --- */
-    // Near bank
-    const bankGradBot = ctx.createLinearGradient(0, waterBot, 0, yOffset + sectionHeight);
-    if (isLight) {
-        bankGradBot.addColorStop(0, '#CCEBC0');
-        bankGradBot.addColorStop(1, '#A9DC98');
-    } else {
-        bankGradBot.addColorStop(0, '#122012');
-        bankGradBot.addColorStop(1, '#081008');
-    }
-    ctx.fillStyle = bankGradBot;
-    ctx.fillRect(0, waterBot, state.canvasW, (yOffset + sectionHeight) - waterBot);
+    // Shallows glow + lapping foam line along both shores
+    const shoreFoam = (yEdge, dir, seed) => {
+        const band = Math.min(22, waterH * 0.1);
+        const sg = ctx.createLinearGradient(0, yEdge, 0, yEdge + dir * band);
+        sg.addColorStop(0, isLight ? 'rgba(220, 250, 245, 0.55)' : 'rgba(110, 180, 190, 0.22)');
+        sg.addColorStop(1, 'rgba(255,255,255,0)');
+        ctx.fillStyle = sg;
+        ctx.fillRect(0, Math.min(yEdge, yEdge + dir * band), W, band);
+        for (let layer = 0; layer < 2; layer++) {
+            ctx.beginPath();
+            for (let x = 0; x <= W + 6; x += 6) {
+                const off = (2.5 + layer * 3.5)
+                    + 1.8 * Math.sin(x * 0.05 + now * (1.3 - layer * 0.4) + seed)
+                    + 1.1 * Math.sin(x * 0.13 - now * 0.9 + seed * 2);
+                const y = yEdge + dir * off;
+                if (x === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+            }
+            ctx.strokeStyle = isLight
+                ? `rgba(255,255,255,${layer ? 0.35 : 0.8})`
+                : `rgba(200,230,255,${layer ? 0.14 : 0.32})`;
+            ctx.lineWidth = layer ? 1.1 : 1.7;
+            ctx.stroke();
+        }
+    };
+    shoreFoam(waterTop, 1, 1.7);
+    shoreFoam(waterBot, -1, 4.2);
+    ctx.restore(); // end water clip
 
-    // Far bank
-    const bankGradTop = ctx.createLinearGradient(0, yOffset, 0, waterTop);
-    if (isLight) {
-        bankGradTop.addColorStop(0, '#A9DC98');
-        bankGradTop.addColorStop(1, '#CCEBC0');
-    } else {
-        bankGradTop.addColorStop(0, '#081008');
-        bankGradTop.addColorStop(1, '#122012');
-    }
-    ctx.fillStyle = bankGradTop;
-    ctx.fillRect(0, yOffset, state.canvasW, waterTop - yOffset);
+    /* =========================== BANKS =========================== */
+    const grass = scenePattern('grass-' + isLight, () => grassTexture(isLight));
+    grass.setTransform(new DOMMatrix([0.6, 0, 0, 0.6, 0, 0]));
+    const farH = waterTop - yOffset;
+    const nearH = secBot - waterBot;
 
-    // Bank edge lines
-    [[waterTop, '#1CAB55', 0.8], [waterBot, '#1CAB55', 0.8]].forEach(([y, col, op]) => {
-        ctx.strokeStyle = col;
-        ctx.globalAlpha = op;
-        ctx.lineWidth   = 1.5;
+    const fillBank = (y0, y1, towardBottom) => {
+        if (y1 - y0 <= 0) return;
+        ctx.fillStyle = grass;
+        ctx.fillRect(0, y0, W, y1 - y0);
+        // Darker away from the river, a little sunlit near it
+        const sh = ctx.createLinearGradient(0, y0, 0, y1);
+        const far = isLight ? 'rgba(20, 60, 25, 0.22)' : 'rgba(0, 0, 0, 0.38)';
+        const near = isLight ? 'rgba(255, 245, 200, 0.10)' : 'rgba(0, 0, 0, 0)';
+        sh.addColorStop(0, towardBottom ? far : near);
+        sh.addColorStop(1, towardBottom ? near : far);
+        ctx.fillStyle = sh;
+        ctx.fillRect(0, y0, W, y1 - y0);
+    };
+    fillBank(yOffset, waterTop, true);
+    fillBank(waterBot, secBot, false);
+
+    // Sandy / muddy strip along the waterline with an irregular edge
+    const props = sceneProps();
+    const drawShore = (yEdge, dir, bankH, seed) => {
+        if (bankH < 4) return;
+        const sandW = Math.max(5, Math.min(15, bankH * 0.3));
         ctx.beginPath();
-        ctx.moveTo(0, y);
-        ctx.lineTo(state.canvasW, y);
-        ctx.stroke();
+        ctx.moveTo(-4, yEdge);
+        for (let x = -4; x <= W + 8; x += 8) {
+            ctx.lineTo(x, yEdge + dir * sandW * (0.62 + 0.38 * shoreNoise(x, seed)));
+        }
+        ctx.lineTo(W + 8, yEdge);
+        ctx.closePath();
+        const sg = ctx.createLinearGradient(0, yEdge, 0, yEdge + dir * sandW);
+        sg.addColorStop(0,    isLight ? '#9C8057' : '#3E3526');
+        sg.addColorStop(0.35, isLight ? '#CDB384' : '#584B36');
+        sg.addColorStop(1,    isLight ? '#E4D1A3' : '#675840');
+        ctx.fillStyle = sg;
+        ctx.fill();
+
+        // Pebbles scattered on the sand
+        props.pebbles.forEach((pb, i) => {
+            if ((i % 2 === 0) !== (dir < 0)) return;
+            const x = pb.fx * W;
+            const y = yEdge + dir * sandW * (0.25 + 0.45 * pb.fy);
+            const r = 0.9 + pb.s * 1.6;
+            ctx.fillStyle = isLight
+                ? `rgba(${120 + pb.h * 50 | 0}, ${110 + pb.h * 40 | 0}, ${95 + pb.h * 30 | 0}, 0.85)`
+                : `rgba(${70 + pb.h * 30 | 0}, ${66 + pb.h * 26 | 0}, ${58 + pb.h * 20 | 0}, 0.9)`;
+            ctx.beginPath();
+            ctx.ellipse(x, y, r * 1.3, r, pb.h * 3, 0, Math.PI * 2);
+            ctx.fill();
+        });
+
+        // Reed clumps where the grass meets the sand
+        ctx.lineCap = 'round';
+        props.reeds.forEach((rd, i) => {
+            if ((i % 2 === 0) !== (dir < 0)) return;
+            const x = rd.fx * W;
+            if (x > W - 110) return;
+            const baseY = yEdge + dir * sandW * 0.95;
+            const sway = Math.sin(now * 1.2 + rd.h * 6) * 0.8;
+            for (let k = 0; k < 5; k++) {
+                const lean = (k - 2) * 1.6 + sway;
+                const hgt = (5 + rd.s * 5) * (0.7 + 0.3 * ((k * 7 + i) % 3) / 2);
+                ctx.strokeStyle = isLight ? (k % 2 ? '#4F7F33' : '#6D9A40') : (k % 2 ? '#274A2C' : '#335C38');
+                ctx.lineWidth = 1;
+                ctx.beginPath();
+                ctx.moveTo(x + (k - 2), baseY);
+                ctx.quadraticCurveTo(x + (k - 2) + lean * 0.4, baseY + dir * hgt * 0.5, x + (k - 2) + lean, baseY + dir * hgt);
+                ctx.stroke();
+            }
+        });
+    };
+    drawShore(waterTop, -1, farH, 1.3);
+    drawShore(waterBot, 1, nearH, 5.9);
+
+    // Round bush canopies (top-down), kept clear of the badge and bank labels
+    const drawBushes = (bandTop, bandH, even) => {
+        if (bandH < 24) return;
+        props.bushes.forEach((b, i) => {
+            if ((i % 2 === 0) !== even) return;
+            const x = 40 + b.fx * (W - 80);
+            if (x > W - 120) return;
+            if (bandTop === yOffset && x < 250) return;
+            const r = Math.min(bandH * 0.32, 16) * (0.7 + b.s * 0.5);
+            const y = bandTop + bandH * (0.22 + 0.2 * b.fy);
+            ctx.fillStyle = isLight ? 'rgba(20, 50, 15, 0.22)' : 'rgba(0, 0, 0, 0.35)';
+            ctx.beginPath();
+            ctx.ellipse(x + r * 0.35, y + r * 0.35, r * 1.15, r * 0.9, 0, 0, Math.PI * 2);
+            ctx.fill();
+            const lobes = [[0, 0, 1], [-0.55, 0.2, 0.7], [0.55, 0.15, 0.72], [0.1, -0.45, 0.66]];
+            lobes.forEach(([ox, oy, rr]) => {
+                const cx = x + ox * r, cy = y + oy * r, rad = r * rr;
+                const bg = ctx.createRadialGradient(cx - rad * 0.35, cy - rad * 0.4, rad * 0.1, cx, cy, rad);
+                if (isLight) {
+                    bg.addColorStop(0, b.h > 0.5 ? '#8FCB5E' : '#79BB57');
+                    bg.addColorStop(1, b.h > 0.5 ? '#3E7A2B' : '#336B27');
+                } else {
+                    bg.addColorStop(0, '#3F7348');
+                    bg.addColorStop(1, '#16301D');
+                }
+                ctx.fillStyle = bg;
+                ctx.beginPath();
+                ctx.arc(cx, cy, rad, 0, Math.PI * 2);
+                ctx.fill();
+            });
+        });
+    };
+    drawBushes(yOffset, farH - 14, true);
+    drawBushes(waterBot + 14, nearH - 14, false);
+
+    // Small coves cut into the banks at the launch point and the landing
+    // point, so the boat floats in water at both ends of the crossing
+    // instead of sitting half on the grass. Purely cosmetic: the physics
+    // origin and landing point are unchanged.
+    const coveScale = Math.max(0.85, Math.min(2.0, W / 450));
+    const coveRx = 17 * coveScale;
+    const drawCove = (cx, yEdge, dir, bankH) => {
+        const ry = Math.min(bankH - 3, 27 * coveScale);
+        if (ry < 5) return;
+        ctx.save();
+        ctx.beginPath();
+        ctx.rect(0, dir > 0 ? yEdge : yEdge - bankH, W, bankH);
+        ctx.clip();
+        ctx.fillStyle = isLight ? '#D8C193' : '#584B36';
+        ctx.beginPath();
+        ctx.ellipse(cx, yEdge, coveRx + 5, ry + 5, 0, 0, Math.PI * 2);
+        ctx.fill();
+        const cg = ctx.createLinearGradient(0, yEdge, 0, yEdge + dir * ry);
+        cg.addColorStop(0, isLight ? '#6CC7DA' : '#185366');
+        cg.addColorStop(1, isLight ? '#A6E1E8' : '#23677A');
+        ctx.fillStyle = cg;
+        ctx.beginPath();
+        ctx.ellipse(cx, yEdge, coveRx, ry, 0, 0, Math.PI * 2);
+        ctx.fill();
+        wtex.setTransform(new DOMMatrix([s1, 0, 0, s1, (flow * 34) % per1, waterTop]));
+        ctx.fillStyle = wtex;
+        ctx.globalAlpha = 0.7;
+        ctx.fill();
         ctx.globalAlpha = 1;
-    });
+        ctx.strokeStyle = isLight ? 'rgba(255,255,255,0.8)' : 'rgba(200,230,255,0.3)';
+        ctx.lineWidth = 1.5;
+        ctx.stroke();
+        ctx.restore();
+    };
+    drawCove(px(0, 0).x, waterBot, 1, nearH);
+    if (show.landing && res.crossingTime !== Infinity) drawCove(px(drift, d).x, waterTop, -1, farH);
 
     // Bank labels — right-aligned so the top-left gutter stays free for the
     // status badge, and clamped so a short bank strip never clips them.
-    ctx.save();
-    ctx.fillStyle = isLight ? 'rgba(75, 85, 99, 0.85)' : 'rgba(183, 192, 204, 0.75)';
-    ctx.font      = `500 ${Math.max(9, Math.min(11, state.canvasW / 95))}px Inter, "Hind Siliguri", sans-serif`;
-    ctx.textAlign = 'right';
-    ctx.fillText(t('canvas.oppositeBank'), state.canvasW - 10, Math.max(yOffset + 12, waterTop - 7));
-    ctx.fillText(t('canvas.start'),        state.canvasW - 10, Math.min(yOffset + sectionHeight - 6, waterBot + 14));
-    ctx.restore();
+    const labelCol = isLight ? '#374151' : '#CBD5E1';
+    scenePill(t('canvas.oppositeBank'), W - 10, Math.max(yOffset + smallSize + 8, waterTop - 8), labelCol, isLight, uiFont(600, smallSize), 'right');
+    scenePill(t('canvas.start'), W - 10, Math.min(secBot - 6, waterBot + smallSize + 10), labelCol, isLight, uiFont(600, smallSize), 'right');
 
-    // River Current Static Indicator
-    const arrowY = waterBot - 12;
+    /* ====================== CURRENT INDICATOR ====================== */
+    if (show.current) {
+    const arrowY = waterBot - 14;
     const startArrowX = px(xL + d * 0.05, 0).x;
     const endArrowX = px(xR - d * 0.05, 0).x;
     ctx.save();
-    ctx.strokeStyle = isLight ? 'rgba(162, 63, 0, 0.5)' : 'rgba(251, 146, 60, 0.4)';
-    ctx.lineWidth = 1.2;
-    ctx.setLineDash([4, 3]);
+    ctx.strokeStyle = isLight ? 'rgba(255, 255, 255, 0.75)' : 'rgba(251, 146, 60, 0.45)';
+    ctx.lineWidth = 1.4;
+    ctx.setLineDash([6, 5]);
+    ctx.lineDashOffset = -flow * 30;
     ctx.beginPath();
     ctx.moveTo(startArrowX, arrowY);
-    ctx.lineTo(endArrowX, arrowY);
+    ctx.lineTo(endArrowX - 8, arrowY);
     ctx.stroke();
     ctx.setLineDash([]);
-    drawArrow(startArrowX, arrowY, endArrowX, arrowY, isLight ? 'rgba(162, 63, 0, 0.7)' : 'rgba(251, 146, 60, 0.6)', 1.2);
-    ctx.fillStyle = isLight ? 'rgba(162, 63, 0, 0.85)' : 'rgba(251, 146, 60, 0.7)';
-    ctx.font = 'italic 9px Inter, "Hind Siliguri", sans-serif';
-    fillTextWithSubscripts(ctx, res.vr > 0 ? `${t('canvas.riverCurrent')} (v_r = ${fmtSpeedRaw(res.vr)})` : t('canvas.noCurrent'), (startArrowX + endArrowX)/2 - 50, arrowY - 4);
     ctx.restore();
+    sceneArrow(endArrowX - 20, arrowY, endArrowX, arrowY, isLight ? '#EA580C' : '#FB923C', 1.6, isLight);
+    scenePill(
+        res.vr > 0 ? `${t('canvas.riverCurrent')} (v_r = ${fmtSpeedRaw(res.vr)})` : t('canvas.noCurrent'),
+        // Anchored beside the arrowhead, away from the boat's start point
+        endArrowX - 26, arrowY - 7,
+        isLight ? '#C2410C' : '#FDBA74', isLight, `italic ${uiFont(600, smallSize)}`, 'right'
+    );
+    }
 
     /* --- Static Dashed Heading Direction Line --- */
-    if (res.crossingTime !== Infinity) {
+    if (show.heading && res.crossingTime !== Infinity) {
         const isZeroDrift = (res.thetaDeg === Math.asin(res.vr / res.vb) * 180 / Math.PI && res.vb >= res.vr) || res.thetaDeg === 30; // Case B or Case E
         const headingEndX = isZeroDrift ? 0 : -d * Math.tan(res.thetaRad);
-        
+
         const headingStart = px(0, 0);
         const headingEnd   = px(headingEndX, d);
 
         ctx.save();
-        ctx.setLineDash([5, 4]);
-        ctx.strokeStyle = isLight ? 'rgba(75, 85, 99, 0.45)' : 'rgba(255, 255, 255, 0.35)';
-        ctx.lineWidth   = 1.5;
+        ctx.setLineDash([6, 5]);
+        ctx.strokeStyle = isLight ? 'rgba(255, 255, 255, 0.85)' : 'rgba(255, 255, 255, 0.40)';
+        ctx.lineWidth   = 1.6;
         ctx.beginPath();
         ctx.moveTo(headingStart.x, headingStart.y);
         ctx.lineTo(headingEnd.x, headingEnd.y);
         ctx.stroke();
         ctx.restore();
 
-        // Draw static annotation for Heading direction
         if (animProgress > 0.02 && animProgress < 0.98) {
-            ctx.fillStyle = isLight ? 'rgba(75, 85, 99, 0.85)' : 'rgba(255, 255, 255, 0.55)';
-            ctx.font = '8px Inter, "Hind Siliguri", sans-serif';
-            ctx.fillText(t('canvas.headingDirection'), headingEnd.x + 8, headingEnd.y + 14);
+            scenePill(t('canvas.headingDirection'), headingEnd.x + 10, headingEnd.y + labelGap * 2,
+                isLight ? '#1E3A8A' : '#BFDBFE', isLight, uiFont(500, smallSize), 'left');
         }
     }
 
     /* --- Trajectory Actual Path line --- */
-    if (res.crossingTime !== Infinity) {
+    if (show.path && res.crossingTime !== Infinity) {
         const startP = px(0, 0);
         const endP   = px(drift, d);
-
         ctx.save();
-        ctx.setLineDash([6, 5]);
-        ctx.strokeStyle = isLight ? 'rgba(107, 114, 128, 0.35)' : 'rgba(255, 255, 255, 0.15)';
-        ctx.lineWidth   = 1.5;
+        ctx.setLineDash([2, 6]);
+        ctx.lineCap = 'round';
+        ctx.strokeStyle = isLight ? 'rgba(15, 50, 80, 0.45)' : 'rgba(255, 255, 255, 0.28)';
+        ctx.lineWidth   = 2;
         ctx.beginPath();
         ctx.moveTo(startP.x, startP.y);
         ctx.lineTo(endP.x, endP.y);
@@ -3989,47 +4650,62 @@ function drawRiverSection(res, yOffset, sectionHeight, caseLabel, boatColor, ani
         ctx.restore();
     }
 
-    /* --- Wake trail --- */
-    if (wakePts.length > 2) {
+    const boatScale = Math.max(0.85, Math.min(2.0, W / 450));
+
+    /* --- Wake trail: foam that spreads and fades behind the boat --- */
+    if (show.wake && wakePts.length > 2) {
+        const pts = wakePts.map(p => px(p.x, p.y));
+        const n = pts.length;
         ctx.save();
+        ctx.lineCap = 'round';
+        ctx.lineJoin = 'round';
+        for (let i = 1; i < n; i += 1) {
+            const f = i / n;
+            ctx.strokeStyle = `rgba(255,255,255,${(0.04 + 0.2 * f).toFixed(3)})`;
+            ctx.lineWidth = (3 + 6 * (1 - f)) * boatScale;
+            ctx.beginPath();
+            ctx.moveTo(pts[i - 1].x, pts[i - 1].y);
+            ctx.lineTo(pts[i].x, pts[i].y);
+            ctx.stroke();
+        }
         ctx.beginPath();
-        const p0 = px(wakePts[0].x, wakePts[0].y);
-        ctx.moveTo(p0.x, p0.y);
-        wakePts.forEach((pt, i) => {
-            if (i === 0) return;
-            const p = px(pt.x, pt.y);
-            ctx.lineTo(p.x, p.y);
-        });
+        ctx.moveTo(pts[0].x, pts[0].y);
+        for (let i = 1; i < n; i++) ctx.lineTo(pts[i].x, pts[i].y);
         ctx.strokeStyle = boatColor;
-        ctx.globalAlpha = 0.25;
-        ctx.lineWidth   = 2.2;
-        ctx.lineCap     = 'round';
+        ctx.globalAlpha = 0.6;
+        ctx.lineWidth = 1.8;
         ctx.stroke();
         ctx.restore();
     }
 
     /* --- Destination landing marker & Drift bar --- */
-    if (res.crossingTime !== Infinity) {
+    if (show.landing && res.crossingTime !== Infinity) {
         const land = px(drift, d);
 
-        // Target Ring and vertical indicator
         ctx.save();
-        ctx.setLineDash([3, 3]);
-        ctx.strokeStyle = isLight ? 'rgba(107, 114, 128, 0.30)' : 'rgba(255,255,255,0.12)';
-        ctx.lineWidth   = 0.9;
+        ctx.setLineDash([3, 4]);
+        ctx.strokeStyle = isLight ? 'rgba(255, 255, 255, 0.55)' : 'rgba(255,255,255,0.18)';
+        ctx.lineWidth   = 1;
         ctx.beginPath();
         ctx.moveTo(land.x, land.y);
         ctx.lineTo(land.x, waterBot);
         ctx.stroke();
         ctx.restore();
 
-        // Drift bar decoration along far bank if drift > 0
+        // Drift dimension line along the far bank if drift > 0
         if (Math.abs(drift) > 0.5) {
             const startBar = px(0, d);
             const endBar = px(drift, d);
             ctx.save();
+            ctx.lineCap = 'round';
+            ctx.strokeStyle = isLight ? 'rgba(255,255,255,0.9)' : 'rgba(0,0,0,0.5)';
+            ctx.lineWidth = 6;
+            ctx.beginPath();
+            ctx.moveTo(startBar.x, startBar.y);
+            ctx.lineTo(endBar.x, endBar.y);
+            ctx.stroke();
             ctx.strokeStyle = boatColor;
-            ctx.lineWidth = 3.0;
+            ctx.lineWidth = 3;
             ctx.beginPath();
             ctx.moveTo(startBar.x, startBar.y);
             ctx.lineTo(endBar.x, endBar.y);
@@ -4037,262 +4713,222 @@ function drawRiverSection(res, yOffset, sectionHeight, caseLabel, boatColor, ani
             ctx.restore();
         }
 
-        // Landing target point
+        // Landing target: flag planted on the far bank + pulsing ring
+        const pulse = (now * 0.9) % 1;
         ctx.save();
         ctx.strokeStyle = boatColor;
-        ctx.fillStyle   = isLight ? 'rgba(249, 250, 251, 0.9)' : 'rgba(255,255,255,0.1)';
-        ctx.lineWidth   = 1.8;
+        ctx.globalAlpha = 0.6 * (1 - pulse);
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.arc(land.x, land.y, 6 + pulse * 10, 0, Math.PI * 2);
+        ctx.stroke();
+        ctx.globalAlpha = 1;
+        ctx.fillStyle = isLight ? '#FFFFFF' : '#0B1117';
+        ctx.lineWidth = 2;
         ctx.beginPath();
         ctx.arc(land.x, land.y, 6, 0, Math.PI * 2);
         ctx.fill();
         ctx.stroke();
+        ctx.fillStyle = boatColor;
+        ctx.beginPath();
+        ctx.arc(land.x, land.y, 2.4, 0, Math.PI * 2);
+        ctx.fill();
+        if (farH > 22) {
+            // Planted on the bank just beside the landing cove
+            const fx = land.x + coveRx + 7;
+            const poleBase = land.y - 3;
+            const poleTop = land.y - Math.min(24, farH - 6);
+            ctx.strokeStyle = isLight ? '#3F3F46' : '#D4D4D8';
+            ctx.lineWidth = 1.4;
+            ctx.beginPath();
+            ctx.moveTo(fx, poleBase);
+            ctx.lineTo(fx, poleTop);
+            ctx.stroke();
+            const wave = Math.sin(now * 3) * 1.2;
+            ctx.fillStyle = boatColor;
+            ctx.beginPath();
+            ctx.moveTo(fx, poleTop);
+            ctx.quadraticCurveTo(fx + 6, poleTop + 1 + wave, fx + 11, poleTop + 3.5);
+            ctx.quadraticCurveTo(fx + 6, poleTop + 5 - wave, fx, poleTop + 7.5);
+            ctx.closePath();
+            ctx.fill();
+        }
         ctx.restore();
 
         // Landing and drift annotations
-        ctx.fillStyle = boatColor;
-        ctx.font      = `600 ${Math.max(8, Math.min(10, state.canvasW / 95))}px Inter, "Hind Siliguri", sans-serif`;
         const isZeroDrift = Math.abs(drift) < 0.1;
         const driftText = isZeroDrift ? t('canvas.zeroDrift') : `${t('canvas.drift')}: ${fmtDist(drift)}`;
-        ctx.fillText(driftText, land.x + 10, land.y + 20);
+        // Offset past the boat's oar span, so the docked boat never hides it
+        scenePill(driftText, land.x + 34 * coveScale, land.y + labelGap, boatColor === '#1CAB55' && isLight ? '#0E7B4F' : boatColor, isLight, uiFont(700, smallSize), 'left');
 
         // 0-drift reference marker
         if (!isZeroDrift) {
             const ref0 = px(0, d);
-            ctx.fillStyle   = isLight ? 'rgba(107, 114, 128, 0.14)' : 'rgba(255,255,255,0.15)';
-            ctx.strokeStyle = isLight ? 'rgba(107, 114, 128, 0.22)' : 'rgba(255,255,255,0.2)';
-            ctx.lineWidth   = 1;
+            ctx.save();
+            ctx.fillStyle   = isLight ? 'rgba(255,255,255,0.85)' : 'rgba(255,255,255,0.18)';
+            ctx.strokeStyle = isLight ? 'rgba(55, 65, 81, 0.55)' : 'rgba(255,255,255,0.35)';
+            ctx.lineWidth   = 1.2;
             ctx.beginPath();
-            ctx.arc(ref0.x, ref0.y, 3.5, 0, Math.PI * 2);
-            ctx.fill(); ctx.stroke();
-            ctx.fillStyle = isLight ? 'rgba(107, 114, 128, 0.65)' : 'rgba(255,255,255,0.25)';
-            ctx.font      = '8px Inter, "Hind Siliguri", sans-serif';
-            ctx.fillText(t('canvas.zeroDriftRef'), ref0.x - 18, ref0.y + 20);
+            ctx.arc(ref0.x, ref0.y, 4, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.stroke();
+            ctx.restore();
+            scenePill(t('canvas.zeroDriftRef'), ref0.x, ref0.y + labelGap,
+                isLight ? '#4B5563' : '#CBD5E1', isLight, uiFont(500, smallSize), 'center');
         }
     }
 
     /* --- Status Badge inside Canvas --- */
-    ctx.save();
-    let badgeText = '';
-    let badgeColor = '';
-    if (res.impossibleCaseB) {
-        badgeText = `✕  ${t('canvas.badgeImpossible')}`;
-        badgeColor = isLight ? '#E8001D' : '#FF6B7A';
-    } else if (Math.abs(drift) < 0.1) {
-        badgeText = `✓  ${t('canvas.badgeZeroDrift')}`;
-        badgeColor = isLight ? '#0E7B4F' : '#4ADE80';
-    } else {
-        badgeText = `●  ${t('canvas.badgeCompleted')}`;
-        badgeColor = isLight ? '#274FE3' : '#7CA0FF';
+    if (show.badge) {
+        let badgeText = '';
+        let badgeColor = '';
+        if (res.impossibleCaseB) {
+            badgeText = `✕  ${t('canvas.badgeImpossible')}`;
+            badgeColor = isLight ? '#E8001D' : '#FF6B7A';
+        } else if (Math.abs(drift) < 0.1) {
+            badgeText = `✓  ${t('canvas.badgeZeroDrift')}`;
+            badgeColor = isLight ? '#0E7B4F' : '#4ADE80';
+        } else {
+            // A normal crossing needs no status badge; only the special
+            // outcomes (impossible / zero drift) are called out.
+            badgeText = '';
+            badgeColor = isLight ? '#274FE3' : '#7CA0FF';
+        }
+        // Compare mode still labels each half with its case name.
+        if (isCompare) badgeText = (badgeText && !opts.badgeLabelOnly) ? `${caseLabel}: ${badgeText}` : caseLabel;
+        if (badgeText) {
+        // The HTML case pill sits in the canvas's top-left corner, so the first
+        // section drops below it instead of stacking two badges on top of it.
+        const badgeY = yOffset + (opts.badgeTop ?? (yOffset === 0 ? 46 : 10));
+        ctx.save();
+        ctx.shadowColor = 'rgba(0, 0, 0, 0.18)';
+        ctx.shadowBlur = 6;
+        ctx.shadowOffsetY = 2;
+        ctx.font = uiFont(700, smallSize);
+        const bw = Math.max(isCompare ? 220 : 180, ctx.measureText(badgeText.replace(/_/g, '')).width + 22);
+        ctx.fillStyle = isLight ? 'rgba(255, 255, 255, 0.94)' : 'rgba(11, 17, 23, 0.88)';
+        ctx.beginPath();
+        ctx.roundRect(10, badgeY, bw, smallSize + 14, (smallSize + 14) / 2);
+        ctx.fill();
+        ctx.shadowColor = 'transparent';
+        ctx.strokeStyle = isLight ? '#E5E7EB' : 'rgba(255,255,255,0.14)';
+        ctx.lineWidth = 1;
+        ctx.stroke();
+        ctx.fillStyle = badgeColor;
+        ctx.textAlign = 'left';
+        fillTextWithSubscripts(ctx, badgeText, 20, badgeY + smallSize + 6);
+        ctx.restore();
+        }
     }
-    if (isCompare) {
-        badgeText = `${caseLabel}: ${badgeText}`;
-    }
-    ctx.fillStyle = isLight ? 'rgba(255, 255, 255, 0.92)' : 'rgba(11, 17, 23, 0.82)';
-    ctx.strokeStyle = isLight ? '#E5E7EB' : 'rgba(255,255,255,0.14)';
-    ctx.lineWidth = 1;
-    // The HTML case pill sits in the canvas's top-left corner, so the first
-    // section drops below it instead of stacking two badges on top of it.
-    const badgeY = yOffset + (yOffset === 0 ? 40 : 10);
-    ctx.beginPath();
-    ctx.roundRect(10, badgeY, isCompare ? 220 : 180, 20, 4);
-    ctx.fill();
-    ctx.stroke();
-
-    ctx.fillStyle = badgeColor;
-    ctx.font = 'bold 9px Inter, "Hind Siliguri", sans-serif';
-    fillTextWithSubscripts(ctx, badgeText, 16, badgeY + 13);
-    ctx.restore();
 
     /* --- Heading = Actual path coinciding badge --- */
-    if (res.crossingTime !== Infinity) {
-        const isZeroDrift = Math.abs(drift) < 0.1;
-        if (isZeroDrift) {
-            ctx.save();
-            ctx.fillStyle = isLight ? 'rgba(14, 123, 79, 0.95)' : 'rgba(74, 222, 128, 0.85)';
-            ctx.font = '8px Inter, "Hind Siliguri", sans-serif';
-            ctx.fillText(t('canvas.headingEqualsPath'), px(0, d/2).x + 8, px(0, d/2).y);
-            ctx.restore();
-        }
+    if (show.heading && res.crossingTime !== Infinity && Math.abs(drift) < 0.1) {
+        const mid = px(0, d / 2);
+        scenePill(t('canvas.headingEqualsPath'), mid.x + 12, mid.y,
+            isLight ? '#0E7B4F' : '#86EFAC', isLight, uiFont(600, smallSize), 'left');
     }
 
     /* --- Origin marker --- */
     const origin = px(0, 0);
-    ctx.strokeStyle = isLight ? 'rgba(107, 114, 128, 0.35)' : 'rgba(255,255,255,0.2)';
-    ctx.lineWidth   = 1;
+    ctx.save();
+    ctx.strokeStyle = isLight ? 'rgba(255,255,255,0.9)' : 'rgba(255,255,255,0.35)';
+    ctx.lineWidth   = 1.5;
     ctx.beginPath();
-    ctx.arc(origin.x, origin.y, 4, 0, Math.PI * 2);
+    ctx.arc(origin.x, origin.y, 5, 0, Math.PI * 2);
     ctx.stroke();
+    ctx.restore();
 
-    /* --- BOAT ANIMATION --- */
+    /* --- BOAT --- */
     {
         // Stays put at the start bank when crossing is impossible/infinite (nothing to animate)
-        const t      = res.crossingTime === Infinity ? 0 : animProgress * res.crossingTime;
-        const curX   = res.vx * t;
-        const curY   = res.vy * t;
-        const boatP  = px(curX, curY);
-
-        const boatScale = Math.max(0.85, Math.min(2.0, state.canvasW / 450));
+        const tSim  = res.crossingTime === Infinity ? 0 : animProgress * res.crossingTime;
+        const boatP = px(res.vx * tSim, res.vy * tSim);
+        const moving = opts.moving ?? (state.animating && animProgress > 0 && animProgress < 1);
+        const bob = Math.sin(now * 1.7) * (moving ? 0.015 : 0.03);
 
         ctx.save();
         ctx.translate(boatP.x, boatP.y);
-        ctx.rotate(-res.thetaRad); // face heading direction
+        ctx.rotate(-res.thetaRad + bob); // face heading direction
         ctx.scale(boatScale, boatScale);
-
-        // Set line join and cap to round for nice cartoon style
-        ctx.lineJoin = 'round';
-        ctx.lineCap = 'round';
-
-        // 1. BASE HULL (Warm orange-brown base layer)
-        ctx.fillStyle = '#8c4f2b'; // Darker base wood
-        ctx.strokeStyle = '#000000';
-        ctx.lineWidth = 2.2;
-        ctx.beginPath();
-        ctx.moveTo(0, -20);
-        ctx.bezierCurveTo(-12, -10, -12, 10, 0, 20);
-        ctx.bezierCurveTo(12, 10, 12, -10, 0, -20);
-        ctx.closePath();
-        ctx.fill();
-        ctx.stroke();
-
-        // 2. INNER DECK (Light wood floor)
-        ctx.fillStyle = '#dfa57a'; // Light golden-wood floor
-        ctx.beginPath();
-        ctx.moveTo(0, -17);
-        ctx.bezierCurveTo(-7, -8, -7, 8, 0, 17);
-        ctx.bezierCurveTo(7, 8, 7, -8, 0, -17);
-        ctx.closePath();
-        ctx.fill();
-
-        // 3. VERTICAL DECK PLANKS (Floor lines)
-        ctx.strokeStyle = '#8c4f2b';
-        ctx.lineWidth = 0.8;
-        ctx.beginPath();
-        // Center line
-        ctx.moveTo(0, -17); ctx.lineTo(0, 17);
-        // Left floor lines
-        ctx.moveTo(-2, -15); ctx.bezierCurveTo(-2, -5, -2, 5, -2, 15);
-        ctx.moveTo(-4, -11); ctx.bezierCurveTo(-4, -4, -4, 4, -4, 11);
-        // Right floor lines
-        ctx.moveTo(2, -15); ctx.bezierCurveTo(2, -5, 2, 5, 2, 15);
-        ctx.moveTo(4, -11); ctx.bezierCurveTo(4, -4, 4, 4, 4, 11);
-        ctx.stroke();
-
-        // 4. INNER SIDE SHADOWS & SIDE PLANKS (Layered lines on the left and right walls)
-        ctx.strokeStyle = '#5a2e16';
-        ctx.lineWidth = 1.0;
-        ctx.beginPath();
-        // Left side plank curve
-        ctx.moveTo(0, -18.5);
-        ctx.bezierCurveTo(-9.5, -9, -9.5, 9, 0, 18.5);
-        // Right side plank curve
-        ctx.moveTo(0, -18.5);
-        ctx.bezierCurveTo(9.5, -9, 9.5, 9, 0, 18.5);
-        ctx.stroke();
-
-        // 5. SIDE RIBS (Small horizontal supports along inner sides)
-        ctx.strokeStyle = '#5a2e16';
-        ctx.lineWidth = 1.2;
-        ctx.beginPath();
-        for (let yVal = -12; yVal <= 12; yVal += 4) {
-            const radL = Math.PI * (yVal + 20) / 40;
-            const wOuterL = -10.5 * Math.sin(radL);
-            const wFloorL = -5.5 * Math.sin(radL);
-            ctx.moveTo(wOuterL, yVal);
-            ctx.lineTo(wFloorL, yVal);
-
-            const wOuterR = 10.5 * Math.sin(radL);
-            const wFloorR = 5.5 * Math.sin(radL);
-            ctx.moveTo(wOuterR, yVal);
-            ctx.lineTo(wFloorR, yVal);
-        }
-        ctx.stroke();
-
-        // 6. SEATS / BENCHES
-        ctx.fillStyle = '#b5683c'; // Warm reddish-brown for benches
-        ctx.strokeStyle = '#000000';
-        ctx.lineWidth = 1.5;
-
-        // Middle bench
-        ctx.beginPath();
-        ctx.roundRect(-7.5, -2, 15, 4, 0.5);
-        ctx.fill();
-        ctx.stroke();
-
-        // Front bench
-        ctx.beginPath();
-        ctx.roundRect(-5.5, -11, 11, 3, 0.5);
-        ctx.fill();
-        ctx.stroke();
-
-        // Back bench
-        ctx.beginPath();
-        ctx.roundRect(-5.5, 8, 11, 3, 0.5);
-        ctx.fill();
-        ctx.stroke();
-
-        // 7. BOW AND STERN BREASTHOOKS (Pointy wooden blocks at ends)
-        ctx.fillStyle = '#8c4f2b';
-        ctx.beginPath();
-        ctx.moveTo(0, -20);
-        ctx.lineTo(3.5, -15);
-        ctx.lineTo(-3.5, -15);
-        ctx.closePath();
-        ctx.fill();
-        ctx.stroke();
-
-        ctx.beginPath();
-        ctx.moveTo(0, 20);
-        ctx.lineTo(3.5, 15);
-        ctx.lineTo(-3.5, 15);
-        ctx.closePath();
-        ctx.fill();
-        ctx.stroke();
-
-        // 8. OUTER RIM / GUNWALE (Thick top-edge wood color and stroke)
-        ctx.strokeStyle = '#e2a87c'; // Highlighted edge wood color
-        ctx.lineWidth = 1.2;
-        ctx.beginPath();
-        ctx.moveTo(0, -19);
-        ctx.bezierCurveTo(-11, -9.5, -11, 9.5, 0, 19);
-        ctx.bezierCurveTo(11, 9.5, 11, -9.5, 0, -19);
-        ctx.closePath();
-        ctx.stroke();
-
-        // Outer black border stroke (re-applied for cartoon contrast)
-        ctx.strokeStyle = '#000000';
-        ctx.lineWidth = 2.2;
-        ctx.beginPath();
-        ctx.moveTo(0, -20);
-        ctx.bezierCurveTo(-12, -10, -12, 10, 0, 20);
-        ctx.bezierCurveTo(12, 10, 12, -10, 0, -20);
-        ctx.closePath();
-        ctx.stroke();
-
-        // 9. OARLOCK PEGS
-        ctx.fillStyle = '#000000';
-        ctx.beginPath();
-        ctx.arc(-9.5, -1, 1.2, 0, Math.PI * 2);
-        ctx.arc(9.5, -1, 1.2, 0, Math.PI * 2);
-        ctx.fill();
-
+        drawRowboat(boatColor, isLight, moving, now);
         ctx.restore();
 
         /* Vectors from boat */
-        // vb arrow
-        const vbLen = 28 * boatScale;
+        if (show.vectors) {
+        const vbLen = 30 * boatScale;
         const vbArrX = boatP.x - vbLen * Math.sin(res.thetaRad);
         const vbArrY = boatP.y - vbLen * Math.cos(res.thetaRad);
-        drawArrow(boatP.x, boatP.y, vbArrX, vbArrY, isLight ? '#274FE3' : '#7CA0FF', 1.8 * boatScale);
+        sceneArrow(boatP.x, boatP.y, vbArrX, vbArrY, isLight ? '#274FE3' : '#7CA0FF', 2 * boatScale, isLight);
 
-        // vR arrow
         if (res.vR > 0.05) {
-            const vRLen = 36 * boatScale;
+            const vRLen = 38 * boatScale;
             const alphaRad = res.alphaDeg * Math.PI / 180;
             const vRX = boatP.x + vRLen * Math.cos(alphaRad);
             const vRY = boatP.y - vRLen * Math.sin(alphaRad);
-            drawArrow(boatP.x, boatP.y, vRX, vRY, boatColor, 1.8 * boatScale);
+            sceneArrow(boatP.x, boatP.y, vRX, vRY, boatColor, 2 * boatScale, isLight);
+        }
+        }
+
+        /* Teaching vectors: lengths proportional to the speeds, with the
+           vector-addition parallelogram and a label on each arrow. */
+        const teachUnit = (opts.vectorScale || 58) * boatScale / Math.max(res.vb, res.vr, res.vR, 0.01);
+        if (show.teachVectors) {
+            const unit = teachUnit;
+            const vbTip = { x: boatP.x - res.vb * unit * Math.sin(res.thetaRad), y: boatP.y - res.vb * unit * Math.cos(res.thetaRad) };
+            const vrTip = { x: boatP.x + res.vr * unit, y: boatP.y };
+            const vRTip = { x: boatP.x + res.vx * unit, y: boatP.y - res.vy * unit };
+            ctx.save();
+            ctx.setLineDash([4, 4]);
+            ctx.strokeStyle = isLight ? 'rgba(255,255,255,0.9)' : 'rgba(255,255,255,0.45)';
+            ctx.lineWidth = 1.4;
+            ctx.beginPath();
+            ctx.moveTo(vbTip.x, vbTip.y); ctx.lineTo(vRTip.x, vRTip.y);
+            ctx.moveTo(vrTip.x, vrTip.y); ctx.lineTo(vRTip.x, vRTip.y);
+            ctx.stroke();
+            ctx.restore();
+            const vbCol = isLight ? '#274FE3' : '#7CA0FF';
+            const vrCol = isLight ? '#EA580C' : '#FB923C';
+            if (res.vr > 0.01) sceneArrow(boatP.x, boatP.y, vrTip.x, vrTip.y, vrCol, 2.4 * boatScale, isLight);
+            sceneArrow(boatP.x, boatP.y, vbTip.x, vbTip.y, vbCol, 2.4 * boatScale, isLight);
+            sceneArrow(boatP.x, boatP.y, vRTip.x, vRTip.y, boatColor, 2.6 * boatScale, isLight);
+            if (opts.vectorLabels) {
+                const f = uiFont(700, smallSize);
+                const val = (v) => opts.vectorValues ? ` = ${fmtSpeedRaw(v)}` : '';
+                scenePill(`v_b${val(res.vb)}`, vbTip.x, vbTip.y - 10, vbCol, isLight, f, 'center');
+                if (res.vr > 0.01) scenePill(`v_r${val(res.vr)}`, vrTip.x + 10, vrTip.y + smallSize / 2, vrCol, isLight, f, 'left');
+                scenePill(`v_R${val(res.vR)}`, vRTip.x + 10, vRTip.y - 4, boatColor === '#1CAB55' && isLight ? '#0E7B4F' : boatColor, isLight, f, 'left');
+            }
+        }
+
+        /* Heading angle measured from the current's direction (φ). */
+        if (show.angleArc) {
+            const phi = 90 + res.thetaDeg;
+            // Sized to the boat-velocity arrow when that is drawn to scale
+            const r = show.teachVectors ? Math.max(30 * boatScale, 0.45 * res.vb * teachUnit) : 34 * boatScale;
+            const arcCol = isLight ? '#B45309' : '#FBBF24';
+            ctx.save();
+            ctx.strokeStyle = isLight ? 'rgba(255,255,255,0.9)' : 'rgba(0,0,0,0.5)';
+            ctx.lineWidth = 5;
+            const arcPath = () => {
+                ctx.beginPath();
+                for (let i = 0; i <= 24; i++) {
+                    const a = -phi * (i / 24) * Math.PI / 180;
+                    const x = boatP.x + r * Math.cos(a), y = boatP.y + r * Math.sin(a);
+                    if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+                }
+            };
+            arcPath(); ctx.stroke();
+            ctx.strokeStyle = arcCol;
+            ctx.lineWidth = 2.5;
+            arcPath(); ctx.stroke();
+            ctx.restore();
+            const mid = -phi / 2 * Math.PI / 180;
+            scenePill(`φ = ${Math.round(phi)}°`, boatP.x + (r + 24) * Math.cos(mid), boatP.y + (r + 24) * Math.sin(mid) + smallSize / 2,
+                arcCol, isLight, uiFont(800, smallSize + 2), 'center');
         }
     }
+
+    ctx.restore(); // end section clip
 }
 
 function drawFrame() {
@@ -4485,14 +5121,23 @@ function runPhysicsSelfTests() {
 /* =============================================================
    GUIDED TUTORIAL
    ============================================================= */
+/* `action` marks a step the student must actually perform in the mandatory
+   (first-visit) tour before Next unlocks: the DOM events to listen for on
+   the spotlighted control, and the prompt telling them what to do. */
+const SLIDER_ACTION = { events: [['input', 'input'], ['change', 'input']] };
 const TUTORIAL_STEPS = [
-    { target: '.case-selector',     titleKey: 'tutorial.step1.title',  bodyKey: 'tutorial.step1.body'  },
-    { target: '#group-vb',          titleKey: 'tutorial.step2.title',  bodyKey: 'tutorial.step2.body'  },
-    { target: '#group-vr',          titleKey: 'tutorial.step3.title',  bodyKey: 'tutorial.step3.body'  },
-    { target: '#group-d',           titleKey: 'tutorial.step4.title',  bodyKey: 'tutorial.step4.body'  },
+    { target: '.case-selector',     titleKey: 'tutorial.step1.title',  bodyKey: 'tutorial.step1.body',
+      action: { events: [['click', '.case-tab']], promptKey: 'tutorial.step1.action' } },
+    { target: '#group-vb',          titleKey: 'tutorial.step2.title',  bodyKey: 'tutorial.step2.body',
+      action: { ...SLIDER_ACTION, promptKey: 'tutorial.step2.action' } },
+    { target: '#group-vr',          titleKey: 'tutorial.step3.title',  bodyKey: 'tutorial.step3.body',
+      action: { ...SLIDER_ACTION, promptKey: 'tutorial.step3.action' } },
+    { target: '#group-d',           titleKey: 'tutorial.step4.title',  bodyKey: 'tutorial.step4.body',
+      action: { ...SLIDER_ACTION, promptKey: 'tutorial.step4.action' } },
     { target: '.vector-container',  titleKey: 'tutorial.step5.title',  bodyKey: 'tutorial.step5.body'  },
     { target: '.canvas-container',  titleKey: 'tutorial.step6.title',  bodyKey: 'tutorial.step6.body'  },
-    { target: '.playback-controls', titleKey: 'tutorial.step7.title',  bodyKey: 'tutorial.step7.body'  },
+    { target: '.playback-controls', titleKey: 'tutorial.step7.title',  bodyKey: 'tutorial.step7.body',
+      action: { events: [['click', '#btn-play']], promptKey: 'tutorial.step7.action' } },
     { target: '.readouts-grid',     titleKey: 'tutorial.step8.title',  bodyKey: 'tutorial.step8.body'  },
     { target: '.math-panel',        titleKey: 'tutorial.step9.title',  bodyKey: 'tutorial.step9.body'  },
     { target: '.header-right',      titleKey: 'tutorial.step10.title', bodyKey: 'tutorial.step10.body' },
@@ -4502,21 +5147,38 @@ let tutorialIndex = 0;
 let tutorialActive = false;
 let tutorialTarget = null;
 let tutorialReturnFocusEl = null;
+// Mandatory mode: the first-visit tour that follows the onboarding. It
+// can't be skipped, and interactive steps wait for the student to act.
+let tutorialMandatory = false;
+let tutorialDoneSteps = new Set();
+let tutorialActionCleanup = null;
 
-function startTutorial() {
+function tutorialNeedsAction(i) {
+    return tutorialMandatory && !!TUTORIAL_STEPS[i].action && !tutorialDoneSteps.has(i);
+}
+
+function startTutorial(opts = {}) {
     tutorialActive = true;
+    tutorialMandatory = !!opts.mandatory;
+    tutorialDoneSteps = new Set();
     tutorialReturnFocusEl = document.activeElement;
 
-    // The tour only highlights controls, it never needs to operate them, so
-    // the page behind the dialog is made inert for the duration — this is
-    // what keeps Tab from ever leaving the dialog (WCAG 2.2 focus-not-obscured
-    // / focus-trap requirement), without a hand-rolled tabindex sweep.
+    // The optional tour only highlights controls, so the page behind the
+    // dialog is made inert — that keeps Tab from ever leaving the dialog
+    // (WCAG 2.2 focus trap) without a hand-rolled tabindex sweep. The
+    // mandatory tour has the student operate the spotlighted control, so
+    // the page stays live there (the backdrop still blocks everything else).
     const container = document.querySelector('.container');
-    if (container) container.inert = true;
+    if (container && !tutorialMandatory) container.inert = true;
 
+    document.body.classList.add('tutorial-running');
+    document.getElementById('tutorial-tooltip').classList.toggle('tutorial-mandatory', tutorialMandatory);
     document.getElementById('tutorial-backdrop').classList.add('active');
     document.getElementById('tutorial-tooltip').classList.add('active');
     window.addEventListener('resize', onTutorialResize);
+    // The target is smooth-scrolled into view, and the student may scroll
+    // too — re-anchor so the tooltip never lands on the control itself.
+    window.addEventListener('scroll', onTutorialResize, { passive: true });
     document.addEventListener('keydown', onTutorialKeydown);
     showTutorialStep(0);
 }
@@ -4533,7 +5195,9 @@ function getTutorialFocusable() {
 
 function onTutorialKeydown(e) {
     if (!tutorialActive) return;
-    if (e.key === 'Escape') { endTutorial(); return; }
+    if (e.key === 'Escape') { if (!tutorialMandatory) endTutorial(); return; }
+    // Arrow keys belong to the slider or input the student is using.
+    if (e.target.closest && e.target.closest('input, textarea, select')) return;
     if (e.key === 'ArrowRight') { nextTutorialStep(); return; }
     if (e.key === 'ArrowLeft') { prevTutorialStep(); return; }
 
@@ -4553,11 +5217,34 @@ function onTutorialKeydown(e) {
 
 function showTutorialStep(i) {
     if (tutorialTarget) tutorialTarget.classList.remove('tutorial-spotlight');
+    if (tutorialActionCleanup) { tutorialActionCleanup(); tutorialActionCleanup = null; }
 
     tutorialIndex = i;
     const step = TUTORIAL_STEPS[i];
+
+    // On a phone the case selector lives in the menu drawer, so that step
+    // opens the drawer (raised above the tour's backdrop via CSS).
+    const inDrawer = step.target === '.case-selector' && mobileMenuMQ.matches;
+    if (inDrawer) openMobileMenu();
+    else if (document.getElementById('mobile-menu-drawer').classList.contains('open')) closeMobileMenu();
+
     const target = document.querySelector(step.target);
     tutorialTarget = target;
+
+    if (target && tutorialNeedsAction(i)) {
+        const handlers = step.action.events.map(([type, sel]) => {
+            // composedPath, not e.target.closest: Play rewrites its own
+            // innerHTML during the click, detaching the clicked icon/label.
+            const h = (e) => {
+                if (!e.composedPath().some(n => n instanceof Element && n.matches(sel))) return;
+                tutorialDoneSteps.add(i);
+                if (tutorialIndex === i) renderTutorialContent();
+            };
+            target.addEventListener(type, h);
+            return [type, h];
+        });
+        tutorialActionCleanup = () => handlers.forEach(([type, h]) => target.removeEventListener(type, h));
+    }
 
     if (target) {
         target.classList.add('tutorial-spotlight');
@@ -4585,6 +5272,16 @@ function renderTutorialContent() {
     // I18N table, never from user input.
     document.getElementById('tutorial-title').innerHTML = t(step.titleKey);
     document.getElementById('tutorial-body').textContent = t(step.bodyKey);
+    const action = document.getElementById('tutorial-action');
+    const needs = tutorialNeedsAction(i);
+    if (tutorialMandatory && step.action) {
+        action.hidden = false;
+        action.classList.toggle('done', !needs);
+        action.textContent = needs ? `👉 ${t(step.action.promptKey)}` : `✓ ${t('tutorial.actionDone')}`;
+    } else {
+        action.hidden = true;
+    }
+    document.getElementById('tutorial-next').disabled = needs;
     document.getElementById('tutorial-dots').innerHTML = TUTORIAL_STEPS.map((_, idx) =>
         `<span class="tutorial-dot${idx === i ? ' active' : ''}"></span>`
     ).join('');
@@ -4613,6 +5310,7 @@ function positionTutorialTooltip(target) {
 }
 
 function nextTutorialStep() {
+    if (tutorialNeedsAction(tutorialIndex)) return;
     if (tutorialIndex < TUTORIAL_STEPS.length - 1) showTutorialStep(tutorialIndex + 1);
     else endTutorial();
 }
@@ -4622,12 +5320,20 @@ function prevTutorialStep() {
 }
 
 function endTutorial() {
+    // The mandatory tour only ends by finishing it, so reaching here means
+    // this student has done it — it won't be forced on them again.
+    if (tutorialMandatory) prefs.set('guided_tutorial_done_v1', '1');
     tutorialActive = false;
+    tutorialMandatory = false;
+    if (tutorialActionCleanup) { tutorialActionCleanup(); tutorialActionCleanup = null; }
+    document.body.classList.remove('tutorial-running');
+    if (document.getElementById('mobile-menu-drawer').classList.contains('open')) closeMobileMenu();
     if (tutorialTarget) tutorialTarget.classList.remove('tutorial-spotlight');
     tutorialTarget = null;
     document.getElementById('tutorial-backdrop').classList.remove('active');
     document.getElementById('tutorial-tooltip').classList.remove('active');
     window.removeEventListener('resize', onTutorialResize);
+    window.removeEventListener('scroll', onTutorialResize);
     document.removeEventListener('keydown', onTutorialKeydown);
 
     const container = document.querySelector('.container');
@@ -4643,8 +5349,8 @@ function endTutorial() {
 
 /* =============================================================
    CONCEPT ONBOARDING
-   A full-screen, concept-first walkthrough shown once to first-time
-   visitors: a gate question, then (if needed) four teaching screens
+   A full-screen, concept-first walkthrough shown on every page load:
+   a gate question, then (if needed) four teaching screens
    covering the three velocities and the three headline cases (A, B,
    the 120 deg spotlight), then a four-question assessment — three MCQs
    and a hands-on drag task where the student finds the zero-drift
@@ -4655,16 +5361,9 @@ function endTutorial() {
    Separate from the feature-tour GUIDED TUTORIAL above, which stays a
    manual, on-demand walkthrough of the interface controls.
    ============================================================= */
-const CONCEPT_VB = '#7CA0FF';
-const CONCEPT_VR = '#FB923C';
-const CONCEPT_VRES = '#4ADE80';
-const CONCEPT_O = { x: 180, y: 215 };
-const CONCEPT_VR_LEN = 90;
-const CONCEPT_FAR_BANK_Y = 25;
-const CONCEPT_VIEWBOX = '0 0 380 260';
 const CONCEPT_GC_ICON = '<svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M21.42 10.92a1 1 0 0 0-.02-1.84L12.83 5.18a2 2 0 0 0-1.66 0L2.6 9.08a1 1 0 0 0 0 1.83l8.57 3.91a2 2 0 0 0 1.66 0Z"/><path d="M22 10v6"/><path d="M6 12.5V16a6 3 0 0 0 12 0v-3.5"/></svg>';
 
-const CONCEPT_TEACH = ['velocities', 'caseA', 'caseB', 'caseE'];
+const CONCEPT_TEACH = ['velocities', 'straight', 'upstream', 'spotlight'];
 
 const CONCEPT_ASSESS = [
     {
@@ -4674,19 +5373,28 @@ const CONCEPT_ASSESS = [
         correctIdx: 2, explainKey: 'concept.mcq.identify.explain',
     },
     {
-        type: 'mcq', scene: 'caseCompare',
+        type: 'mcq', scene: 'compare',
         qKey: 'concept.mcq.cases.q',
         optKeys: ['concept.mcq.cases.opt0', 'concept.mcq.cases.opt1', 'concept.mcq.cases.opt2', 'concept.mcq.cases.opt3'],
         correctIdx: 0, explainKey: 'concept.mcq.cases.explain',
     },
     {
-        type: 'mcq', scene: 'caseA',
+        type: 'mcq', scene: 'straight',
         qKey: 'concept.mcq.predict.q',
         optKeys: ['concept.mcq.predict.opt0', 'concept.mcq.predict.opt1', 'concept.mcq.predict.opt2', 'concept.mcq.predict.opt3'],
         correctIdx: 0, explainKey: 'concept.mcq.predict.explain',
     },
-    { type: 'interactive' },
+    { type: 'interactive', scene: 'interactive' },
 ];
+
+// Hands-on step: the water is fixed at 5 m/s and the boat at 10 m/s
+// (twice the current), so exactly one heading — 120° from the current —
+// gives a straight crossing.
+const CONCEPT_INTERACT_VR = 5;
+const CONCEPT_INTERACT_VB = 10;
+const CONCEPT_TARGET_ANGLE = 120;
+const CONCEPT_ANGLE_MIN = 90;
+const CONCEPT_ANGLE_MAX = 150;
 
 let conceptActive = false;
 let conceptGate = 'pending';    // 'pending' | 'teach' | 'assess' | 'done'
@@ -4694,7 +5402,7 @@ let conceptTeachIdx = 0;        // 0..CONCEPT_TEACH.length-1
 let conceptAssessIdx = 0;       // 0..CONCEPT_ASSESS.length-1
 let conceptChecked = false;
 let conceptSelectedIdx = null;
-let conceptAngle = 90;          // interactive step's live slider angle (deg from current direction)
+let conceptAngle = CONCEPT_ANGLE_MIN;   // hands-on step's heading angle (deg from current direction)
 let conceptReturnFocusEl = null;
 
 function startConceptOnboarding() {
@@ -4704,7 +5412,7 @@ function startConceptOnboarding() {
     conceptAssessIdx = 0;
     conceptChecked = false;
     conceptSelectedIdx = null;
-    conceptAngle = 90;
+    conceptAngle = CONCEPT_ANGLE_MIN;
     conceptReturnFocusEl = document.activeElement;
     document.getElementById('concept-backdrop').classList.add('active');
     const shell = document.getElementById('concept-shell');
@@ -4712,6 +5420,7 @@ function startConceptOnboarding() {
     shell.focus();
     document.addEventListener('keydown', onConceptKeydown);
     renderConceptOnboarding();
+    startConceptLoop();
 }
 
 function onConceptKeydown(e) {
@@ -4751,9 +5460,16 @@ function nextAssessStep() {
     conceptChecked = false;
     conceptSelectedIdx = null;
     if (CONCEPT_ASSESS[conceptAssessIdx] && CONCEPT_ASSESS[conceptAssessIdx].type === 'interactive') {
-        conceptAngle = 90;
+        conceptAngle = CONCEPT_ANGLE_MIN;
     }
     if (conceptAssessIdx >= CONCEPT_ASSESS.length) {
+        // First visit: straight from the last assessment into the mandatory
+        // hands-on tour of the real controls.
+        if (!prefs.get('guided_tutorial_done_v1')) {
+            finishConceptOnboarding();
+            startTutorial({ mandatory: true });
+            return;
+        }
         conceptGate = 'done';
     }
     renderConceptOnboarding();
@@ -4764,52 +5480,181 @@ function finishConceptOnboarding() {
     document.removeEventListener('keydown', onConceptKeydown);
     document.getElementById('concept-backdrop').classList.remove('active');
     document.getElementById('concept-shell').classList.remove('active');
-    prefs.set('concept_onboarding_done_v1', '1');
     if (conceptReturnFocusEl && document.contains(conceptReturnFocusEl)) conceptReturnFocusEl.focus();
     conceptReturnFocusEl = null;
 }
 
 function skipConceptOnboarding() { finishConceptOnboarding(); }
 
-/* Angle (deg) is measured from the current's own direction — the same
-   convention the app's own φ heading control uses. Screen y is flipped
-   (up = negative) since "across the river" means "toward the top" here. */
-function conceptVec(magnitude, phiDeg) {
-    const rad = phiDeg * Math.PI / 180;
-    return { dx: magnitude * Math.cos(rad), dy: -magnitude * Math.sin(rad) };
+/* =============================================================
+   ONBOARDING STAGE — a live, cut-down copy of the main simulation.
+   Each step names a scenario (its own speeds and heading, never the
+   student's real settings) plus the few overlays that step talks
+   about; drawConceptCanvas then runs it through the very same
+   drawRiverSection renderer, so it looks exactly like the real thing.
+   ============================================================= */
+const CONCEPT_D = 100; // river width (m) for every onboarding scenario
+
+function conceptSceneName() {
+    if (conceptGate === 'teach') return CONCEPT_TEACH[conceptTeachIdx];
+    if (conceptGate === 'assess') return CONCEPT_ASSESS[conceptAssessIdx].scene;
+    if (conceptGate === 'done') return 'spotlight';
+    return 'velocities';
 }
 
-function conceptVSub(sub) { return `v<tspan baseline-shift="sub" font-size="0.65em">${sub}</tspan>`; }
+function conceptScene(name) {
+    const straight = (vb, vr) => solveCrossing(vb, vr, CONCEPT_D, 0);
+    const upstream = (vb, vr) => solveCrossing(vb, vr, CONCEPT_D, Math.asin(vr / vb) * 180 / Math.PI);
+    const bare = { current: true, heading: false, path: false, wake: false, landing: false, badge: false, vectors: false };
+    const crossing = { ...bare, heading: true, path: true, wake: true, landing: true, vectors: true };
 
-function conceptLabel(x, y, html, color, anchor) {
-    return `<text x="${x.toFixed(1)}" y="${y.toFixed(1)}" fill="${color}" font-size="15" font-weight="700" text-anchor="${anchor || 'start'}">${html}</text>`;
-}
-
-function conceptArrow(x1, y1, x2, y2, color, opts) {
-    opts = opts || {};
-    const sw = opts.strokeWidth || 5;
-    const headLen = 14, headW = 8;
-    const ang = Math.atan2(y2 - y1, x2 - x1);
-    const hx = x2 - headLen * Math.cos(ang), hy = y2 - headLen * Math.sin(ang);
-    const lx = hx + headW * Math.cos(ang + Math.PI / 2), ly = hy + headW * Math.sin(ang + Math.PI / 2);
-    const rx = hx + headW * Math.cos(ang - Math.PI / 2), ry = hy + headW * Math.sin(ang - Math.PI / 2);
-    return `<line x1="${x1.toFixed(1)}" y1="${y1.toFixed(1)}" x2="${hx.toFixed(1)}" y2="${hy.toFixed(1)}" stroke="${color}" stroke-width="${sw}" stroke-linecap="round"/>
-        <polygon points="${lx.toFixed(1)},${ly.toFixed(1)} ${x2.toFixed(1)},${y2.toFixed(1)} ${rx.toFixed(1)},${ry.toFixed(1)}" fill="${color}"/>`;
-}
-
-/* Short polyline arc (not an SVG arc command, to sidestep sweep-flag sign
-   mistakes) tracing the angle between the current direction and the boat's
-   heading, with an optional label at its midpoint. */
-function conceptArc(cx, cy, r, fromDeg, toDeg, color, label) {
-    const steps = 16;
-    let d = '';
-    for (let i = 0; i <= steps; i++) {
-        const a = (fromDeg + (toDeg - fromDeg) * i / steps) * Math.PI / 180;
-        d += (i === 0 ? 'M' : 'L') + (cx + r * Math.cos(a)).toFixed(1) + ',' + (cy + r * Math.sin(a)).toFixed(1) + ' ';
+    switch (name) {
+        case 'velocities':
+        case 'identifyQuiz':
+            return { sections: [{ res: straight(4, 3), show: { ...bare, teachVectors: true } }],
+                     vectorLabels: name === 'velocities' };
+        case 'straight':
+            return { sections: [{ res: straight(4, 3), show: crossing }] };
+        case 'upstream':
+            return { sections: [{ res: upstream(5, 3), show: crossing }] };
+        case 'spotlight':
+            return { sections: [{ res: solveCrossing(10, 5, CONCEPT_D, 30), show: { ...crossing, heading: false, angleArc: true } }] };
+        case 'compare':
+            return {
+                viewRes: straight(4, 3),
+                sections: [
+                    { res: straight(4, 3), label: t('concept.scene.straight'), show: { ...crossing, badge: true } },
+                    { res: upstream(4, 3), label: t('concept.scene.upstream'), show: { ...crossing, badge: true } },
+                ],
+            };
+        case 'interactive':
+            return {
+                viewX: [-CONCEPT_D * 0.95, CONCEPT_D * 0.85],
+                sections: [{
+                    res: solveCrossing(CONCEPT_INTERACT_VB, CONCEPT_INTERACT_VR, CONCEPT_D, conceptAngle - 90),
+                    show: { ...bare, path: true, wake: true, landing: true, teachVectors: true, angleArc: true },
+                }],
+                vectorLabels: true,
+                vectorValues: true,
+            };
     }
-    const midA = (fromDeg + toDeg) / 2 * Math.PI / 180;
-    const lx = cx + (r + 20) * Math.cos(midA), ly = cy + (r + 20) * Math.sin(midA);
-    return `<path d="${d}" fill="none" stroke="#FDE68A" stroke-width="2"/>` + (label ? conceptLabel(lx, ly, label, '#FDE68A', 'middle') : '');
+    return conceptScene('velocities');
+}
+
+/* The stage's own animation clock: the boat crosses in a few seconds,
+   rests briefly on the far bank, then sets off again — so every step is
+   always showing the idea in motion. */
+const CONCEPT_CROSS_SECONDS = 5.5;
+const CONCEPT_REST_SECONDS = 1.3;
+const conceptClock = { flow: 0, progress: 0, rest: 0, lastTs: 0, raf: null, particles: [] };
+
+function resetConceptCrossing() {
+    conceptClock.progress = 0;
+    conceptClock.rest = 0;
+}
+
+function startConceptLoop() {
+    if (!conceptClock.particles.length) {
+        for (let i = 0; i < 11; i++) {
+            conceptClock.particles.push({
+                x: (Math.random() - 0.2) * 150,
+                y: Math.random() * 100,
+                len: Math.random() * 12 + 6,
+                opacity: Math.random() * 0.35 + 0.15,
+                speed: Math.random() * 0.4 + 0.8,
+            });
+        }
+    }
+    resetConceptCrossing();
+    conceptClock.lastTs = 0;
+    if (!conceptClock.raf) conceptClock.raf = requestAnimationFrame(conceptTick);
+}
+
+function conceptTick(ts) {
+    if (!conceptActive) { conceptClock.raf = null; return; }
+    const dt = conceptClock.lastTs ? Math.min(0.05, (ts - conceptClock.lastTs) / 1000) : 0;
+    conceptClock.lastTs = ts;
+
+    const sc = conceptScene(conceptSceneName());
+    const vr = sc.sections[0].res.vr;
+    conceptClock.flow += vr * dt * 0.45;
+    conceptClock.particles.forEach(p => { p.x += vr * p.speed * dt * 35; });
+
+    if (conceptClock.progress >= 1) {
+        conceptClock.rest += dt;
+        if (conceptClock.rest >= CONCEPT_REST_SECONDS) resetConceptCrossing();
+    } else {
+        conceptClock.progress = Math.min(1, conceptClock.progress + dt / CONCEPT_CROSS_SECONDS);
+    }
+
+    drawConceptCanvas(sc);
+    conceptClock.raf = requestAnimationFrame(conceptTick);
+}
+
+function drawConceptCanvas(sc) {
+    const cv = document.getElementById('concept-canvas');
+    if (!cv) return;
+    const wrap = cv.parentElement;
+    const W = Math.floor(wrap.clientWidth);
+    const H = Math.floor(Math.min(wrap.clientHeight, W * 0.78));
+    if (W < 20 || H < 20) return;
+    const dpr = window.devicePixelRatio || 1;
+    if (cv._w !== W || cv._h !== H || cv._dpr !== dpr) {
+        cv.width = Math.round(W * dpr);
+        cv.height = Math.round(H * dpr);
+        cv.style.width = W + 'px';
+        cv.style.height = H + 'px';
+        cv._w = W; cv._h = H; cv._dpr = dpr;
+    }
+
+    const mainCtx = ctx;
+    ctx = cv.getContext('2d');
+    try {
+        ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+        ctx.fillStyle = isLightTheme() ? '#F3F4F6' : '#0B1117';
+        ctx.fillRect(0, 0, W, H);
+
+        const n = sc.sections.length;
+        const secH = H / n;
+        const p = conceptClock.progress;
+        const moving = p > 0 && p < 1;
+        sc.sections.forEach((sec, i) => {
+            const res = sec.res;
+            const wake = [];
+            if (res.crossingTime !== Infinity) {
+                const tNow = p * res.crossingTime;
+                for (let k = 0; k <= 40; k++) {
+                    const tt = tNow * k / 40;
+                    wake.push({ x: res.vx * tt, y: res.vy * tt });
+                }
+            }
+            drawRiverSection(res, i * secH, secH, sec.label || '', cssColor('--color-vR', '#1CAB55'), p, wake, n > 1, {
+                W,
+                viewRes: sc.viewRes || res,
+                viewX: sc.viewX,
+                flow: conceptClock.flow,
+                particles: conceptClock.particles,
+                moving,
+                show: sec.show,
+                vectorLabels: sc.vectorLabels,
+                vectorValues: sc.vectorValues,
+                badgeTop: 10,
+                textScale: 1.15,
+                vectorScale: 90,
+                badgeLabelOnly: true,
+            });
+        });
+        if (n > 1) {
+            ctx.strokeStyle = 'rgba(255, 255, 255, 0.5)';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.moveTo(0, secH);
+            ctx.lineTo(W, secH);
+            ctx.stroke();
+        }
+    } finally {
+        ctx = mainCtx;
+    }
 }
 
 function conceptArrowIcon(color, angleDeg, size) {
@@ -4818,127 +5663,6 @@ function conceptArrowIcon(color, angleDeg, size) {
         <line x1="4" y1="18" x2="26" y2="18" stroke="${color}" stroke-width="3.5" stroke-linecap="round"/>
         <polygon points="24,10.5 34,18 24,25.5" fill="${color}"/>
     </svg>`;
-}
-
-function conceptSvgOpen() { return `<svg class="concept-svg" viewBox="${CONCEPT_VIEWBOX}" preserveAspectRatio="xMidYMid meet" aria-hidden="true">`; }
-
-function conceptBanksMarkup() {
-    return `<line x1="0" y1="${CONCEPT_FAR_BANK_Y}" x2="380" y2="${CONCEPT_FAR_BANK_Y}" stroke="rgba(255,255,255,0.28)" stroke-width="2" stroke-dasharray="6 6"/>
-        <line x1="0" y1="${CONCEPT_O.y}" x2="380" y2="${CONCEPT_O.y}" stroke="rgba(255,255,255,0.28)" stroke-width="2" stroke-dasharray="6 6"/>
-        <circle cx="${CONCEPT_O.x}" cy="${CONCEPT_O.y}" r="4" fill="rgba(255,255,255,0.8)"/>`;
-}
-
-/* Generic vb/vr/vR scene. vbMag + phiDeg (from the current's direction)
-   fully determine the boat vector; vr is always the same fixed reference
-   vector so every teaching scene reads on the same visual scale. */
-function conceptVectorScene(vbMag, phiDeg, opts) {
-    opts = opts || {};
-    const O = CONCEPT_O;
-    const vr = { dx: CONCEPT_VR_LEN, dy: 0 };
-    const vb = conceptVec(vbMag, phiDeg);
-    const vbTip = { x: O.x + vb.dx, y: O.y + vb.dy };
-    const vrTip = { x: O.x + vr.dx, y: O.y + vr.dy };
-    const vRTip = { x: O.x + vb.dx + vr.dx, y: O.y + vb.dy + vr.dy };
-
-    let extra = '';
-    if (opts.showParallelogram) {
-        extra += `<line x1="${vbTip.x.toFixed(1)}" y1="${vbTip.y.toFixed(1)}" x2="${vRTip.x.toFixed(1)}" y2="${vRTip.y.toFixed(1)}" stroke="rgba(255,255,255,0.25)" stroke-width="1.5" stroke-dasharray="3 4"/>
-            <line x1="${vrTip.x.toFixed(1)}" y1="${vrTip.y.toFixed(1)}" x2="${vRTip.x.toFixed(1)}" y2="${vRTip.y.toFixed(1)}" stroke="rgba(255,255,255,0.25)" stroke-width="1.5" stroke-dasharray="3 4"/>`;
-    }
-    if (opts.angleArc) {
-        const a1 = Math.atan2(vr.dy, vr.dx) * 180 / Math.PI;
-        const a2 = Math.atan2(vb.dy, vb.dx) * 180 / Math.PI;
-        extra += conceptArc(O.x, O.y, 42, a1, a2, null, opts.angleLabel);
-    }
-    if (opts.pathToFarBank) {
-        const dy = vRTip.y - O.y;
-        const tt = dy !== 0 ? (CONCEPT_FAR_BANK_Y - O.y) / dy : 0;
-        const landX = O.x + (vRTip.x - O.x) * tt;
-        extra += `<line x1="${O.x}" y1="${O.y}" x2="${landX.toFixed(1)}" y2="${CONCEPT_FAR_BANK_Y}" stroke="${CONCEPT_VRES}" stroke-width="2.5"${opts.pathDashed === false ? '' : ' stroke-dasharray="2 5"'}/>
-            <circle cx="${landX.toFixed(1)}" cy="${CONCEPT_FAR_BANK_Y}" r="5" fill="${CONCEPT_VRES}"/>`;
-        if (opts.driftBracket) {
-            const y = CONCEPT_FAR_BANK_Y + 23;
-            extra += `<line x1="${O.x}" y1="${y}" x2="${landX.toFixed(1)}" y2="${y}" stroke="#F87171" stroke-width="2"/>
-                <line x1="${O.x}" y1="${y - 4}" x2="${O.x}" y2="${y + 4}" stroke="#F87171" stroke-width="2"/>
-                <line x1="${landX.toFixed(1)}" y1="${y - 4}" x2="${landX.toFixed(1)}" y2="${y + 4}" stroke="#F87171" stroke-width="2"/>
-                ${conceptLabel((O.x + landX) / 2, y - 8, opts.driftLabel, '#F87171', 'middle')}`;
-        }
-    }
-
-    let arrows = conceptArrow(O.x, O.y, vrTip.x, vrTip.y, CONCEPT_VR);
-    arrows += conceptArrow(O.x, O.y, vbTip.x, vbTip.y, CONCEPT_VB);
-    arrows += conceptArrow(O.x, O.y, vRTip.x, vRTip.y, CONCEPT_VRES, { strokeWidth: 5.5 });
-
-    let labels = '';
-    if (opts.showLabels !== false) {
-        labels += conceptLabel(vrTip.x + 8, vrTip.y + 4, conceptVSub('r'), CONCEPT_VR, 'start');
-        labels += conceptLabel(vbTip.x, vbTip.y - 10, conceptVSub('b'), CONCEPT_VB, 'middle');
-        labels += conceptLabel(vRTip.x + 8, vRTip.y - 6, conceptVSub('R'), CONCEPT_VRES, 'start');
-    }
-
-    return conceptSvgOpen() + conceptBanksMarkup() + extra + arrows + labels + `</svg>`;
-}
-
-/* Overlays Case A's drifted landing point against Case B's straight-across
-   landing point, both starting from the same O, for the A-vs-B MCQ. */
-function conceptCompareScene() {
-    const O = CONCEPT_O;
-    const vbA = conceptVec(130, 90);
-    const vRA = { x: O.x + vbA.dx + CONCEPT_VR_LEN, y: O.y + vbA.dy };
-    const tt = (CONCEPT_FAR_BANK_Y - O.y) / (vRA.y - O.y);
-    const landA = { x: O.x + (vRA.x - O.x) * tt, y: CONCEPT_FAR_BANK_Y };
-    const landB = { x: O.x, y: CONCEPT_FAR_BANK_Y };
-
-    return conceptSvgOpen() + conceptBanksMarkup() +
-        `<line x1="${O.x}" y1="${O.y}" x2="${landA.x.toFixed(1)}" y2="${landA.y}" stroke="${CONCEPT_VR}" stroke-width="3" stroke-dasharray="2 6"/>
-        <circle cx="${landA.x.toFixed(1)}" cy="${landA.y}" r="7" fill="${CONCEPT_VR}"/>
-        ${conceptLabel(landA.x + 12, landA.y + 5, 'A', CONCEPT_VR, 'start')}
-        <line x1="${O.x}" y1="${O.y}" x2="${landB.x}" y2="${landB.y}" stroke="${CONCEPT_VRES}" stroke-width="3"/>
-        <circle cx="${landB.x}" cy="${landB.y}" r="7" fill="${CONCEPT_VRES}"/>
-        ${conceptLabel(landB.x - 12, landB.y + 5, 'B', CONCEPT_VRES, 'end')}
-        </svg>`;
-}
-
-/* Boat speed is locked to 2x the current speed (the Case E condition); only
-   the heading angle is live, driven by the assessment step's slider. */
-function conceptInteractiveScene(phiDeg) {
-    const O = CONCEPT_O;
-    const vbMag = CONCEPT_VR_LEN * 2;
-    const vr = { dx: CONCEPT_VR_LEN, dy: 0 };
-    const vb = conceptVec(vbMag, phiDeg);
-    const vbTip = { x: O.x + vb.dx, y: O.y + vb.dy };
-    const vRTip = { x: O.x + vb.dx + vr.dx, y: O.y + vb.dy + vr.dy };
-    const solved = Math.abs(phiDeg - 120) <= 2;
-    const pathColor = solved ? CONCEPT_VRES : '#FBBF24';
-
-    const dy = vRTip.y - O.y;
-    const tt = dy !== 0 ? (CONCEPT_FAR_BANK_Y - O.y) / dy : 0;
-    const landX = O.x + (vRTip.x - O.x) * tt;
-    const vbAngle = Math.atan2(vb.dy, vb.dx) * 180 / Math.PI;
-
-    return conceptSvgOpen() + conceptBanksMarkup() +
-        `<circle cx="${O.x}" cy="${CONCEPT_FAR_BANK_Y}" r="9" fill="none" stroke="rgba(74,222,128,0.55)" stroke-width="2" stroke-dasharray="3 3"/>` +
-        conceptArc(O.x, O.y, 42, 0, vbAngle, null, null) +
-        `<line x1="${O.x}" y1="${O.y}" x2="${landX.toFixed(1)}" y2="${CONCEPT_FAR_BANK_Y}" stroke="${pathColor}" stroke-width="2.5" stroke-dasharray="2 5"/>
-        <circle cx="${landX.toFixed(1)}" cy="${CONCEPT_FAR_BANK_Y}" r="5" fill="${pathColor}"/>` +
-        conceptArrow(O.x, O.y, O.x + vr.dx, O.y + vr.dy, CONCEPT_VR) +
-        conceptArrow(O.x, O.y, vbTip.x, vbTip.y, CONCEPT_VB) +
-        conceptArrow(O.x, O.y, vRTip.x, vRTip.y, pathColor, { strokeWidth: 5.5 }) +
-        `</svg>`;
-}
-
-function conceptSceneFor(name) {
-    if (name === 'velocities') return conceptVectorScene(130, 90, { showParallelogram: true });
-    if (name === 'caseA') return conceptVectorScene(130, 90, { pathToFarBank: true, driftBracket: true, driftLabel: t('canvas.drift') });
-    if (name === 'caseB') {
-        const phi = Math.acos(-CONCEPT_VR_LEN / 150) * 180 / Math.PI;
-        return conceptVectorScene(150, phi, { pathToFarBank: true, pathDashed: false });
-    }
-    if (name === 'caseE') return conceptVectorScene(180, 120, { pathToFarBank: true, pathDashed: false, angleArc: true, angleLabel: '120°' });
-    if (name === 'identifyQuiz') return conceptVectorScene(130, 90, { showLabels: false });
-    if (name === 'caseCompare') return conceptCompareScene();
-    if (name === 'interactive') return conceptInteractiveScene(conceptAngle);
-    return '';
 }
 
 function conceptOptionsHtml(optKeys) {
@@ -4965,16 +5689,20 @@ function conceptFeedbackHtml(correct, explainHtml, youSaidText, actualText) {
 }
 
 function conceptAngleHintHtml(angle, solved) {
-    const a = Math.round(angle);
-    if (solved) return t('concept.interactive.hintSolved').replace('{angle}', a);
-    return t(angle < 120 ? 'concept.interactive.hintUnder' : 'concept.interactive.hintOver').replace('{angle}', a);
+    if (solved) return t('concept.interactive.hintSolved').replace('{angle}', angle);
+    return t(angle < CONCEPT_TARGET_ANGLE ? 'concept.interactive.hintUnder' : 'concept.interactive.hintOver').replace('{angle}', angle);
 }
 
-function onConceptAngleInput(val) {
-    conceptAngle = parseFloat(val);
-    const solved = Math.abs(conceptAngle - 120) <= 2;
-    const svgWrap = document.getElementById('concept-svg-wrap');
-    if (svgWrap) svgWrap.innerHTML = conceptInteractiveScene(conceptAngle);
+/* Updates only the live bits (hint, success line, button, slider value)
+   so the slider the student is dragging is never re-created mid-drag. */
+function setConceptAngle(val) {
+    conceptAngle = Math.max(CONCEPT_ANGLE_MIN, Math.min(CONCEPT_ANGLE_MAX, Math.round(parseFloat(val))));
+    resetConceptCrossing();
+    const solved = conceptAngle === CONCEPT_TARGET_ANGLE;
+    const slider = document.getElementById('concept-angle-slider');
+    if (slider && parseFloat(slider.value) !== conceptAngle) slider.value = conceptAngle;
+    const readout = document.getElementById('concept-angle-value');
+    if (readout) readout.textContent = conceptAngle + '°';
     const hint = document.getElementById('concept-angle-hint');
     if (hint) { hint.innerHTML = conceptAngleHintHtml(conceptAngle, solved); hint.classList.toggle('solved', solved); }
     const success = document.getElementById('concept-angle-success');
@@ -4984,14 +5712,10 @@ function onConceptAngleInput(val) {
 }
 
 function renderConceptOnboarding() {
-    const caption = document.getElementById('concept-stage-caption');
-    const svgWrap = document.getElementById('concept-svg-wrap');
     const panel = document.getElementById('concept-panel');
-
-    let stageHtml = '', captionText = '', panelHtml = '';
+    let panelHtml = '';
 
     if (conceptGate === 'pending') {
-        stageHtml = conceptSceneFor('velocities');
         panelHtml = `<div class="concept-eyebrow">${CONCEPT_GC_ICON}<span>${t('concept.gate.eyebrow')}</span></div>
             <h2 class="concept-title" id="concept-title">${t('concept.gate.question')}</h2>
             <div class="concept-gate-btns">
@@ -5001,35 +5725,22 @@ function renderConceptOnboarding() {
     } else if (conceptGate === 'teach') {
         const idx = conceptTeachIdx;
         const id = CONCEPT_TEACH[idx];
-        let eyebrowText = `${t('concept.lesson')} ${idx + 1}/${CONCEPT_TEACH.length}`;
+        const eyebrowText = `${t('concept.lesson')} ${idx + 1}/${CONCEPT_TEACH.length}`;
         let titleHtml, bodyHtml;
 
         if (id === 'velocities') {
-            stageHtml = conceptSceneFor('velocities');
             titleHtml = t('concept.teach.velocities.title');
             bodyHtml = `<div class="concept-gallery">
-                <div class="concept-gallery-item">${conceptArrowIcon(CONCEPT_VB, -90)}<div><div class="concept-gallery-name">${t('concept.teach.velocities.vb.name')}</div><div class="concept-gallery-desc">${t('concept.teach.velocities.vb.desc')}</div></div></div>
-                <div class="concept-gallery-item">${conceptArrowIcon(CONCEPT_VR, 0)}<div><div class="concept-gallery-name">${t('concept.teach.velocities.vr.name')}</div><div class="concept-gallery-desc">${t('concept.teach.velocities.vr.desc')}</div></div></div>
-                <div class="concept-gallery-item">${conceptArrowIcon(CONCEPT_VRES, -55)}<div><div class="concept-gallery-name">${t('concept.teach.velocities.vR.name')}</div><div class="concept-gallery-desc">${t('concept.teach.velocities.vR.desc')}</div></div></div>
+                <div class="concept-gallery-item">${conceptArrowIcon('var(--color-vb)', -90)}<div><div class="concept-gallery-name">${t('concept.teach.velocities.vb.name')}</div><div class="concept-gallery-desc">${t('concept.teach.velocities.vb.desc')}</div></div></div>
+                <div class="concept-gallery-item">${conceptArrowIcon('var(--color-vr)', 0)}<div><div class="concept-gallery-name">${t('concept.teach.velocities.vr.name')}</div><div class="concept-gallery-desc">${t('concept.teach.velocities.vr.desc')}</div></div></div>
+                <div class="concept-gallery-item">${conceptArrowIcon('var(--color-vR)', -55)}<div><div class="concept-gallery-name">${t('concept.teach.velocities.vR.name')}</div><div class="concept-gallery-desc">${t('concept.teach.velocities.vR.desc')}</div></div></div>
             </div>`;
-        } else if (id === 'caseA') {
-            eyebrowText += ` · ${t('concept.teach.caseA.eyebrow')}`;
-            stageHtml = conceptSceneFor('caseA');
-            titleHtml = t('concept.teach.caseA.title');
-            bodyHtml = `<p class="concept-body-text">${t('concept.teach.caseA.body')}</p><div class="concept-key-fact">${t('concept.teach.caseA.fact')}</div>`;
-        } else if (id === 'caseB') {
-            eyebrowText += ` · ${t('concept.teach.caseB.eyebrow')}`;
-            stageHtml = conceptSceneFor('caseB');
-            titleHtml = t('concept.teach.caseB.title');
-            bodyHtml = `<p class="concept-body-text">${t('concept.teach.caseB.body')}</p><div class="concept-key-fact">${t('concept.teach.caseB.fact')}</div>`;
         } else {
-            eyebrowText += ` · ${t('concept.teach.caseE.eyebrow')}`;
-            stageHtml = conceptSceneFor('caseE');
-            titleHtml = t('concept.teach.caseE.title');
-            bodyHtml = `<p class="concept-body-text">${t('concept.teach.caseE.body')}</p><div class="concept-key-fact">${t('concept.teach.caseE.fact')}</div>`;
+            const key = { straight: 'caseA', upstream: 'caseB', spotlight: 'caseE' }[id];
+            titleHtml = t(`concept.teach.${key}.title`);
+            bodyHtml = `<p class="concept-body-text">${t(`concept.teach.${key}.body`)}</p><div class="concept-key-fact">${t(`concept.teach.${key}.fact`)}</div>`;
         }
 
-        captionText = eyebrowText;
         panelHtml = `<div class="concept-eyebrow">${CONCEPT_GC_ICON}<span>${eyebrowText}</span></div>
             <h2 class="concept-title" id="concept-title">${titleHtml}</h2>
             ${bodyHtml}
@@ -5037,10 +5748,8 @@ function renderConceptOnboarding() {
     } else if (conceptGate === 'assess') {
         const item = CONCEPT_ASSESS[conceptAssessIdx];
         const eyebrowText = `${t('concept.assess')} ${conceptAssessIdx + 1}/${CONCEPT_ASSESS.length}`;
-        captionText = eyebrowText;
 
         if (item.type === 'mcq') {
-            stageHtml = conceptSceneFor(item.scene);
             if (!conceptChecked) {
                 panelHtml = `<div class="concept-eyebrow">${CONCEPT_GC_ICON}<span>${eyebrowText}</span></div>
                     <h2 class="concept-title" id="concept-title">${t(item.qKey)}</h2>
@@ -5053,29 +5762,33 @@ function renderConceptOnboarding() {
                     <div class="concept-actions"><button type="button" class="concept-btn" onclick="nextAssessStep()">${t('concept.next')}</button></div>`;
             }
         } else {
-            const solved = Math.abs(conceptAngle - 120) <= 2;
-            stageHtml = conceptSceneFor('interactive');
+            const solved = conceptAngle === CONCEPT_TARGET_ANGLE;
             panelHtml = `<div class="concept-eyebrow">${CONCEPT_GC_ICON}<span>${eyebrowText} · ${t('concept.interactive.eyebrow')}</span></div>
                 <h2 class="concept-title" id="concept-title">${t('concept.interactive.title')}</h2>
                 <p class="concept-body-text">${t('concept.interactive.instruction')}</p>
-                <label class="concept-compare-label" for="concept-angle-slider">${t('concept.interactive.angleLabel')}</label>
-                <input type="range" id="concept-angle-slider" class="concept-angle-slider range-slider" min="80" max="160" step="1" value="${conceptAngle}" oninput="onConceptAngleInput(this.value)">
+                <div class="concept-angle-head">
+                    <label class="concept-compare-label" for="concept-angle-slider">${t('concept.interactive.angleLabel')}</label>
+                    <span class="concept-angle-value" id="concept-angle-value">${conceptAngle}°</span>
+                </div>
+                <div class="concept-angle-row">
+                    <button type="button" class="concept-step-btn" onclick="setConceptAngle(conceptAngle - 1)" aria-label="−1°">−</button>
+                    <input type="range" id="concept-angle-slider" class="concept-angle-slider range-slider" min="${CONCEPT_ANGLE_MIN}" max="${CONCEPT_ANGLE_MAX}" step="1" value="${conceptAngle}" oninput="setConceptAngle(this.value)">
+                    <button type="button" class="concept-step-btn" onclick="setConceptAngle(conceptAngle + 1)" aria-label="+1°">+</button>
+                </div>
                 <div class="concept-live-hint${solved ? ' solved' : ''}" id="concept-angle-hint">${conceptAngleHintHtml(conceptAngle, solved)}</div>
                 <div class="concept-feedback correct" id="concept-angle-success" style="display:${solved ? '' : 'none'}">${t('concept.interactive.success')}</div>
                 <div class="concept-actions"><button type="button" class="concept-btn" id="concept-interactive-continue" ${solved ? '' : 'disabled'} onclick="nextAssessStep()">${t('concept.finish')}</button></div>`;
         }
     } else {
-        // done
-        stageHtml = conceptSceneFor('caseE');
         panelHtml = `<div class="concept-eyebrow">${CONCEPT_GC_ICON}<span>${t('concept.assess')} ${CONCEPT_ASSESS.length}/${CONCEPT_ASSESS.length}</span></div>
             <h2 class="concept-title" id="concept-title">🎓 ${t('concept.done.title')}</h2>
             <p class="concept-body-text">${t('concept.done.body')}</p>
             <div class="concept-actions"><button type="button" class="concept-btn" onclick="finishConceptOnboarding()">${t('concept.done.start')}</button></div>`;
     }
 
-    caption.textContent = captionText;
-    svgWrap.innerHTML = stageHtml;
-    panel.innerHTML = panelHtml;
+    // A new step always restarts its crossing from the near bank.
+    resetConceptCrossing();
+    panel.innerHTML = `<div class="concept-panel-inner">${panelHtml}</div>`;
 }
 </script>
 </body>
