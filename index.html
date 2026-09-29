@@ -1250,7 +1250,13 @@
             display: none;
             position: fixed;
             inset: 0;
-            background: rgba(17, 24, 39, 0.55);
+            /* Transparent, not dark -- the rest of the page stays at full
+               brightness during the tour; only the red ring below marks
+               the spotlighted control. Kept as a real element (rather than
+               removed) since it still intercepts clicks outside the tour
+               dialog and sits under .tutorial-spotlight in the stacking
+               order. */
+            background: transparent;
             z-index: 9998;
         }
         .tutorial-backdrop.active { display: block; }
@@ -1259,7 +1265,7 @@
             position: relative !important;
             z-index: 10000 !important;
             border-radius: var(--r-md);
-            box-shadow: 0 0 0 3px var(--ten-red), 0 0 0 9999px rgba(17, 24, 39, 0.55);
+            box-shadow: 0 0 0 3px var(--ten-red);
         }
 
         .tutorial-tooltip {
